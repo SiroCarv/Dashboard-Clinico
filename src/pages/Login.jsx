@@ -9,33 +9,27 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
-  // Nuevos estados para el mensaje flotante
   const [mensajeExito, setMensajeExito] = useState('');
   const [desvanecer, setDesvanecer] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  // useEffect para detectar si venimos de registrarnos exitosamente
   useEffect(() => {
     if (location.state?.mensajeRegistro) {
       setMensajeExito(location.state.mensajeRegistro);
       
-      // Limpiamos el historial para que no vuelva a salir si el usuario recarga la página
       window.history.replaceState({}, document.title);
 
-      // A los 5 segundos, iniciamos el efecto de desvanecimiento
       const fadeTimer = setTimeout(() => {
         setDesvanecer(true);
       }, 5000);
 
-      // A los 6 segundos (después de terminar la animación), borramos el mensaje del todo
       const removeTimer = setTimeout(() => {
         setMensajeExito('');
         setDesvanecer(false);
       }, 6000);
 
-      // Limpiamos los temporizadores por seguridad
       return () => {
         clearTimeout(fadeTimer);
         clearTimeout(removeTimer);
@@ -49,6 +43,14 @@ export default function Login() {
     setError('');
 
     const cleanedEmail = email.trim().replace(/\s+/g, '');
+
+    // NUEVA VALIDACIÓN: Regex para asegurar que el correo tenga dominio
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanedEmail)) {
+      setError('Por favor, ingresa un correo electrónico válido (ej. usuario@dominio.com).');
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -81,10 +83,8 @@ export default function Login() {
   };
 
   return (
-    // Agregamos flex-col al contenedor principal para poder apilar el mensaje y la tarjeta
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
       
-      {/* ALERTA DE ÉXITO (Flotando encima del panel) */}
       {mensajeExito && (
         <div 
           className={`max-w-md w-full mb-4 p-4 bg-green-100 border border-green-500 text-green-800 rounded-lg shadow-lg text-center font-bold transition-opacity duration-1000 ease-in-out ${
@@ -95,7 +95,6 @@ export default function Login() {
         </div>
       )}
 
-      {/* Tarjeta principal de Login */}
       <div className="max-w-md w-full bg-white p-8 border-t-8 border-orange-500 rounded-lg shadow-xl">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-extrabold text-black">
@@ -120,6 +119,8 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
+              title="Debe incluir un dominio válido (ej. .com, .es)"
               placeholder="usuario@gmail.com"
               className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
             />
@@ -180,7 +181,6 @@ export default function Login() {
           </button>
         </form>
 
-        {/* Enlace al registro */}
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
             ¿Eres paciente nuevo?{' '}

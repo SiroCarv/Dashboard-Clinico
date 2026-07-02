@@ -6,13 +6,24 @@ export default function RecuperarPassword() {
   const [correo, setCorreo] = useState('');
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState('');
+  // NUEVO: Agregamos un estado de error
+  const [error, setError] = useState(''); 
 
   const manejarEnvio = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMensaje('');
+    setError('');
 
     const correoLimpio = correo.trim().replace(/\s+/g, '');
+
+    // NUEVA VALIDACIÓN: Regex para asegurar que el correo tenga dominio
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(correoLimpio)) {
+      setError('Por favor, ingresa un correo electrónico válido (ej. usuario@dominio.com).');
+      setLoading(false);
+      return;
+    }
 
     await supabase.auth.resetPasswordForEmail(correoLimpio, {
       redirectTo: `${window.location.origin}/restablecer-password`,
@@ -33,6 +44,13 @@ export default function RecuperarPassword() {
           <p className="text-gray-500 mt-2 font-medium">Contraseña</p>
         </div>
 
+        {/* Mostramos el error si existe */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-center text-sm font-semibold">
+            {error}
+          </div>
+        )}
+
         {mensaje ? (
           <div className="mb-4 p-4 bg-green-100 border border-green-500 text-green-800 rounded-lg shadow-sm text-center font-bold">
             {mensaje}
@@ -48,6 +66,8 @@ export default function RecuperarPassword() {
                 required
                 value={correo}
                 onChange={(e) => setCorreo(e.target.value)}
+                pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
+                title="Debe incluir un dominio válido (ej. .com, .es)"
                 placeholder="usuario@gmail.com"
                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
               />

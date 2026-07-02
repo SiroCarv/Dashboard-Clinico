@@ -20,6 +20,14 @@ export default function Registro() {
 
     const cleanedEmail = email.trim().replace(/\s+/g, '');
 
+    // NUEVA VALIDACIÓN: Regex para asegurar que el correo tenga dominio
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanedEmail)) {
+      setError('Por favor, ingresa un correo electrónico válido (ej. usuario@dominio.com).');
+      setLoading(false);
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden. Por favor, verifica.');
       setLoading(false);
@@ -51,7 +59,6 @@ export default function Registro() {
 
       if (userError) throw userError;
 
-      // REDIRECCIÓN INMEDIATA: Mandamos al usuario a "/" y le adjuntamos el mensaje de éxito
       navigate('/', { 
         state: { mensajeRegistro: '¡Cuenta registrada exitosamente! Ya puedes iniciar sesión.' } 
       });
@@ -91,6 +98,8 @@ export default function Registro() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
+              title="Debe incluir un dominio válido (ej. .com, .es)"
               placeholder="usuario@gmail.com"
               className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
             />
