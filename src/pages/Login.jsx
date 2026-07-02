@@ -24,16 +24,16 @@ export default function Login() {
       // Limpiamos el historial para que no vuelva a salir si el usuario recarga la página
       window.history.replaceState({}, document.title);
 
-      // A los 3 segundos, iniciamos el efecto de desvanecimiento
+      // A los 5 segundos, iniciamos el efecto de desvanecimiento
       const fadeTimer = setTimeout(() => {
         setDesvanecer(true);
-      }, 3000);
+      }, 5000);
 
-      // A los 4 segundos (después de terminar la animación), borramos el mensaje del todo
+      // A los 6 segundos (después de terminar la animación), borramos el mensaje del todo
       const removeTimer = setTimeout(() => {
         setMensajeExito('');
         setDesvanecer(false);
-      }, 4000);
+      }, 6000);
 
       // Limpiamos los temporizadores por seguridad
       return () => {
