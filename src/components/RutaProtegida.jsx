@@ -8,33 +8,49 @@ export default function RutaProtegida({ children, rolRequerido }) {
 
   useEffect(() => {
     const verificarAcceso = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      // 1. Leemos la sesión local (Es instantáneo y evita rebotes)
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!user) {
+      if (!session?.user) {
         setCargando(false);
         return;
       }
 
-      const { data } = await supabase
+      // 2. Buscamos qué rol tiene este usuario en la base de datos
+      const { data, error } = await supabase
         .from('usuarios')
         .select('rol')
-        .eq('id', user.id)
+        .eq('id', session.user.id)
         .single();
 
-      if (data) setRolUsuario(data.rol);
+      if (error) {
+        console.error('Error al verificar rol:', error.message);
+      }
+
+      if (data) {
+        setRolUsuario(data.rol);
+      }
+      
       setCargando(false);
     };
 
     verificarAcceso();
   }, []);
 
-  if (cargando) return <div className="min-h-screen flex items-center justify-center">Verificando accesos...</div>;
+  // Pantalla de carga mientras lee la base de datos
+  if (cargando) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-600 font-medium">
+        Verificando accesos...
+      </div>
+    );
+  }
 
-  // Si no hay usuario o el rol no coincide, lo expulsa al inicio o a su ruta permitida
+  // 3. Si el rol no coincide con el que requiere la pantalla, lo redireccionamos
   if (rolUsuario !== rolRequerido) {
     return <Navigate to={rolUsuario === 'paciente' ? '/encuesta' : '/'} replace />;
   }
 
-  // Si todo está bien, lo deja pasar
+  // 4. Si todo está correcto, lo dejamos pasar a la pantalla
   return children;
 }

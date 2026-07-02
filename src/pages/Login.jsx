@@ -153,6 +153,15 @@ export default function Login() {
             </div>
           </div>
           
+          <div className="flex justify-end mt-2">
+            <Link 
+              to="/recuperar-password" 
+              className="text-sm font-medium text-orange-500 hover:text-orange-600 hover:underline transition-colors"
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
+          
           <button 
             type="submit" 
             disabled={loading}
