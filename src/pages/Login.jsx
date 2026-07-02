@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+import logo from '../assets/logo.svg';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -97,7 +98,12 @@ export default function Login() {
 
       <div className="max-w-md w-full bg-white p-8 border-t-8 border-orange-500 rounded-lg shadow-xl">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-extrabold text-black">
+          <img 
+            src={logo} 
+            alt="Logo Plataforma Diagnóstica" 
+            className="mx-auto w-50 h-auto relative z-10 -mb-15 -mt-15" 
+          />
+          <h2 className="text-3xl font-extrabold text-black relative z-20">
             Iniciar Sesión
           </h2>
           <p className="text-gray-500 mt-2 font-medium">Plataforma Diagnóstica</p>
