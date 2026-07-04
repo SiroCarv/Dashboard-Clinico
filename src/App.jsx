@@ -12,11 +12,15 @@ function App() {
     <Routes>
       <Route path="/" element={<Login />} />
       <Route path="/login" element={<Login />} />
+      
+      {/* NUEVO: Ruta dinámica para atrapar el código de la institución */}
+      <Route path="/registro/:codigo" element={<Registro />} />
+      {/* Dejamos la ruta normal por si alguien entra sin código, para mostrarle un mensaje de error */}
       <Route path="/registro" element={<Registro />} />
+      
       <Route path="/recuperar-password" element={<RecuperarPassword />} />
       <Route path="/restablecer-password" element={<RestablecerPassword />} />
       
-      {/* Ruta protegida exclusiva para Pacientes */}
       <Route 
         path="/encuesta" 
         element={
@@ -26,7 +30,6 @@ function App() {
         } 
       />
       
-      {/* Ruta protegida exclusiva para Psicólogos */}
       <Route 
         path="/dashboard" 
         element={

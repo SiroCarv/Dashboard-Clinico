@@ -1,8 +1,11 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useParams } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
 export default function Registro() {
+  // Extraemos el código de la URL
+  const { codigo } = useParams();
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -11,17 +14,65 @@ export default function Registro() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
+  // Nuevos estados para la institución
+  const [institucion, setInstitucion] = useState(null);
+  const [validandoCodigo, setValidandoCodigo] = useState(true);
+  
   const navigate = useNavigate();
+
+  // Validar el código de la URL al cargar la página
+  useEffect(() => {
+    const verificarCodigo = async () => {
+      if (!codigo) {
+        setValidandoCodigo(false);
+        return;
+      }
+
+      try {
+        // Limpiamos el código de espacios accidentales y forzamos mayúsculas
+        const codigoLimpio = codigo.trim().toUpperCase();
+        console.log("1. Buscando código exacto en URL:", codigoLimpio);
+        
+        const { data, error } = await supabase
+          .from('instituciones')
+          .select('id, nombre')
+          .eq('codigo_registro', codigoLimpio)
+          .maybeSingle();
+
+        if (error) {
+            console.error("2. Supabase bloqueó la petición:", error.message, error.details);
+        }
+
+        if (data) {
+          console.log("3. ¡Institución encontrada!:", data);
+          setInstitucion(data);
+        } else {
+          console.log("4. Supabase dice: No encontré nada para el código", codigoLimpio);
+        }
+      } catch (err) {
+        console.error("Error inesperado en React:", err);
+      } finally {
+        setValidandoCodigo(false);
+      }
+    };
+
+    verificarCodigo();
+  }, [codigo]);
 
   const handleRegistro = async (e) => {
     e.preventDefault();
+    
+    if (!institucion) {
+      setError('Enlace inválido. No puedes registrarte sin un código institucional correcto.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     const cleanedEmail = email.trim().replace(/\s+/g, '');
-
-    // NUEVA VALIDACIÓN: Regex para asegurar que el correo tenga dominio
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
     if (!emailRegex.test(cleanedEmail)) {
       setError('Por favor, ingresa un correo electrónico válido (ej. usuario@dominio.com).');
       setLoading(false);
@@ -51,10 +102,15 @@ export default function Registro() {
          throw new Error('Error al crear el usuario. Intente nuevamente.');
       }
 
+      // IMPORTANTE: Aquí guardamos al paciente VINCULADO a su institución
       const { error: userError } = await supabase
         .from('usuarios')
         .insert([
-          { id: authData.user.id, rol: 'paciente' }
+          { 
+            id: authData.user.id, 
+            rol: 'paciente',
+            institucion_id: institucion.id // ID que extrajimos de la URL
+          }
         ]);
 
       if (userError) throw userError;
@@ -70,16 +126,37 @@ export default function Registro() {
     } 
   };
 
+  if (validandoCodigo) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <p className="text-gray-600 font-bold">Verificando enlace institucional...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <div className="max-w-md w-full bg-white p-8 border-t-8 border-orange-500 rounded-lg shadow-xl">
         
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <h2 className="text-3xl font-extrabold text-black">
             Crear Cuenta
           </h2>
           <p className="text-gray-500 mt-2 font-medium">Registro de Pacientes</p>
         </div>
+
+        {/* ALERTA DE INSTITUCIÓN */}
+        {institucion ? (
+          <div className="mb-6 p-3 bg-green-50 border border-green-200 text-green-800 rounded-md text-center shadow-sm">
+            <p className="text-sm">Estás registrándote en:</p>
+            <p className="font-bold text-lg">{institucion.nombre}</p>
+          </div>
+        ) : (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-center shadow-sm">
+            <p className="font-bold">⚠️ Enlace de registro inválido</p>
+            <p className="text-sm mt-1">Debes solicitar a tu institución el enlace correcto para poder crear tu cuenta.</p>
+          </div>
+        )}
 
         {error && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-center text-sm font-semibold">
@@ -98,10 +175,11 @@ export default function Registro() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={!institucion}
               pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
               title="Debe incluir un dominio válido (ej. .com, .es)"
               placeholder="usuario@gmail.com"
-              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
+              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
             />
           </div>
           
@@ -115,13 +193,15 @@ export default function Registro() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={!institucion}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 pr-12"
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 pr-12 disabled:bg-gray-100"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-orange-500 transition-colors"
+                disabled={!institucion}
+                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-orange-500 transition-colors disabled:opacity-50"
                 tabIndex="-1"
               >
                 {showPassword ? (
@@ -143,15 +223,17 @@ export default function Registro() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
+                disabled={!institucion}
                 placeholder="••••••••"
-                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 pr-12 ${
+                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 pr-12 disabled:bg-gray-100 ${
                   confirmPassword && password !== confirmPassword ? 'border-red-500' : 'border-gray-300'
                 }`}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-orange-500 transition-colors"
+                disabled={!institucion}
+                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-orange-500 transition-colors disabled:opacity-50"
                 tabIndex="-1"
               >
                 {showConfirmPassword ? (
@@ -168,9 +250,9 @@ export default function Registro() {
           
           <button 
             type="submit" 
-            disabled={loading}
+            disabled={loading || !institucion}
             className={`w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide flex justify-center items-center ${
-              loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'
+              loading || !institucion ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'
             }`}
           >
             {loading ? (
