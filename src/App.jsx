@@ -1,11 +1,20 @@
+// App.jsx
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import Login from './pages/Login';
-import Registro from './pages/Registro';
-import Encuesta from './pages/Encuesta';
-import Dashboard from './pages/Dashboard';
-import RutaProtegida from './components/RutaProtegida';
-import RecuperarPassword from './pages/RecuperarPassword';
-import RestablecerPassword from './pages/RestablecerPassword';
+
+// --- MÓDULOS ---
+// Autenticación
+import Login from './modules/autenticacion/pages/Login';
+import Registro from './modules/autenticacion/pages/Registro';
+import RecuperarPassword from './modules/autenticacion/pages/RecuperarPassword';
+import RestablecerPassword from './modules/autenticacion/pages/RestablecerPassword';
+
+// Evaluaciones
+import Encuesta from './modules/evaluaciones/pages/Encuesta';
+// Dashboard
+import Dashboard from './modules/dashboard_clinico/pages/Dashboard';
+// --- CORE ---
+import RutaProtegida from './core/security/RutaProtegida';
 
 function App() {
   return (

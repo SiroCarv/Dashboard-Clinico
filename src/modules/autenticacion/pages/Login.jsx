@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
-import logo from '../assets/logo.svg';
+import { supabase } from '../../../core/api/supabaseClient';
+import logo from '../../../shared/assets/logo.svg';
 
 export default function Login() {
   const [email, setEmail] = useState('');

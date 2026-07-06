@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../../../core/api/supabaseClient';
 
 export default function RecuperarPassword() {
   const [correo, setCorreo] = useState('');

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../api/supabaseClient';
 
 export default function RutaProtegida({ children, rolRequerido }) {
   const [rolUsuario, setRolUsuario] = useState(null);

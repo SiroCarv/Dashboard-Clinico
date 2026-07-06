@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../../../core/api/supabaseClient';
 
 export default function RestablecerPassword() {
   const [password, setPassword] = useState('');
