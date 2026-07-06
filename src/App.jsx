@@ -13,6 +13,8 @@ import RestablecerPassword from './modules/autenticacion/pages/RestablecerPasswo
 import Encuesta from './modules/evaluaciones/pages/Encuesta';
 // Dashboard
 import Dashboard from './modules/dashboard_clinico/pages/Dashboard';
+// Instituciones
+import PanelMaestro from './modules/instituciones/pages/PanelMaestro';
 // --- CORE ---
 import RutaProtegida from './core/security/RutaProtegida';
 
@@ -44,6 +46,15 @@ function App() {
         element={
           <RutaProtegida rolRequerido="psicologo">
             <Dashboard />
+          </RutaProtegida>
+        } 
+      />
+
+      <Route 
+        path="/panel-maestro" 
+        element={
+          <RutaProtegida rolRequerido="superadmin">
+            <PanelMaestro />
           </RutaProtegida>
         } 
       />

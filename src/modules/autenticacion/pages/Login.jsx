@@ -48,7 +48,7 @@ export default function Login() {
     // NUEVA VALIDACIÓN: Regex para asegurar que el correo tenga dominio
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(cleanedEmail)) {
-      setError('Por favor, ingresa un correo electrónico válido (ej. usuario@dominio.com).');
+      setError('Por favor, ingresa un correo electrónico válido (ej. usuario@gmail.com).');
       setLoading(false);
       return;
     }
@@ -71,6 +71,8 @@ export default function Login() {
 
       if (userData.rol === 'psicologo') {
         navigate('/dashboard');
+      } else if (userData.rol === 'superadmin') {
+        navigate('/panel-maestro');
       } else {
         navigate('/encuesta');
       }
