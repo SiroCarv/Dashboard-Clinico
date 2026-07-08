@@ -1,19 +1,22 @@
-import { supabase } from '../../../core/api/supabaseClient';
+import { supabase } from '../../../core/api/supabaseClient'; 
 
 export const institucionesService = {
-  // Obtener todas las instituciones
-  async obtenerInstituciones() {
+  // 1. Obtener todas las instituciones (El nombre exacto que busca PanelMaestro.jsx)
+  getInstituciones: async () => {
     const { data, error } = await supabase
       .from('instituciones')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    return data;
+    if (error) {
+      console.error('Error al obtener instituciones:', error.message);
+      throw error;
+    }
+    return data || [];
   },
 
-  // Crear una nueva institución
-  async crearInstitucion(institucion) {
+  // 2. Crear una nueva institución
+  crearInstitucion: async (institucion) => {
     const { data, error } = await supabase
       .from('instituciones')
       .insert([institucion])
@@ -23,8 +26,8 @@ export const institucionesService = {
     return data[0];
   },
 
-  // Actualizar una institución existente
-  async actualizarInstitucion(id, institucion) {
+  // 3. Actualizar una institución existente
+  actualizarInstitucion: async (id, institucion) => {
     const { data, error } = await supabase
       .from('instituciones')
       .update(institucion)
@@ -35,8 +38,8 @@ export const institucionesService = {
     return data[0];
   },
 
-  // Eliminar una institución
-  async eliminarInstitucion(id) {
+  // 4. Eliminar una institución
+  eliminarInstitucion: async (id) => {
     const { error } = await supabase
       .from('instituciones')
       .delete()
@@ -46,13 +49,13 @@ export const institucionesService = {
     return true;
   },
 
-  // Verificar si un código existe y obtener la institución
-  async validarCodigo(codigo) {
+  // 5. Verificar si un código existe (Útil para la pantalla de Registro de pacientes)
+  validarCodigo: async (codigo) => {
     const { data, error } = await supabase
       .from('instituciones')
-      .select('id, nombre')
-      .eq('codigo_registro', codigo.trim().toUpperCase())
-      .maybeSingle(); // Retorna null si no lo encuentra en lugar de lanzar una excepción
+      .select('*')
+      .eq('codigo_registro', codigo)
+      .single();
 
     if (error) throw error;
     return data;
