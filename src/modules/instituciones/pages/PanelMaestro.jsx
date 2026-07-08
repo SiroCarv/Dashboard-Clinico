@@ -19,7 +19,7 @@ export default function PanelMaestro() {
   const cargarInstituciones = async () => {
     try {
       setLoading(true);
-      const data = await institucionesService.getInstituciones();
+      const data = await institucionesService.obtenerInstituciones();
       setInstituciones(data);
     } catch (err) {
       setError('Error al cargar las instituciones.');
@@ -42,9 +42,9 @@ export default function PanelMaestro() {
   const handleSave = async (datos) => {
     try {
       if (institucionEnEdicion) {
-        await institucionesService.updateInstitucion(institucionEnEdicion.id, datos);
+        await institucionesService.actualizarInstitucion(institucionEnEdicion.id, datos);
       } else {
-        await institucionesService.createInstitucion(datos);
+        await institucionesService.crearInstitucion(datos);
       }
       await cargarInstituciones();
       handleCloseModal();
@@ -57,7 +57,7 @@ export default function PanelMaestro() {
   const handleDelete = async (id) => {
     if (window.confirm('¿Estás seguro de eliminar esta institución? Esta acción no se puede deshacer.')) {
       try {
-        await institucionesService.deleteInstitucion(id);
+        await institucionesService.eliminarInstitucion(id);
         await cargarInstituciones();
       } catch (err) {
         alert('Error al eliminar. Puede que haya psicólogos o pacientes asignados a esta institución.');
@@ -69,7 +69,6 @@ export default function PanelMaestro() {
   return (
     <div className="min-h-screen bg-gray-50 p-6 md:p-10">
       <div className="max-w-6xl mx-auto">
-        {/* Cabecera */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-800">Panel Maestro</h1>
@@ -83,14 +82,12 @@ export default function PanelMaestro() {
           </button>
         </div>
 
-        {/* Mensaje de Error */}
         {error && (
           <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 border border-red-200">
             {error}
           </div>
         )}
 
-        {/* Contenido Principal */}
         {loading ? (
           <div className="flex justify-center items-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
@@ -103,7 +100,6 @@ export default function PanelMaestro() {
           />
         )}
 
-        {/* Modal de Creación/Edición */}
         <InstitucionModal
           isOpen={isModalOpen}
           onClose={handleCloseModal}

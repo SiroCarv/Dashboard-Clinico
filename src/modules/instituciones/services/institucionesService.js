@@ -2,18 +2,18 @@ import { supabase } from '../../../core/api/supabaseClient';
 
 export const institucionesService = {
   // Obtener todas las instituciones
-async getInstituciones() {
-  const { data, error } = await supabase
-    .from('instituciones')
-    .select('*')
-    .order('created_at', { ascending: false });
+  async obtenerInstituciones() {
+    const { data, error } = await supabase
+      .from('instituciones')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-  if (error) throw error;
-  return data;
-},
+    if (error) throw error;
+    return data;
+  },
 
   // Crear una nueva institución
-  async createInstitucion(institucion) {
+  async crearInstitucion(institucion) {
     const { data, error } = await supabase
       .from('instituciones')
       .insert([institucion])
@@ -24,7 +24,7 @@ async getInstituciones() {
   },
 
   // Actualizar una institución existente
-  async updateInstitucion(id, institucion) {
+  async actualizarInstitucion(id, institucion) {
     const { data, error } = await supabase
       .from('instituciones')
       .update(institucion)
@@ -35,8 +35,8 @@ async getInstituciones() {
     return data[0];
   },
 
-  // Eliminar (Opcional, a veces es mejor solo desactivar, pero te dejo el CRUD completo)
-  async deleteInstitucion(id) {
+  // Eliminar una institución
+  async eliminarInstitucion(id) {
     const { error } = await supabase
       .from('instituciones')
       .delete()
@@ -44,5 +44,17 @@ async getInstituciones() {
 
     if (error) throw error;
     return true;
+  },
+
+  // Verificar si un código existe y obtener la institución
+  async validarCodigo(codigo) {
+    const { data, error } = await supabase
+      .from('instituciones')
+      .select('id, nombre')
+      .eq('codigo_registro', codigo.trim().toUpperCase())
+      .maybeSingle(); // Retorna null si no lo encuentra en lugar de lanzar una excepción
+
+    if (error) throw error;
+    return data;
   }
 };

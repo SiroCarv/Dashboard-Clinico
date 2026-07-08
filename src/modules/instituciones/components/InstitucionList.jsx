@@ -1,4 +1,19 @@
+import { useState } from 'react';
+
 export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
+  const [copiadoId, setCopiadoId] = useState(null);
+
+  const copiarEnlace = async (inst) => {
+    const enlace = `${window.location.origin}/registro/${inst.codigo_registro}`;
+    try {
+      await navigator.clipboard.writeText(enlace);
+      setCopiadoId(inst.id);
+      setTimeout(() => setCopiadoId(null), 2000);
+    } catch (err) {
+      console.error('No se pudo copiar el enlace:', err);
+    }
+  };
+
   if (instituciones.length === 0) {
     return (
       <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-300">
@@ -28,6 +43,12 @@ export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
                   </span>
                 </td>
                 <td className="p-4 flex justify-end gap-2">
+                  <button
+                    onClick={() => copiarEnlace(inst)}
+                    className="px-3 py-1.5 text-sm font-medium text-orange-600 hover:bg-orange-50 rounded-md transition-colors"
+                  >
+                    {copiadoId === inst.id ? '¡Copiado!' : 'Copiar Enlace'}
+                  </button>
                   <button
                     onClick={() => onEdit(inst)}
                     className="px-3 py-1.5 text-sm font-medium text-blue-900 hover:bg-blue-100 rounded-md transition-colors"
