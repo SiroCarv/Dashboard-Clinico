@@ -16,14 +16,15 @@ export const AsignacionPsicologos = ({ instituciones }) => {
   const cargarDatos = async () => {
     try {
       setLoading(true);
-      const [psicoData, asigData] = await Promise.all([
-        psicologoInstitucionService.getPsicologos(),
-        psicologoInstitucionService.getAsignaciones()
+      const [psicologosData, asignacionesData] = await Promise.all([
+        psicologoInstitucionService.obtenerPsicologos(),
+        psicologoInstitucionService.obtenerAsignaciones()
       ]);
-      setPsicologos(psicoData);
-      setAsignaciones(asigData);
+      setPsicologos(psicologosData);
+      setAsignaciones(asignacionesData);
     } catch (error) {
       console.error("Error cargando panel de psicólogos:", error);
+      setError("No se pudieron cargar los datos del panel.");
     } finally {
       setLoading(false);
     }
