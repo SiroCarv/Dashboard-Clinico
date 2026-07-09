@@ -32,15 +32,17 @@ export const InstitucionModal = ({ isOpen, onClose, onSave, institucionEditada }
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border-t-4 border-orange-500 overflow-hidden">
+      <div className="bg-white w-full max-w-md rounded-lg shadow-xl border-t-8 border-orange-500 overflow-hidden">
         <div className="p-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-            {institucionEditada ? 'Editar Institución' : 'Nueva Institución'}
-          </h2>
+          <div className="text-center mb-6">
+            <h2 className="text-3xl font-extrabold text-black">
+              {institucionEditada ? 'Editar Institución' : 'Nueva Institución'}
+            </h2>
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-black mb-1">
                 Nombre de la Institución
               </label>
               <input
@@ -48,13 +50,13 @@ export const InstitucionModal = ({ isOpen, onClose, onSave, institucionEditada }
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-200 transition-all duration-200 outline-none text-gray-800"
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
                 placeholder="Ej. Colegio San Agustín"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-black mb-1">
                 Código de Registro (Enlace Único)
               </label>
               <div className="flex gap-2">
@@ -63,13 +65,13 @@ export const InstitucionModal = ({ isOpen, onClose, onSave, institucionEditada }
                   value={codigoRegistro}
                   onChange={(e) => setCodigoRegistro(e.target.value)}
                   required
-                  className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-200 transition-all duration-200 outline-none text-gray-800 font-mono"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 font-mono"
                   placeholder="Ej. UNI-XXXX"
                 />
                 <button
                   type="button"
                   onClick={generarCodigo}
-                  className="px-4 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition-colors text-sm font-medium shadow-md"
+                  className="px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors text-sm font-bold shadow-md whitespace-nowrap"
                 >
                   Generar
                 </button>
@@ -79,20 +81,29 @@ export const InstitucionModal = ({ isOpen, onClose, onSave, institucionEditada }
               </p>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="flex justify-end gap-3 pt-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-2.5 rounded-lg text-gray-600 hover:bg-gray-100 font-medium transition-colors"
+                className="px-6 py-3 rounded-md text-gray-600 hover:bg-gray-100 font-bold transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-medium shadow-md shadow-orange-500/30 transition-all disabled:opacity-50"
+                className={`px-6 py-3 rounded-md font-bold uppercase tracking-wide shadow-md transition-colors duration-300 flex justify-center items-center ${
+                  loading ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-orange-500 hover:bg-orange-600 text-white'
+                }`}
               >
-                {loading ? 'Guardando...' : 'Guardar'}
+                {loading ? (
+                  <span className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Guardando...
+                  </span>
+                ) : (
+                  'Guardar'
+                )}
               </button>
             </div>
           </form>

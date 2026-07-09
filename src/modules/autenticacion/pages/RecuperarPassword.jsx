@@ -6,7 +6,6 @@ export default function RecuperarPassword() {
   const [correo, setCorreo] = useState('');
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState('');
-  // NUEVO: Agregamos un estado de error
   const [error, setError] = useState(''); 
 
   const manejarEnvio = async (e) => {
@@ -17,10 +16,9 @@ export default function RecuperarPassword() {
 
     const correoLimpio = correo.trim().replace(/\s+/g, '');
 
-    // NUEVA VALIDACIÓN: Regex para asegurar que el correo tenga dominio
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(correoLimpio)) {
-      setError('Por favor, ingresa un correo electrónico válido (ej. usuario@dominio.com).');
+      setError('Por favor, ingresa un correo electrónico válido (ej. usuario@gmail.com).');
       setLoading(false);
       return;
     }
@@ -44,7 +42,6 @@ export default function RecuperarPassword() {
           <p className="text-gray-500 mt-2 font-medium">Contraseña</p>
         </div>
 
-        {/* Mostramos el error si existe */}
         {error && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-center text-sm font-semibold">
             {error}

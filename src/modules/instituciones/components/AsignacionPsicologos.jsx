@@ -58,32 +58,32 @@ export const AsignacionPsicologos = ({ instituciones }) => {
   return (
     <div className="space-y-6">
       {/* Barra de acciones superior idéntica a Instituciones */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
         <div>
-          <h2 className="text-lg font-bold text-gray-800">Personal Clínico Autorizado</h2>
+          <h2 className="text-lg font-bold text-black">Personal Clínico Autorizado</h2>
           <p className="text-xs text-gray-500">Asigna profesionales de la salud mental a los entornos operativos del Observatorio.</p>
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="bg-orange-500 hover:bg-orange-600 text-white font-medium text-sm px-4 py-2.5 rounded-md shadow-md transition-colors flex items-center justify-center gap-2 self-start sm:self-auto"
+          className="bg-orange-500 hover:bg-orange-600 text-white font-bold uppercase tracking-wide text-sm px-4 py-2.5 rounded-md shadow-md transition-colors duration-300 flex items-center justify-center gap-2 self-start sm:self-auto"
         >
           <span>+ Agregar Psicólogo</span>
         </button>
       </div>
 
       {/* Contenedor de la Tabla Principal */}
-      <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-lg shadow-xl border-t-8 border-orange-500 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3.5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                   Usuario / Correo
                 </th>
-                <th scope="col" className="px-6 py-3.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3.5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                   Fecha Alta
                 </th>
-                <th scope="col" className="px-6 py-3.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3.5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                   Áreas e Instituciones Vinculadas
                 </th>
               </tr>
@@ -93,16 +93,16 @@ export const AsignacionPsicologos = ({ instituciones }) => {
                 <tr>
                   <td colSpan="3" className="px-6 py-12 text-center">
                     <div className="flex justify-center items-center gap-2">
-                      <div className="animate-spin rounded-full h-5 w-8 border-t-2 border-orange-500"></div>
+                      <svg className="animate-spin h-5 w-5 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                       <span className="text-sm text-gray-500 font-medium">Sincronizando registros...</span>
                     </div>
                   </td>
                 </tr>
               ) : psicologos.length === 0 ? (
                 <tr>
-                  <td colSpan="3" className="px-6 py-16 text-center text-sm font-medium text-gray-400 bg-gray-50/50">
+                  <td colSpan="3" className="px-6 py-16 text-center text-sm font-medium text-gray-400 bg-gray-50">
                     <div className="max-w-md mx-auto space-y-2">
-                      <p className="text-gray-500 text-base font-semibold">No se encontraron cuentas activas</p>
+                      <p className="text-gray-500 text-base font-bold">No se encontraron cuentas activas</p>
                       <p className="text-xs text-gray-400">Aún no hay usuarios registrados con el rol de Psicólogo en la plataforma diagnóstica.</p>
                     </div>
                   </td>
@@ -132,7 +132,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
                                 key={inst.id}
                                 disabled={isProcessing}
                                 onClick={() => handleToggleAsignacion(psico.id, inst.id, estaAsignado)}
-                                className={`px-3 py-1.5 text-xs font-semibold rounded-md border transition-all shadow-sm ${
+                                className={`px-3 py-1.5 text-xs font-bold rounded-md border transition-colors shadow-sm ${
                                   isProcessing ? 'opacity-40 cursor-not-allowed' : ''
                                 } ${
                                   estaAsignado

@@ -15,8 +15,6 @@ export default function Registro() {
   const [buscandoCodigo, setBuscandoCodigo] = useState(false);
   const [validandoEnlace, setValidandoEnlace] = useState(!!codigoInicial);
 
-  // Distingue si el código actual todavía es el que vino del enlace (para saber
-  // qué mensaje de error mostrar: el del enlace inválido o el de código no encontrado)
   const esCodigoDeEnlace =
     !!codigoInicial && codigoIngresado.trim().toUpperCase() === codigoInicial;
 
@@ -32,9 +30,6 @@ export default function Registro() {
 
   const navigate = useNavigate();
 
-  // Verifica el código de institución (llegue por URL o escrito a mano).
-  // Si viene de un enlace, se verifica de inmediato; si el paciente lo está
-  // escribiendo a mano, se espera 500ms (debounce) para no saturar Supabase.
   useEffect(() => {
     const codigoLimpio = codigoIngresado.trim().toUpperCase();
 
@@ -90,7 +85,7 @@ export default function Registro() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(cleanedEmail)) {
-      setError('Por favor, ingresa un correo electrónico válido (ej. usuario@dominio.com).');
+      setError('Por favor, ingresa un correo electrónico válido (ej. usuario@gmail.com).');
       setLoading(false);
       return;
     }
@@ -108,7 +103,11 @@ export default function Registro() {
       });
 
       if (authError) {
-        if (authError.message.includes('already registered') || authError.status === 400) {
+        const esCorreoDuplicado =
+          authError.message?.toLowerCase().includes('already registered') ||
+          authError.code === 'user_already_exists';
+
+        if (esCorreoDuplicado) {
           throw new Error('Este correo ya está registrado');
         }
         throw authError;

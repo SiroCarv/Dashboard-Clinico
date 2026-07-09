@@ -69,29 +69,19 @@ export default function PanelMaestro() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 md:p-10">
+    <div className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="max-w-6xl mx-auto">
         {/* Cabecera */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">Panel Maestro</h1>
-            <p className="text-gray-500 mt-1">Gestión administrativa de instituciones y códigos de acceso.</p>
-          </div>
-          {tabActiva === 'instituciones' && (
-            <button
-              onClick={() => handleOpenModal()}
-              className="bg-orange-500 text-white px-6 py-2.5 rounded-lg hover:bg-orange-600 font-medium shadow-md shadow-orange-500/30 transition-all"
-            >
-              + Nueva Institución
-            </button>
-          )}
+        <div className="mb-8">
+          <h1 className="text-3xl font-extrabold text-black">Panel Maestro</h1>
+          <p className="text-gray-500 mt-2 font-medium">Gestión administrativa de instituciones y códigos de acceso.</p>
         </div>
 
         {/* Pestañas */}
         <div className="flex gap-2 mb-6 border-b border-gray-200">
           <button
             onClick={() => setTabActiva('instituciones')}
-            className={`px-4 py-2.5 font-medium text-sm border-b-2 -mb-px transition-colors ${
+            className={`px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors ${
               tabActiva === 'instituciones'
                 ? 'border-orange-500 text-orange-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -101,7 +91,7 @@ export default function PanelMaestro() {
           </button>
           <button
             onClick={() => setTabActiva('psicologos')}
-            className={`px-4 py-2.5 font-medium text-sm border-b-2 -mb-px transition-colors ${
+            className={`px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors ${
               tabActiva === 'psicologos'
                 ? 'border-orange-500 text-orange-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -113,15 +103,16 @@ export default function PanelMaestro() {
 
         {/* Mensaje de Error */}
         {error && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 border border-red-200">
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-center shadow-sm">
             {error}
           </div>
         )}
 
         {/* Contenido Principal */}
         {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+          <div className="flex flex-col justify-center items-center py-20 gap-3">
+            <svg className="animate-spin h-10 w-10 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span className="text-gray-500 font-medium">Cargando instituciones...</span>
           </div>
         ) : tabActiva === 'instituciones' ? (
           <InstitucionList 

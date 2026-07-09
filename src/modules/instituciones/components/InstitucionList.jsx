@@ -14,59 +14,73 @@ export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
     }
   };
 
-  if (instituciones.length === 0) {
-    return (
-      <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-        <p className="text-gray-500 font-medium">No hay instituciones registradas aún.</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider">
-              <th className="p-4 font-semibold border-b border-gray-200">Nombre</th>
-              <th className="p-4 font-semibold border-b border-gray-200">Código de Acceso</th>
-              <th className="p-4 font-semibold border-b border-gray-200 text-right">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {instituciones.map((inst) => (
-              <tr key={inst.id} className="hover:bg-gray-50 transition-colors">
-                <td className="p-4 text-gray-800 font-medium">{inst.nombre}</td>
-                <td className="p-4">
-                  <span className="px-3 py-1 bg-blue-50 text-blue-900 rounded-full text-sm font-mono font-semibold">
-                    {inst.codigo_registro}
-                  </span>
-                </td>
-                <td className="p-4 flex justify-end gap-2">
-                  <button
-                    onClick={() => copiarEnlace(inst)}
-                    className="px-3 py-1.5 text-sm font-medium text-orange-600 hover:bg-orange-50 rounded-md transition-colors"
-                  >
-                    {copiadoId === inst.id ? '¡Copiado!' : 'Copiar Enlace'}
-                  </button>
-                  <button
-                    onClick={() => onEdit(inst)}
-                    className="px-3 py-1.5 text-sm font-medium text-blue-900 hover:bg-blue-100 rounded-md transition-colors"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => onDelete(inst.id)}
-                    className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                  >
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="space-y-6">
+      {/* Barra de acciones superior idéntica a Psicólogos */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
+        <div>
+          <h2 className="text-lg font-bold text-black">Instituciones Registradas</h2>
+          <p className="text-xs text-gray-500">Administra los centros educativos y sus códigos de acceso institucional.</p>
+        </div>
+        <button
+          onClick={() => onEdit()}
+          className="bg-orange-500 hover:bg-orange-600 text-white font-bold uppercase tracking-wide text-sm px-4 py-2.5 rounded-md shadow-md transition-colors duration-300 flex items-center justify-center gap-2 self-start sm:self-auto"
+        >
+          <span>+ Nueva Institución</span>
+        </button>
       </div>
+
+      {instituciones.length === 0 ? (
+        <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+          <p className="text-gray-500 font-medium">No hay instituciones registradas aún.</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-xl border-t-8 border-orange-500 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider">
+                  <th className="p-4 font-bold border-b border-gray-200">Nombre</th>
+                  <th className="p-4 font-bold border-b border-gray-200">Código de Acceso</th>
+                  <th className="p-4 font-bold border-b border-gray-200 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {instituciones.map((inst) => (
+                  <tr key={inst.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="p-4 text-gray-800 font-medium">{inst.nombre}</td>
+                    <td className="p-4">
+                      <span className="px-3 py-1 bg-gray-100 text-gray-800 border border-gray-300 rounded-full text-sm font-mono font-semibold">
+                        {inst.codigo_registro}
+                      </span>
+                    </td>
+                    <td className="p-4 flex justify-end gap-4">
+                      <button
+                        onClick={() => copiarEnlace(inst)}
+                        className="text-sm font-bold text-orange-500 hover:text-orange-600 transition-colors"
+                      >
+                        {copiadoId === inst.id ? '¡Copiado!' : 'Copiar Enlace'}
+                      </button>
+                      <button
+                        onClick={() => onEdit(inst)}
+                        className="text-sm font-bold text-gray-600 hover:text-gray-800 transition-colors"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => onDelete(inst.id)}
+                        className="text-sm font-bold text-red-500 hover:text-red-700 transition-colors"
+                      >
+                        Eliminar
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
