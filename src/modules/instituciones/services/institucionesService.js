@@ -1,63 +1,49 @@
-import { supabase } from '../../../core/api/supabaseClient'; 
+// src/modules/instituciones/services/institucionesService.js
+import { supabase } from '../../../core/api/supabaseClient';
+
+const TABLA = 'instituciones';
+
+export const PG_ERRORES = {
+  UNIQUE_VIOLATION: '23505',
+  FOREIGN_KEY_VIOLATION: '23503',
+};
 
 export const institucionesService = {
-  // 1. Obtener todas las instituciones (El nombre exacto que busca PanelMaestro.jsx)
-  getInstituciones: async () => {
+  async getInstituciones() {
     const { data, error } = await supabase
-      .from('instituciones')
-      .select('*')
+      .from(TABLA)
+      .select('id, nombre, codigo_registro, created_at')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error al obtener instituciones:', error.message);
-      throw error;
-    }
-    return data || [];
-  },
-
-  // 2. Crear una nueva institución
-  crearInstitucion: async (institucion) => {
-    const { data, error } = await supabase
-      .from('instituciones')
-      .insert([institucion])
-      .select();
-
     if (error) throw error;
-    return data[0];
+    return data;
   },
 
-  // 3. Actualizar una institución existente
-  actualizarInstitucion: async (id, institucion) => {
+  async createInstitucion(payload) {
     const { data, error } = await supabase
-      .from('instituciones')
-      .update(institucion)
-      .eq('id', id)
-      .select();
-
-    if (error) throw error;
-    return data[0];
-  },
-
-  // 4. Eliminar una institución
-  eliminarInstitucion: async (id) => {
-    const { error } = await supabase
-      .from('instituciones')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
-    return true;
-  },
-
-  // 5. Verificar si un código existe (Útil para la pantalla de Registro de pacientes)
-  validarCodigo: async (codigo) => {
-    const { data, error } = await supabase
-      .from('instituciones')
-      .select('*')
-      .eq('codigo_registro', codigo)
+      .from(TABLA)
+      .insert([payload])
+      .select()
       .single();
 
     if (error) throw error;
     return data;
-  }
+  },
+
+  async updateInstitucion(id, payload) {
+    const { data, error } = await supabase
+      .from(TABLA)
+      .update(payload)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteInstitucion(id) {
+    const { error } = await supabase.from(TABLA).delete().eq('id', id);
+    if (error) throw error; // 23503 si tiene psicólogos/pacientes vinculados
+  },
 };

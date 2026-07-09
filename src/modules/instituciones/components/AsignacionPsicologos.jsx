@@ -8,6 +8,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
   const [loading, setLoading] = useState(true);
   const [procesandoId, setProcesandoId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     cargarDatos();

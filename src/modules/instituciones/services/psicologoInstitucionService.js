@@ -1,49 +1,42 @@
+// src/modules/instituciones/services/psicologoInstitucionService.js
 import { supabase } from '../../../core/api/supabaseClient';
 
 export const psicologoInstitucionService = {
-  // 1. OBTENER SOLO PSICÓLOGOS (Sin pedir created_at)
-  obtenerPsicologos: async () => {
+  async obtenerPsicologos() {
     const { data, error } = await supabase
       .from('usuarios')
-      .select('id, email, rol') 
-      .eq('rol', 'psicologo'); 
-      // Eliminamos el .order('created_at') para evitar el error 400
+      .select('id, email, created_at')
+      .eq('rol', 'psicologo')
+      .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error("Error al obtener psicólogos:", error);
-      throw error;
-    }
-    return data || [];
+    if (error) throw error;
+    return data;
   },
 
-  // 2. OBTENER ASIGNACIONES ACTUALES
-  obtenerAsignaciones: async () => {
+  async obtenerAsignaciones() {
     const { data, error } = await supabase
       .from('psicologo_institucion')
-      .select('*');
+      .select('psicologo_id, institucion_id');
 
-    if (error) {
-      console.error("Error al obtener asignaciones:", error);
-      throw error;
-    }
-    return data || [];
+    if (error) throw error;
+    return data;
   },
 
-  // 3. ASIGNAR O DESASIGNAR
-  toggleAsignacion: async (psicologo_id, institucion_id, estaAsignado) => {
-    if (estaAsignado) {
-      // Si ya está, lo quitamos
-      const { error } = await supabase
-        .from('psicologo_institucion')
-        .delete()
-        .match({ psicologo_id, institucion_id });
-      if (error) throw error;
-    } else {
-      // Si no está, lo agregamos
-      const { error } = await supabase
-        .from('psicologo_institucion')
-        .insert([{ psicologo_id, institucion_id }]);
-      if (error) throw error;
-    }
-  }
+  async asignar(psicologoId, institucionId) {
+    const { error } = await supabase
+      .from('psicologo_institucion')
+      .insert([{ psicologo_id: psicologoId, institucion_id: institucionId }]);
+
+    if (error) throw error;
+  },
+
+  async remover(psicologoId, institucionId) {
+    const { error } = await supabase
+      .from('psicologo_institucion')
+      .delete()
+      .eq('psicologo_id', psicologoId)
+      .eq('institucion_id', institucionId);
+
+    if (error) throw error;
+  },
 };
