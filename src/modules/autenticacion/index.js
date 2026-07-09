@@ -1,0 +1,1 @@
+export { default as BotonCerrarSesion } from './components/BotonCerrarSesion';

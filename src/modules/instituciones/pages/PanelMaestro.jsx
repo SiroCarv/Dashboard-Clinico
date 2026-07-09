@@ -3,6 +3,7 @@ import { institucionesService } from '../services/institucionesService';
 import { InstitucionList } from '../components/InstitucionList';
 import { InstitucionModal } from '../components/InstitucionModal';
 import { AsignacionPsicologos } from '../components/AsignacionPsicologos';
+import { BotonCerrarSesion } from '../../autenticacion';
 
 export default function PanelMaestro() {
   const [instituciones, setInstituciones] = useState([]);
@@ -72,9 +73,12 @@ export default function PanelMaestro() {
     <div className="min-h-screen bg-gray-100 p-6 md:p-10">
       <div className="max-w-6xl mx-auto">
         {/* Cabecera */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-extrabold text-black">Panel Maestro</h1>
-          <p className="text-gray-500 mt-2 font-medium">Gestión administrativa de instituciones y códigos de acceso.</p>
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-extrabold text-black">Panel Maestro</h1>
+            <p className="text-gray-500 mt-2 font-medium">Gestión administrativa de instituciones y códigos de acceso.</p>
+          </div>
+          <BotonCerrarSesion />
         </div>
 
         {/* Pestañas */}
