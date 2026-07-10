@@ -1,15 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { supabase } from '../api/supabaseClient';
-
-// Mapa de rol -> ruta por defecto. Se usa cuando un usuario autenticado
-// intenta entrar a una ruta protegida que no le corresponde, para
-// devolverlo a SU propia vista en vez de a una vista genérica.
-const RUTA_POR_DEFECTO = {
-  psicologo: '/dashboard',
-  superadmin: '/panel-maestro',
-  paciente: '/encuesta',
-};
+import { RUTA_POR_DEFECTO } from './rutasPorDefecto';
 
 export default function RutaProtegida({ children, rolRequerido }) {
   const [rolUsuario, setRolUsuario] = useState(null);

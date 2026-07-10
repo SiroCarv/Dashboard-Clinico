@@ -17,19 +17,23 @@ import Dashboard from './modules/dashboard_clinico/pages/Dashboard';
 import PanelMaestro from './modules/instituciones/pages/PanelMaestro';
 // --- CORE ---
 import RutaProtegida from './core/security/RutaProtegida';
+import RutaPublica from './core/security/RutaPublica';
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Login />} />
-      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<RutaPublica><Login /></RutaPublica>} />
+      <Route path="/login" element={<RutaPublica><Login /></RutaPublica>} />
       
-      {/* NUEVO: Ruta dinámica para atrapar el código de la institución */}
-      <Route path="/registro/:codigo" element={<Registro />} />
+      {/* Ruta dinámica para atrapar el código de la institución */}
+      <Route path="/registro/:codigo" element={<RutaPublica><Registro /></RutaPublica>} />
       {/* Dejamos la ruta normal por si alguien entra sin código, para mostrarle un mensaje de error */}
-      <Route path="/registro" element={<Registro />} />
+      <Route path="/registro" element={<RutaPublica><Registro /></RutaPublica>} />
       
-      <Route path="/recuperar-password" element={<RecuperarPassword />} />
+      <Route path="/recuperar-password" element={<RutaPublica><RecuperarPassword /></RutaPublica>} />
+      {/* /restablecer-password queda SIN RutaPublica a propósito: depende de la
+          sesión "oculta" que Supabase abre desde el link del correo de recuperación
+          (ver comentario en RestablecerPassword.jsx). Envolverla la rompería. */}
       <Route path="/restablecer-password" element={<RestablecerPassword />} />
       
       <Route 

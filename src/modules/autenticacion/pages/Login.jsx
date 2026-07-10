@@ -45,7 +45,7 @@ export default function Login() {
 
     const cleanedEmail = email.trim().replace(/\s+/g, '');
 
-    // NUEVA VALIDACIÓN: Regex para asegurar que el correo tenga dominio
+    // Regex para asegurar que el correo tenga dominio
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(cleanedEmail)) {
       setError('Por favor, ingresa un correo electrónico válido (ej. usuario@gmail.com).');
@@ -69,12 +69,16 @@ export default function Login() {
 
       if (userError) throw userError;
 
+      // replace: true evita que /login quede apilado en el historial:
+      // sin esto, un solo "Atrás" desde el panel devolvía a esta pantalla
+      // con la sesión todavía activa (RutaPublica es la segunda capa de
+      // defensa para cuando el usuario llega a /login por otro camino).
       if (userData.rol === 'psicologo') {
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
       } else if (userData.rol === 'superadmin') {
-        navigate('/panel-maestro');
+        navigate('/panel-maestro', { replace: true });
       } else {
-        navigate('/encuesta');
+        navigate('/encuesta', { replace: true });
       }
 
     } catch (err) {
