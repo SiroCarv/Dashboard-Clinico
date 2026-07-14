@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { psicologoInstitucionService } from '../services/psicologoInstitucionService';
-import { PsicologoModal } from './PsicologoModal';
+import { PsicologoModal, psicologosService } from '../../psicologos';
 
 export const AsignacionPsicologos = ({ instituciones }) => {
   const [psicologos, setPsicologos] = useState([]);
@@ -8,6 +8,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
   const [loading, setLoading] = useState(true);
   const [procesandoId, setProcesandoId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [psicologoEnEdicion, setPsicologoEnEdicion] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -47,6 +48,50 @@ export const AsignacionPsicologos = ({ instituciones }) => {
     }
   };
 
+  const handleOpenModal = (psicologo = null) => {
+    setPsicologoEnEdicion(psicologo);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setPsicologoEnEdicion(null);
+  };
+
+  const handleSave = async (datos) => {
+    try {
+      if (psicologoEnEdicion) {
+        await psicologosService.editar(psicologoEnEdicion.id, datos);
+      } else {
+        await psicologosService.crear(datos);
+      }
+      await cargarDatos();
+      handleCloseModal();
+    } catch (err) {
+      alert(err.message);
+      console.error(err);
+    }
+  };
+
+  const handleDelete = async (psicologo) => {
+    const confirmado = window.confirm(
+      `¿Eliminar la cuenta de ${psicologo.email}? Esta acción es permanente y no se puede deshacer. ` +
+      `Se quitarán además todas sus asignaciones a instituciones.`
+    );
+    if (!confirmado) return;
+
+    try {
+      setProcesandoId(psicologo.id);
+      await psicologosService.eliminar(psicologo.id);
+      await cargarDatos();
+    } catch (err) {
+      alert(err.message);
+      console.error(err);
+    } finally {
+      setProcesandoId(null);
+    }
+  };
+
   const formatearFecha = (fechaString) => {
     if (!fechaString) return '-';
     return new Date(fechaString).toLocaleDateString('es-BO', {
@@ -64,13 +109,19 @@ export const AsignacionPsicologos = ({ instituciones }) => {
           <h2 className="text-lg font-bold text-black">Personal Clínico Autorizado</h2>
           <p className="text-xs text-gray-500">Asigna profesionales de la salud mental a los entornos operativos del Observatorio.</p>
         </div>
-        <button 
-          onClick={() => setIsModalOpen(true)}
+        <button
+          onClick={() => handleOpenModal()}
           className="bg-orange-500 hover:bg-orange-600 text-white font-bold uppercase tracking-wide text-sm px-4 py-2.5 rounded-md shadow-md transition-colors duration-300 flex items-center justify-center gap-2 self-start sm:self-auto"
         >
           <span>+ Agregar Psicólogo</span>
         </button>
       </div>
+
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-center shadow-sm">
+          {error}
+        </div>
+      )}
 
       {/* Contenedor de la Tabla Principal */}
       <div className="bg-white rounded-lg shadow-xl border-t-8 border-orange-500 overflow-hidden">
@@ -87,12 +138,15 @@ export const AsignacionPsicologos = ({ instituciones }) => {
                 <th scope="col" className="px-6 py-3.5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                   Áreas e Instituciones Vinculadas
                 </th>
+                <th scope="col" className="px-6 py-3.5 text-right text-xs font-bold text-gray-600 uppercase tracking-wider">
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan="3" className="px-6 py-12 text-center">
+                  <td colSpan="4" className="px-6 py-12 text-center">
                     <div className="flex justify-center items-center gap-2">
                       <svg className="animate-spin h-5 w-5 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                       <span className="text-sm text-gray-500 font-medium">Sincronizando registros...</span>
@@ -101,7 +155,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
                 </tr>
               ) : psicologos.length === 0 ? (
                 <tr>
-                  <td colSpan="3" className="px-6 py-16 text-center text-sm font-medium text-gray-400 bg-gray-50">
+                  <td colSpan="4" className="px-6 py-16 text-center text-sm font-medium text-gray-400 bg-gray-50">
                     <div className="max-w-md mx-auto space-y-2">
                       <p className="text-gray-500 text-base font-bold">No se encontraron cuentas activas</p>
                       <p className="text-xs text-gray-400">Aún no hay usuarios registrados con el rol de Psicólogo en la plataforma diagnóstica.</p>
@@ -111,8 +165,11 @@ export const AsignacionPsicologos = ({ instituciones }) => {
               ) : (
                 psicologos.map((psico) => (
                   <tr key={psico.id} className="hover:bg-gray-50/70 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">
-                      {psico.email}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <div className="font-semibold text-gray-800">
+                        {psico.nombre || <span className="text-gray-400 italic font-normal">Sin nombre registrado</span>}
+                      </div>
+                      <div className="text-xs text-gray-500">{psico.email}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatearFecha(psico.created_at)}
@@ -148,6 +205,23 @@ export const AsignacionPsicologos = ({ instituciones }) => {
                         )}
                       </div>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                      <div className="flex justify-end gap-4">
+                        <button
+                          onClick={() => handleOpenModal(psico)}
+                          className="text-sm font-bold text-gray-600 hover:text-gray-800 transition-colors"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          disabled={procesandoId === psico.id}
+                          onClick={() => handleDelete(psico)}
+                          className="text-sm font-bold text-red-500 hover:text-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {procesandoId === psico.id ? 'Eliminando...' : 'Eliminar'}
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
@@ -157,15 +231,11 @@ export const AsignacionPsicologos = ({ instituciones }) => {
       </div>
 
       {/* COMPONENTE MODAL */}
-      <PsicologoModal 
+      <PsicologoModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={async (datos) => {
-          // Lógica temporal para probar la UI
-          console.log("Datos del nuevo psicólogo:", datos);
-          alert("Interfaz conectada. La creación real de usuarios en Supabase requiere configuración adicional.");
-          setIsModalOpen(false);
-        }}
+        onClose={handleCloseModal}
+        onSave={handleSave}
+        psicologoEditado={psicologoEnEdicion}
       />
     </div>
   );

@@ -5,7 +5,7 @@ export const psicologoInstitucionService = {
   async obtenerPsicologos() {
     const { data, error } = await supabase
       .from('usuarios')
-      .select('id, email, created_at')
+      .select('id, email, nombre, created_at')
       .eq('rol', 'psicologo')
       .order('created_at', { ascending: false });
 
