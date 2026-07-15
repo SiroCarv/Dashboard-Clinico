@@ -1,0 +1,1 @@
+export { evaluacionesService } from './services/evaluacionesService';
