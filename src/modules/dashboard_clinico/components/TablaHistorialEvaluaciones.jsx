@@ -39,7 +39,14 @@ export function TablaHistorialEvaluaciones({ evaluaciones }) {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {evaluaciones.map((ev) => (
-              <tr key={ev.id_evaluacion} className="hover:bg-gray-50 transition-colors">
+              <tr
+                key={ev.id_evaluacion}
+                className={`transition-colors ${
+                  ev.alerta_activada
+                    ? 'bg-red-50 border-l-4 border-red-500 hover:bg-red-100'
+                    : 'hover:bg-gray-50'
+                }`}
+              >
                 <td
                   className="p-4 text-gray-500 font-mono text-xs"
                   title={ev.id_evaluacion}

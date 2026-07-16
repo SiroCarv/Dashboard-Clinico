@@ -65,4 +65,38 @@ export const evaluacionesService = {
     if (error) throw error;
     return data;
   },
+
+  /**
+   * Se suscribe en tiempo real a nuevas filas insertadas en
+   * `historial_evaluaciones` (Supabase Realtime · Postgres Changes).
+   *
+   * No requiere ningún filtro por institución/psicólogo: Postgres Changes
+   * evalúa cada fila contra las políticas RLS de SELECT de la tabla usando
+   * el JWT del cliente suscrito, exactamente igual que `obtenerHistorial()`.
+   * Un psicólogo solo recibirá el evento si "historial_select_psicologo" ya
+   * le da acceso de lectura a esa fila (paciente de una institución que
+   * tiene asignada); un paciente solo vería la suya propia.
+   *
+   * El payload de Postgres Changes trae únicamente las columnas crudas de
+   * la fila (sin los joins de `obtenerHistorial`), por lo que el callback
+   * recibe la fila cruda — el hook que consume esto decide si le alcanza
+   * o si prefiere recargar el listado completo para tener el join.
+   *
+   * @param {(filaNueva: object) => void} alRecibirEvaluacion
+   * @returns {() => void} función para cancelar la suscripción (llamar en el cleanup del efecto)
+   */
+  suscribirseANuevasEvaluaciones(alRecibirEvaluacion) {
+    const canal = supabase
+      .channel('historial_evaluaciones-nuevas')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: TABLA },
+        (payload) => alRecibirEvaluacion(payload.new)
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(canal);
+    };
+  },
 };
