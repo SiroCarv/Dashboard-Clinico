@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
+import { RUTA_POR_DEFECTO } from '../../../core/security/rutasPorDefecto';
 import logo from '../../../shared/assets/logo.svg';
 
 export default function Login() {
@@ -69,17 +70,22 @@ export default function Login() {
 
       if (userError) throw userError;
 
+      // RUTA_POR_DEFECTO es la misma fuente única de verdad que usan
+      // RutaProtegida.jsx y RutaPublica.jsx. Si el rol es nulo, vacío o no
+      // reconocido, rutaDestino queda undefined: NO asumimos "paciente"
+      // por defecto, mostramos un error y no navegamos a ningún lado.
+      const rutaDestino = RUTA_POR_DEFECTO[userData?.rol];
+
+      if (!rutaDestino) {
+        setError('Tu cuenta no tiene un rol válido asignado. Contacta al administrador del sistema.');
+        return;
+      }
+
       // replace: true evita que /login quede apilado en el historial:
       // sin esto, un solo "Atrás" desde el panel devolvía a esta pantalla
       // con la sesión todavía activa (RutaPublica es la segunda capa de
       // defensa para cuando el usuario llega a /login por otro camino).
-      if (userData.rol === 'psicologo') {
-        navigate('/dashboard', { replace: true });
-      } else if (userData.rol === 'superadmin') {
-        navigate('/panel-maestro', { replace: true });
-      } else {
-        navigate('/encuesta', { replace: true });
-      }
+      navigate(rutaDestino, { replace: true });
 
     } catch (err) {
       console.error('Error de login:', err.message);

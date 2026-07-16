@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { psicologoInstitucionService } from '../services/psicologoInstitucionService';
 import { PsicologoModal, psicologosService } from '../../psicologos';
+import { ModalConfirmacion } from '../../../shared/components/ModalConfirmacion';
 
 export const AsignacionPsicologos = ({ instituciones }) => {
   const [psicologos, setPsicologos] = useState([]);
@@ -10,6 +11,9 @@ export const AsignacionPsicologos = ({ instituciones }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [psicologoEnEdicion, setPsicologoEnEdicion] = useState(null);
   const [error, setError] = useState(null);
+
+  // Psicólogo pendiente de confirmación de borrado (reemplaza window.confirm)
+  const [psicologoAEliminar, setPsicologoAEliminar] = useState(null);
 
   useEffect(() => {
     cargarDatos();
@@ -73,22 +77,19 @@ export const AsignacionPsicologos = ({ instituciones }) => {
     }
   };
 
-  const handleDelete = async (psicologo) => {
-    const confirmado = window.confirm(
-      `¿Eliminar la cuenta de ${psicologo.email}? Esta acción es permanente y no se puede deshacer. ` +
-      `Se quitarán además todas sus asignaciones a instituciones.`
-    );
-    if (!confirmado) return;
+  // Ya no confirma aquí: solo abre el modal con el psicólogo elegido.
+  const handleDelete = (psicologo) => {
+    setPsicologoAEliminar(psicologo);
+  };
 
+  const confirmarEliminarPsicologo = async () => {
     try {
-      setProcesandoId(psicologo.id);
-      await psicologosService.eliminar(psicologo.id);
+      await psicologosService.eliminar(psicologoAEliminar.id);
       await cargarDatos();
+      setPsicologoAEliminar(null);
     } catch (err) {
       alert(err.message);
       console.error(err);
-    } finally {
-      setProcesandoId(null);
     }
   };
 
@@ -214,11 +215,10 @@ export const AsignacionPsicologos = ({ instituciones }) => {
                           Editar
                         </button>
                         <button
-                          disabled={procesandoId === psico.id}
                           onClick={() => handleDelete(psico)}
-                          className="text-sm font-bold text-red-500 hover:text-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          className="text-sm font-bold text-red-500 hover:text-red-700 transition-colors"
                         >
-                          {procesandoId === psico.id ? 'Eliminando...' : 'Eliminar'}
+                          Eliminar
                         </button>
                       </div>
                     </td>
@@ -236,6 +236,19 @@ export const AsignacionPsicologos = ({ instituciones }) => {
         onClose={handleCloseModal}
         onSave={handleSave}
         psicologoEditado={psicologoEnEdicion}
+      />
+
+      {/* Confirmación de borrado de psicólogo */}
+      <ModalConfirmacion
+        isOpen={!!psicologoAEliminar}
+        titulo="¿Eliminar esta cuenta?"
+        mensaje={
+          psicologoAEliminar
+            ? `Se eliminará permanentemente la cuenta de ${psicologoAEliminar.email} y todas sus asignaciones a instituciones. Esta acción no se puede deshacer.`
+            : ''
+        }
+        onConfirm={confirmarEliminarPsicologo}
+        onCancel={() => setPsicologoAEliminar(null)}
       />
     </div>
   );

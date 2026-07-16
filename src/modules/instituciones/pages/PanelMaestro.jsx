@@ -4,6 +4,7 @@ import { InstitucionList } from '../components/InstitucionList';
 import { InstitucionModal } from '../components/InstitucionModal';
 import { AsignacionPsicologos } from '../components/AsignacionPsicologos';
 import { BotonCerrarSesion } from '../../autenticacion';
+import { ModalConfirmacion } from '../../../shared/components/ModalConfirmacion';
 
 export default function PanelMaestro() {
   const [instituciones, setInstituciones] = useState([]);
@@ -14,6 +15,9 @@ export default function PanelMaestro() {
   // Estados para el Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [institucionEnEdicion, setInstitucionEnEdicion] = useState(null);
+
+  // Institución pendiente de confirmación de borrado (reemplaza window.confirm)
+  const [institucionAEliminar, setInstitucionAEliminar] = useState(null);
 
   useEffect(() => {
     cargarInstituciones();
@@ -57,15 +61,20 @@ export default function PanelMaestro() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('¿Estás seguro de eliminar esta institución? Esta acción no se puede deshacer.')) {
-      try {
-        await institucionesService.deleteInstitucion(id);
-        await cargarInstituciones();
-      } catch (err) {
-        alert('Error al eliminar. Puede que haya psicólogos o pacientes asignados a esta institución.');
-        console.error(err);
-      }
+  // Ya no confirma aquí: solo abre el modal con la institución elegida.
+  const handleDelete = (id) => {
+    const institucion = instituciones.find((inst) => inst.id === id);
+    setInstitucionAEliminar(institucion);
+  };
+
+  const confirmarEliminarInstitucion = async () => {
+    try {
+      await institucionesService.deleteInstitucion(institucionAEliminar.id);
+      await cargarInstituciones();
+      setInstitucionAEliminar(null);
+    } catch (err) {
+      alert('Error al eliminar. Puede que haya psicólogos o pacientes asignados a esta institución.');
+      console.error(err);
     }
   };
 
@@ -134,6 +143,19 @@ export default function PanelMaestro() {
           onClose={handleCloseModal}
           onSave={handleSave}
           institucionEditada={institucionEnEdicion}
+        />
+
+        {/* Confirmación de borrado de institución */}
+        <ModalConfirmacion
+          isOpen={!!institucionAEliminar}
+          titulo="¿Eliminar esta institución?"
+          mensaje={
+            institucionAEliminar
+              ? `Esta acción no se puede deshacer. Se eliminará "${institucionAEliminar.nombre}" y su código de acceso dejará de funcionar.`
+              : ''
+          }
+          onConfirm={confirmarEliminarInstitucion}
+          onCancel={() => setInstitucionAEliminar(null)}
         />
       </div>
     </div>
