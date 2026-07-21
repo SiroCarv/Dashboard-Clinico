@@ -67,6 +67,52 @@ export const evaluacionesService = {
   },
 
   /**
+   * Recupera el detalle completo de UNA evaluación puntual (incluye
+   * `respuestas_json`, que `obtenerHistorial()` no trae por diseño, para
+   * no cargar el payload completo de las 9 respuestas en cada fila de la
+   * tabla del dashboard).
+   *
+   * Usada por la historia "Visualización de Detalle Clínico" (SCRUM-21).
+   *
+   * No valida institución/psicólogo por parámetro: la política RLS
+   * "historial_select_psicologo" es quien decide si esta fila es visible
+   * para auth.uid(). Si el psicólogo fuerza la URL de una evaluación de un
+   * paciente fuera de sus instituciones asignadas, la política simplemente
+   * no devuelve la fila (no lanza error) — se usa `maybeSingle()` a
+   * propósito para que ese caso llegue como `null` en vez de una excepción,
+   * y así el hook que consume esto pueda mostrar un mensaje neutro de
+   * "no encontrada" sin distinguir (por seguridad) entre "no existe" y
+   * "existe pero no tienes acceso".
+   *
+   * @param {string} idEvaluacion
+   * @returns {Promise<object|null>}
+   */
+  async obtenerDetalleEvaluacion(idEvaluacion) {
+    const { data, error } = await supabase
+      .from(TABLA)
+      .select(`
+        id_evaluacion,
+        fecha_registro,
+        puntaje_total,
+        diagnostico,
+        alerta_activada,
+        respuestas_json,
+        paciente:usuarios!historial_evaluaciones_id_paciente_fkey (
+          email,
+          nombre,
+          institucion:instituciones (
+            nombre
+          )
+        )
+      `)
+      .eq('id_evaluacion', idEvaluacion)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
    * Se suscribe en tiempo real a nuevas filas insertadas en
    * `historial_evaluaciones` (Supabase Realtime · Postgres Changes).
    *

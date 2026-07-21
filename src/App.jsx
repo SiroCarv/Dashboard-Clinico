@@ -13,6 +13,7 @@ import RestablecerPassword from './modules/autenticacion/pages/RestablecerPasswo
 import Encuesta from './modules/evaluaciones/pages/Encuesta';
 // Dashboard
 import Dashboard from './modules/dashboard_clinico/pages/Dashboard';
+import DetalleClinico from './modules/dashboard_clinico/pages/DetalleClinico';
 // Instituciones
 import PanelMaestro from './modules/instituciones/pages/PanelMaestro';
 // --- CORE ---
@@ -50,6 +51,15 @@ function App() {
         element={
           <RutaProtegida rolRequerido="psicologo">
             <Dashboard />
+          </RutaProtegida>
+        } 
+      />
+
+      <Route 
+        path="/dashboard/evaluacion/:idEvaluacion" 
+        element={
+          <RutaProtegida rolRequerido="psicologo">
+            <DetalleClinico />
           </RutaProtegida>
         } 
       />

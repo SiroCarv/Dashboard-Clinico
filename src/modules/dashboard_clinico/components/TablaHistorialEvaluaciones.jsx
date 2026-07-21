@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom';
+
 const ESTILOS_DIAGNOSTICO = {
   Leve: 'bg-green-50 border-green-200 text-green-800',
   Moderado: 'bg-gray-100 border-gray-300 text-gray-800',
@@ -15,6 +17,12 @@ function formatearFecha(fechaIso) {
 }
 
 export function TablaHistorialEvaluaciones({ evaluaciones, hayFiltrosActivos = false }) {
+  const navigate = useNavigate();
+
+  // Historia "Visualización de Detalle Clínico" (SCRUM-21): clic en una
+  // fila lleva a la vista de detalle de esa evaluación puntual.
+  const irADetalle = (idEvaluacion) => navigate(`/dashboard/evaluacion/${idEvaluacion}`);
+
   if (evaluaciones.length === 0) {
     return (
       <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
@@ -45,7 +53,16 @@ export function TablaHistorialEvaluaciones({ evaluaciones, hayFiltrosActivos = f
             {evaluaciones.map((ev) => (
               <tr
                 key={ev.id_evaluacion}
-                className={`transition-colors ${
+                onClick={() => irADetalle(ev.id_evaluacion)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    irADetalle(ev.id_evaluacion);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                className={`cursor-pointer transition-colors ${
                   ev.alerta_activada
                     ? 'bg-red-50 border-l-4 border-red-500 hover:bg-red-100'
                     : 'hover:bg-gray-50'
