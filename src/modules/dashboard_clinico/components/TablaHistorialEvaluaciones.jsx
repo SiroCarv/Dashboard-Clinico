@@ -14,11 +14,15 @@ function formatearFecha(fechaIso) {
   });
 }
 
-export function TablaHistorialEvaluaciones({ evaluaciones }) {
+export function TablaHistorialEvaluaciones({ evaluaciones, hayFiltrosActivos = false }) {
   if (evaluaciones.length === 0) {
     return (
       <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-        <p className="text-gray-500 font-medium">No hay evaluaciones registradas aún.</p>
+        <p className="text-gray-500 font-medium">
+          {hayFiltrosActivos
+            ? 'No se encontraron pacientes con estos criterios.'
+            : 'No hay evaluaciones registradas aún.'}
+        </p>
       </div>
     );
   }
