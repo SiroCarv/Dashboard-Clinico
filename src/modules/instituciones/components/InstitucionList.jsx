@@ -50,6 +50,7 @@ export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
           <input
             type="text"
+            aria-label="Buscar instituciones por nombre o código de registro"
             value={terminoBusqueda}
             onChange={(e) => setTerminoBusqueda(e.target.value)}
             placeholder="Buscar por nombre o código de registro..."

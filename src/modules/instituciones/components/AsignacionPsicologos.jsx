@@ -1,4 +1,3 @@
-// src/modules/instituciones/components/AsignacionPsicologos.jsx
 import { useState, useEffect, useMemo } from 'react';
 import { psicologoInstitucionService } from '../services/psicologoInstitucionService';
 import { PsicologoModal, psicologosService } from '../../psicologos';
@@ -139,6 +138,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
           <input
             type="text"
+            aria-label="Buscar psicólogos por nombre o correo electrónico"
             value={terminoBusqueda}
             onChange={(e) => setTerminoBusqueda(e.target.value)}
             placeholder="Buscar por nombre o correo electrónico..."
