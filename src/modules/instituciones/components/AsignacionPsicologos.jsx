@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+// src/modules/instituciones/components/AsignacionPsicologos.jsx
+import { useState, useEffect, useMemo } from 'react';
 import { psicologoInstitucionService } from '../services/psicologoInstitucionService';
 import { PsicologoModal, psicologosService } from '../../psicologos';
 import { ModalConfirmacion } from '../../../shared/components/ModalConfirmacion';
@@ -11,6 +12,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [psicologoEnEdicion, setPsicologoEnEdicion] = useState(null);
   const [error, setError] = useState(null);
+  const [terminoBusqueda, setTerminoBusqueda] = useState('');
 
   // Psicólogo pendiente de confirmación de borrado (reemplaza window.confirm)
   const [psicologoAEliminar, setPsicologoAEliminar] = useState(null);
@@ -102,6 +104,20 @@ export const AsignacionPsicologos = ({ instituciones }) => {
     });
   };
 
+  const hayBusquedaActiva = terminoBusqueda.trim().length > 0;
+
+  const psicologosFiltrados = useMemo(() => {
+    const termino = terminoBusqueda.trim().toLowerCase();
+    if (!termino) return psicologos;
+    return psicologos.filter((psico) => {
+      const nombre = (psico.nombre || '').toLowerCase();
+      const correo = (psico.email || '').toLowerCase();
+      return nombre.includes(termino) || correo.includes(termino);
+    });
+  }, [psicologos, terminoBusqueda]);
+
+  const limpiarFiltros = () => setTerminoBusqueda('');
+
   return (
     <div className="space-y-6">
       {/* Barra de acciones superior idéntica a Instituciones */}
@@ -117,6 +133,26 @@ export const AsignacionPsicologos = ({ instituciones }) => {
           <span>+ Agregar Psicólogo</span>
         </button>
       </div>
+
+      {/* Barra de búsqueda: solo se muestra si existe al menos un psicólogo cargado (AC4) */}
+      {!loading && psicologos.length > 0 && (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
+          <input
+            type="text"
+            value={terminoBusqueda}
+            onChange={(e) => setTerminoBusqueda(e.target.value)}
+            placeholder="Buscar por nombre o correo electrónico..."
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
+          />
+          <button
+            onClick={limpiarFiltros}
+            disabled={!hayBusquedaActiva}
+            className="text-sm font-bold uppercase tracking-wide px-4 py-2.5 rounded-md shadow-md transition-colors duration-300 whitespace-nowrap bg-gray-400 text-white disabled:bg-gray-300 disabled:cursor-not-allowed enabled:bg-orange-500 enabled:hover:bg-orange-600"
+          >
+            Limpiar filtros
+          </button>
+        </div>
+      )}
 
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-center shadow-sm">
@@ -163,8 +199,16 @@ export const AsignacionPsicologos = ({ instituciones }) => {
                     </div>
                   </td>
                 </tr>
+              ) : psicologosFiltrados.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="px-6 py-16 text-center text-sm font-medium text-gray-400 bg-gray-50">
+                    <div className="max-w-md mx-auto space-y-2">
+                      <p className="text-gray-500 text-base font-bold">No se encontraron psicólogos con estos criterios.</p>
+                    </div>
+                  </td>
+                </tr>
               ) : (
-                psicologos.map((psico) => (
+                psicologosFiltrados.map((psico) => (
                   <tr key={psico.id} className="hover:bg-gray-50/70 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <div className="font-semibold text-gray-800">
