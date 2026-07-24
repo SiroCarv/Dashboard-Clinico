@@ -199,10 +199,16 @@ export default function Login() {
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center space-y-1">
           <p className="text-sm text-gray-600">
             ¿Eres paciente nuevo?{' '}
             <Link to="/registro" className="text-orange-500 hover:text-orange-600 font-bold transition-colors">
+              Regístrate aquí
+            </Link>
+          </p>
+          <p className="text-sm text-gray-600">
+            ¿Eres particular?{' '}
+            <Link to="/registro-particular" className="text-orange-500 hover:text-orange-600 font-bold transition-colors">
               Regístrate aquí
             </Link>
           </p>

@@ -6,6 +6,7 @@ import { Routes, Route } from 'react-router-dom';
 // Autenticación
 import Login from './modules/autenticacion/pages/Login';
 import Registro from './modules/autenticacion/pages/Registro';
+import RegistroParticular from './modules/autenticacion/pages/RegistroParticular';
 import RecuperarPassword from './modules/autenticacion/pages/RecuperarPassword';
 import RestablecerPassword from './modules/autenticacion/pages/RestablecerPassword';
 
@@ -30,6 +31,10 @@ function App() {
       <Route path="/registro/:codigo" element={<RutaPublica><Registro /></RutaPublica>} />
       {/* Dejamos la ruta normal por si alguien entra sin código, para mostrarle un mensaje de error */}
       <Route path="/registro" element={<RutaPublica><Registro /></RutaPublica>} />
+
+      {/* Registro para personas sin institución (SCRUM-29): componente propio,
+          no reutiliza Registro.jsx para no alterar el flujo institucional ya aprobado. */}
+      <Route path="/registro-particular" element={<RutaPublica><RegistroParticular /></RutaPublica>} />
       
       <Route path="/recuperar-password" element={<RutaPublica><RecuperarPassword /></RutaPublica>} />
       {/* /restablecer-password queda SIN RutaPublica a propósito: depende de la
