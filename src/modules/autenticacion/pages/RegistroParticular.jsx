@@ -3,7 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 
 export default function RegistroParticular() {
+  const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
+  const [telefono, setTelefono] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -19,8 +21,20 @@ export default function RegistroParticular() {
     setLoading(true);
     setError('');
 
+    // Nombre y teléfono: solo recortamos espacios en los extremos (no
+    // colapsamos espacios internos como con el correo, porque un nombre
+    // completo los necesita). Se piden para poder contactar al paciente
+    // ante una emergencia clínica (requisito del cliente).
+    const cleanedNombre = nombre.trim();
+    const cleanedTelefono = telefono.trim();
     const cleanedEmail = email.trim().replace(/\s+/g, '');
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!cleanedNombre || !cleanedTelefono) {
+      setError('Por favor, completa tu nombre y teléfono de contacto.');
+      setLoading(false);
+      return;
+    }
 
     if (!emailRegex.test(cleanedEmail)) {
       setError('Por favor, ingresa un correo electrónico válido (ej. usuario@gmail.com).');
@@ -57,6 +71,8 @@ export default function RegistroParticular() {
 
       // Paciente particular: sin institución. institucion_id queda NULL
       // a propósito (columna nullable, confirmado contra el esquema real).
+      // nombre y telefono se guardan para poder contactar al paciente ante
+      // una emergencia (requisito del cliente, historia SCRUM-29).
       const { error: userError } = await supabase
         .from('usuarios')
         .insert([
@@ -65,6 +81,8 @@ export default function RegistroParticular() {
             rol: 'paciente',
             institucion_id: null,
             email: cleanedEmail,
+            nombre: cleanedNombre,
+            telefono: cleanedTelefono,
           },
         ]);
 
@@ -101,6 +119,20 @@ export default function RegistroParticular() {
 
           <div>
             <label className="block text-sm font-bold text-black mb-1">
+              Nombre Completo
+            </label>
+            <input
+              type="text"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              required
+              placeholder="Nombre y apellido"
+              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-black mb-1">
               Correo Electrónico
             </label>
             <input
@@ -113,6 +145,23 @@ export default function RegistroParticular() {
               placeholder="usuario@gmail.com"
               className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-black mb-1">
+              Teléfono de Contacto
+            </label>
+            <input
+              type="tel"
+              value={telefono}
+              onChange={(e) => setTelefono(e.target.value)}
+              required
+              placeholder="Ej. 71234567"
+              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
+            />
+            <p className="text-gray-500 text-xs mt-1">
+              Lo usaremos únicamente para contactarte ante una emergencia.
+            </p>
           </div>
 
           <div>
