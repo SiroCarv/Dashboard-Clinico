@@ -1,10 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-
-const ESTILOS_DIAGNOSTICO = {
-  Leve: 'bg-green-50 border-green-200 text-green-800',
-  Moderado: 'bg-gray-100 border-gray-300 text-gray-800',
-  Severo: 'bg-red-50 border-red-200 text-red-800',
-};
+import { ESTILOS_DIAGNOSTICO, FILA_ALERTA_ACTIVADA } from '../../../shared/theme/paletaColores';
 
 function formatearFecha(fechaIso) {
   return new Date(fechaIso).toLocaleDateString('es-BO', {
@@ -63,9 +58,7 @@ export function TablaHistorialEvaluaciones({ evaluaciones, hayFiltrosActivos = f
                 role="button"
                 tabIndex={0}
                 className={`cursor-pointer transition-colors ${
-                  ev.alerta_activada
-                    ? 'bg-red-50 border-l-4 border-red-500 hover:bg-red-100'
-                    : 'hover:bg-gray-50'
+                  ev.alerta_activada ? FILA_ALERTA_ACTIVADA : 'hover:bg-gray-50'
                 }`}
               >
                 <td

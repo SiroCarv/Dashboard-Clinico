@@ -2,12 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
 import { useDetalleEvaluacion } from '../hooks/useDetalleEvaluacion';
 import { ESCALA_RESPUESTA } from '../../evaluaciones';
-
-const ESTILOS_DIAGNOSTICO = {
-  Leve: 'bg-green-50 border-green-200 text-green-800',
-  Moderado: 'bg-gray-100 border-gray-300 text-gray-800',
-  Severo: 'bg-red-50 border-red-200 text-red-800',
-};
+import { ESTILOS_DIAGNOSTICO } from '../../../shared/theme/paletaColores';
 
 function formatearFecha(fechaIso) {
   return new Date(fechaIso).toLocaleDateString('es-BO', {

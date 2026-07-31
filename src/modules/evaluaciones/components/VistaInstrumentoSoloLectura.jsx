@@ -5,6 +5,13 @@
 // (no seleccionables, no enfocables), para que quede inequívoco que esta
 // vista no captura respuestas ni las guarda en ningún lado. No hay estado,
 // no hay onChange, no hay botón de enviar.
+//
+// Historia "Paleta de colores institucional": el color de acento (franja
+// superior y títulos de sección) ahora se recibe por prop en vez de estar
+// fijo en naranja, para poder diferenciar visualmente cada instrumento.
+// Si no se pasa `acento`, se mantiene el naranja institucional por
+// defecto (compatibilidad hacia atrás).
+import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 
 function OpcionVerdaderoFalso() {
   return (
@@ -60,11 +67,11 @@ function Item({ item, tipoRespuesta }) {
   );
 }
 
-export default function VistaInstrumentoSoloLectura({ instrumento }) {
+export default function VistaInstrumentoSoloLectura({ instrumento, acento = COLOR_MARCA.naranja }) {
   const { titulo, subtitulo, tipoRespuesta, secciones } = instrumento;
 
   return (
-    <div className="bg-white rounded-lg shadow-xl border-t-8 border-orange-500 overflow-hidden">
+    <div className={`bg-white rounded-lg shadow-xl border-t-8 ${acento.franja} overflow-hidden`}>
       <div className="px-6 py-5 border-b border-gray-200">
         <div className="flex items-center gap-2 mb-2">
           <span className="px-2.5 py-1 bg-gray-100 border border-gray-300 rounded-full text-xs font-bold uppercase tracking-wide text-gray-600">
@@ -78,7 +85,7 @@ export default function VistaInstrumentoSoloLectura({ instrumento }) {
       <div className="px-6 pb-6">
         {secciones.map((seccion) => (
           <div key={seccion.titulo} className="mt-6 first:mt-4">
-            <h4 className="text-base font-extrabold text-orange-600 uppercase tracking-wide mb-1">
+            <h4 className={`text-base font-extrabold ${acento.tituloSeccion} uppercase tracking-wide mb-1`}>
               {seccion.titulo}
             </h4>
             {seccion.intro && <p className="text-gray-500 italic text-sm mb-2">{seccion.intro}</p>}
