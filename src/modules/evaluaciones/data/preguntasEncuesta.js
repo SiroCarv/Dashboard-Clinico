@@ -6,9 +6,9 @@
 //
 // Este archivo es la única fuente de verdad del cuestionario. Si el
 // psicólogo necesita cambiar el instrumento (otras preguntas, otra
-// escala u otro puntaje máximo), solo se edita este archivo: ni la
-// UI (PreguntaEncuesta) ni el hook (useEncuestaClinica) dependen del
-// contenido específico de las preguntas.
+// escala u otro puntaje máximo), solo se edita este archivo: la UI
+// (PreguntaEncuesta) no depende del contenido específico de las
+// preguntas.
 
 // Escala de respuesta tipo Likert (0 a 3) aplicada a cada pregunta.
 export const ESCALA_RESPUESTA = [

@@ -10,9 +10,12 @@ import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 // modo de solo lectura — todavía no se puede responder ni enviar nada; el
 // cálculo y el guardado se definirán con el cliente en una historia
 // posterior. El flujo anterior (AvisoConsentimiento, PreguntaEncuesta,
-// EncuestaExitosa, EvaluacionYaRealizada, useEncuestaClinica,
-// PREGUNTAS_ENCUESTA) queda intacto en el código pero sin usar, por si se
-// reutiliza su patrón de UI cuando exista la historia de captura real.
+// EncuestaExitosa, EvaluacionYaRealizada, PREGUNTAS_ENCUESTA) queda
+// intacto en el código pero sin usar, por si se reutiliza su patrón de
+// UI cuando exista la historia de captura real.
+// `useEncuestaClinica.js` (hook huérfano, versión duplicada y nunca
+// importada de esta misma página) se eliminó en la historia SCRUM-32 —
+// seguía mostrando el título viejo "Evaluación Psicológica (Paciente)".
 // evaluacionesService.js NO se toca: el Dashboard del psicólogo sigue
 // dependiendo de él para leer las evaluaciones PHQ-9 ya guardadas.
 
@@ -41,7 +44,7 @@ export default function Encuesta() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <BarraSuperior titulo="Evaluación Psicológica (Paciente)" />
+      <BarraSuperior titulo="Observatorio de Salud Mental" />
 
       <div className="p-6 md:p-10 max-w-3xl mx-auto">
         <div className="mb-6 p-4 bg-gray-100 border border-gray-300 text-gray-700 rounded-md text-center shadow-sm">

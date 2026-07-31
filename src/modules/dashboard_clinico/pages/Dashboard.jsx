@@ -64,7 +64,7 @@ export default function Dashboard() {
         <div className="mb-6">
           <h2 className="text-2xl font-extrabold text-black">Dashboard de Historiales</h2>
           <p className="text-gray-500 mt-1 font-medium">
-            Seguimiento consolidado del estado clínico de tus pacientes.
+            Seguimiento consolidado del estado clínico de tus participantes y consultantes.
           </p>
         </div>
 
@@ -89,7 +89,7 @@ export default function Dashboard() {
               type="text"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Buscar por paciente..."
+              placeholder="Buscar por nombre o correo..."
               className="flex-1 px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
             />
             <select

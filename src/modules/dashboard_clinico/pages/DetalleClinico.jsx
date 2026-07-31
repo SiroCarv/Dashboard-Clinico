@@ -3,6 +3,11 @@ import BarraSuperior from '../../../shared/components/BarraSuperior';
 import { useDetalleEvaluacion } from '../hooks/useDetalleEvaluacion';
 import { ESCALA_RESPUESTA } from '../../evaluaciones';
 import { ESTILOS_DIAGNOSTICO } from '../../../shared/theme/paletaColores';
+import {
+  obtenerEtiquetaIdentidad,
+  obtenerNombreMostrado,
+  obtenerEstiloEtiquetaIdentidad,
+} from '../../../shared/utils/identidadUsuario';
 
 function formatearFecha(fechaIso) {
   return new Date(fechaIso).toLocaleDateString('es-BO', {
@@ -70,8 +75,15 @@ export default function DetalleClinico() {
             <div className="bg-white rounded-lg shadow-xl border-t-8 border-orange-500 p-6">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-extrabold text-black">
-                    {evaluacion.paciente?.nombre || evaluacion.paciente?.email || 'Paciente desconocido'}
+                  <h2 className="text-2xl font-extrabold text-black flex items-center gap-2 flex-wrap">
+                    <span
+                      className={`px-2 py-0.5 border rounded-full text-xs font-semibold uppercase tracking-wide ${obtenerEstiloEtiquetaIdentidad(
+                        obtenerEtiquetaIdentidad(evaluacion.paciente)
+                      )}`}
+                    >
+                      {obtenerEtiquetaIdentidad(evaluacion.paciente)}
+                    </span>
+                    {obtenerNombreMostrado(evaluacion.paciente)}
                   </h2>
                   <p className="text-gray-500 mt-1 font-medium">
                     {evaluacion.paciente?.institucion?.nombre || '—'}

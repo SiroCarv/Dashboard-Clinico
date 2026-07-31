@@ -106,7 +106,7 @@ export default function RegistroParticular() {
           <h2 className="text-3xl font-extrabold text-black">
             Crear Cuenta
           </h2>
-          <p className="text-gray-500 mt-2 font-medium">Registro de Pacientes Particulares</p>
+          <p className="text-gray-500 mt-2 font-medium">Registro de Consultantes</p>
         </div>
 
         {error && (

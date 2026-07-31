@@ -201,13 +201,13 @@ export default function Login() {
 
         <div className="mt-6 text-center space-y-1">
           <p className="text-sm text-gray-600">
-            ¿Eres paciente nuevo?{' '}
+            ¿Eres estudiante de un colegio?{' '}
             <Link to="/registro" className="text-orange-500 hover:text-orange-600 font-bold transition-colors">
               Regístrate aquí
             </Link>
           </p>
           <p className="text-sm text-gray-600">
-            ¿Eres particular?{' '}
+            ¿Eres Consultante (no perteneces a un colegio)?{' '}
             <Link to="/registro-particular" className="text-orange-500 hover:text-orange-600 font-bold transition-colors">
               Regístrate aquí
             </Link>
