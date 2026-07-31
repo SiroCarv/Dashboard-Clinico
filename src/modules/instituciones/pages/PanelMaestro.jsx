@@ -5,6 +5,7 @@ import { InstitucionModal } from '../components/InstitucionModal';
 import { AsignacionPsicologos } from '../components/AsignacionPsicologos';
 import { BotonCerrarSesion } from '../../autenticacion';
 import { ModalConfirmacion } from '../../../shared/components/ModalConfirmacion';
+import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 
 export default function PanelMaestro() {
   const [instituciones, setInstituciones] = useState([]);
@@ -90,13 +91,16 @@ export default function PanelMaestro() {
           <BotonCerrarSesion />
         </div>
 
-        {/* Pestañas */}
+        {/* Pestañas — historia "Paleta de colores institucional": acento
+            puntual por pestaña (igual patrón que en Encuesta.jsx). El
+            resto de la pantalla (franjas, botones, spinner) sigue en
+            naranja, sin cambios. */}
         <div className="flex gap-2 mb-6 border-b border-gray-200">
           <button
             onClick={() => setTabActiva('instituciones')}
             className={`px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors ${
               tabActiva === 'instituciones'
-                ? 'border-orange-500 text-orange-600'
+                ? COLOR_MARCA.tealAzulado.tabActivo
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -106,7 +110,7 @@ export default function PanelMaestro() {
             onClick={() => setTabActiva('psicologos')}
             className={`px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors ${
               tabActiva === 'psicologos'
-                ? 'border-orange-500 text-orange-600'
+                ? COLOR_MARCA.verdeMenta.tabActivo
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 
 export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
   const [copiadoId, setCopiadoId] = useState(null);
@@ -90,7 +91,9 @@ export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
                   <tr key={inst.id} className="hover:bg-gray-50 transition-colors">
                     <td className="p-4 text-gray-800 font-medium">{inst.nombre}</td>
                     <td className="p-4">
-                      <span className="px-3 py-1 bg-gray-100 text-gray-800 border border-gray-300 rounded-full text-sm font-mono font-semibold">
+                      <span
+                        className={`px-3 py-1 border rounded-full text-sm font-mono font-semibold ${COLOR_MARCA.tealAzulado.suave}`}
+                      >
                         {inst.codigo_registro}
                       </span>
                     </td>
