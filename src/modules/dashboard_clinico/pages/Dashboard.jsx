@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
 import { useHistorialEvaluaciones } from '../hooks/useHistorialEvaluaciones';
 import { TablaHistorialEvaluaciones } from '../components/TablaHistorialEvaluaciones';
+import { exportarHistorialAExcel } from '../utils/exportarHistorialExcel';
+import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 
 const FILTRO_DIAGNOSTICO_TODOS = 'todos';
 const FILTRO_INSTITUCION_TODAS = 'todas';
@@ -11,6 +13,7 @@ export default function Dashboard() {
   const [busqueda, setBusqueda] = useState('');
   const [filtroDiagnostico, setFiltroDiagnostico] = useState(FILTRO_DIAGNOSTICO_TODOS);
   const [filtroInstitucion, setFiltroInstitucion] = useState(FILTRO_INSTITUCION_TODAS);
+  const [exportando, setExportando] = useState(false);
 
   // Instituciones únicas derivadas de las evaluaciones ya cargadas: el join de
   // `obtenerHistorial()` ya trae `paciente.institucion.nombre`, así que no se
@@ -52,6 +55,20 @@ export default function Dashboard() {
     setBusqueda('');
     setFiltroDiagnostico(FILTRO_DIAGNOSTICO_TODOS);
     setFiltroInstitucion(FILTRO_INSTITUCION_TODAS);
+  };
+
+  // Historia "Exportación a Excel" (SCRUM-14). Recibe `evaluacionesFiltradas`
+  // -no `evaluaciones`- a propósito: el archivo debe reflejar exactamente
+  // lo que el psicólogo ve en pantalla tras aplicar búsqueda/filtros
+  // (criterio de aceptación #3), nunca el historial completo.
+  const handleExportarExcel = async () => {
+    if (evaluacionesFiltradas.length === 0) return;
+    setExportando(true);
+    try {
+      await exportarHistorialAExcel(evaluacionesFiltradas);
+    } finally {
+      setExportando(false);
+    }
   };
 
   const totalAlertas = evaluaciones.filter((ev) => ev.alerta_activada).length;
@@ -138,6 +155,61 @@ export default function Dashboard() {
                 />
               </svg>
               Limpiar filtros
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExportarExcel}
+              disabled={evaluacionesFiltradas.length === 0 || exportando}
+              title={
+                evaluacionesFiltradas.length === 0
+                  ? 'No hay datos visibles para exportar'
+                  : undefined
+              }
+              className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-md font-semibold shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${COLOR_MARCA.tealAzulado.botonPrimario}`}
+            >
+              {exportando ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Generando...
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+                    />
+                  </svg>
+                  Exportar a Excel
+                </>
+              )}
             </button>
           </div>
         )}
