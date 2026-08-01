@@ -1,11 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export const InstitucionModal = ({ isOpen, onClose, onSave, institucionEditada }) => {
   const [nombre, setNombre] = useState('');
   const [codigoRegistro, setCodigoRegistro] = useState('');
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
+  // Reemplaza al useEffect que reseteaba el formulario: en vez de "reaccionar"
+  // después del render, ajustamos el estado DURANTE el render cuando cambia
+  // la apertura del modal o la institución que se está editando (mismo
+  // criterio que antes tenía como dependencias [institucionEditada, isOpen]).
+  // Es el patrón que React recomienda para este caso exacto — llamar
+  // setState en el cuerpo del render está soportado y no dispara un efecto.
+  const formKey = `${isOpen ? 'abierto' : 'cerrado'}:${institucionEditada?.id ?? 'nueva'}`;
+  const [formKeyAplicada, setFormKeyAplicada] = useState(formKey);
+
+  if (formKey !== formKeyAplicada) {
+    setFormKeyAplicada(formKey);
     if (institucionEditada) {
       setNombre(institucionEditada.nombre || '');
       setCodigoRegistro(institucionEditada.codigo_registro || '');
@@ -13,7 +23,7 @@ export const InstitucionModal = ({ isOpen, onClose, onSave, institucionEditada }
       setNombre('');
       setCodigoRegistro('');
     }
-  }, [institucionEditada, isOpen]);
+  }
 
   const generarCodigo = () => {
     // Genera un código único tipo "UNI-4A9B"

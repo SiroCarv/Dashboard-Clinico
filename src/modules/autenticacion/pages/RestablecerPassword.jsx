@@ -1,11 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 
 export default function RestablecerPassword() {
   const [password, setPassword] = useState('');
   const [confirmarPassword, setConfirmarPassword] = useState('');
-  const [errorValidacion, setErrorValidacion] = useState('');
+  // Error real de envío (falla de Supabase al actualizar), separado de la
+  // validación de coincidencia: esa se calcula directo en cada render, no
+  // necesita su propio estado ni un efecto que la sincronice.
+  const [errorSubmit, setErrorSubmit] = useState('');
   const [loading, setLoading] = useState(false);
   
   // Estados para los ojitos
@@ -14,13 +17,7 @@ export default function RestablecerPassword() {
   
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (confirmarPassword.length > 0 && password !== confirmarPassword) {
-      setErrorValidacion('Las contraseñas no coinciden');
-    } else {
-      setErrorValidacion('');
-    }
-  }, [password, confirmarPassword]);
+  const contrasenasNoCoinciden = confirmarPassword.length > 0 && password !== confirmarPassword;
 
   const manejarActualizacion = async (e) => {
     e.preventDefault();
@@ -30,7 +27,7 @@ export default function RestablecerPassword() {
     const { error } = await supabase.auth.updateUser({ password: password });
 
     if (error) {
-      setErrorValidacion('Error al actualizar. El enlace podría haber caducado.');
+      setErrorSubmit('Error al actualizar. El enlace podría haber caducado.');
       setLoading(false);
     } else {
       // ¡SOLUCIÓN!: Cerramos la sesión "oculta" que abre Supabase con el enlace
@@ -41,8 +38,6 @@ export default function RestablecerPassword() {
       });
     }
   };
-
-  const contrasenasNoCoinciden = errorValidacion === 'Las contraseñas no coinciden';
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
@@ -55,9 +50,9 @@ export default function RestablecerPassword() {
           <p className="text-gray-500 mt-2 font-medium">Plataforma Diagnóstica</p>
         </div>
         
-        {errorValidacion && errorValidacion !== 'Las contraseñas no coinciden' && (
+        {errorSubmit && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-center text-sm font-semibold">
-            {errorValidacion}
+            {errorSubmit}
           </div>
         )}
 
@@ -124,7 +119,7 @@ export default function RestablecerPassword() {
               </button>
             </div>
             {contrasenasNoCoinciden && (
-              <p className="mt-2 text-sm text-red-600 font-bold">{errorValidacion}</p>
+              <p className="mt-2 text-sm text-red-600 font-bold">Las contraseñas no coinciden</p>
             )}
           </div>
           

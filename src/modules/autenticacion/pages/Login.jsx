@@ -11,33 +11,39 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
-  const [mensajeExito, setMensajeExito] = useState('');
-  const [desvanecer, setDesvanecer] = useState(false);
-
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Se lee una sola vez, en la inicialización del estado: así el primer
+  // render ya sale con el valor correcto y el efecto no necesita hacer
+  // un setState síncrono para "sincronizarlo" después.
+  const [mensajeExito, setMensajeExito] = useState(() => location.state?.mensajeRegistro || '');
+  const [desvanecer, setDesvanecer] = useState(false);
+
   useEffect(() => {
-    if (location.state?.mensajeRegistro) {
-      setMensajeExito(location.state.mensajeRegistro);
-      
-      window.history.replaceState({}, document.title);
+    if (!mensajeExito) return;
 
-      const fadeTimer = setTimeout(() => {
-        setDesvanecer(true);
-      }, 5000);
+    // Limpiamos el state de navegación para que un refresh no vuelva a mostrar el mensaje.
+    window.history.replaceState({}, document.title);
 
-      const removeTimer = setTimeout(() => {
-        setMensajeExito('');
-        setDesvanecer(false);
-      }, 6000);
+    const fadeTimer = setTimeout(() => {
+      setDesvanecer(true);
+    }, 5000);
 
-      return () => {
-        clearTimeout(fadeTimer);
-        clearTimeout(removeTimer);
-      };
-    }
-  }, [location]);
+    const removeTimer = setTimeout(() => {
+      setMensajeExito('');
+      setDesvanecer(false);
+    }, 6000);
+
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(removeTimer);
+    };
+    // Solo debe correr una vez, al montar: es la misma condición que antes
+    // tenía como dependencia [location], pero ese efecto solo se disparaba
+    // en el primer render de esta pantalla (login siempre remonta al navegar).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();

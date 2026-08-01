@@ -34,14 +34,14 @@ export default function Registro() {
     const codigoLimpio = codigoIngresado.trim().toUpperCase();
 
     if (!codigoLimpio) {
-      setInstitucion(null);
-      setBuscandoCodigo(false);
-      setValidandoEnlace(false);
+      // El reseteo visible (institucion/buscandoCodigo/validandoEnlace) ya
+      // se hizo de forma inmediata en handleCodigoChange cuando el usuario
+      // borra el campo. Acá solo queda marcar que ya pasó el primer render
+      // para que la próxima búsqueda real no tenga el delay de 500ms.
       primerRenderRef.current = false;
       return;
     }
 
-    setBuscandoCodigo(true);
     const delay = primerRenderRef.current ? 0 : 500;
     primerRenderRef.current = false;
 
@@ -69,6 +69,24 @@ export default function Registro() {
 
     return () => clearTimeout(timeoutId);
   }, [codigoIngresado]);
+
+  const handleCodigoChange = (e) => {
+    const nuevoValor = e.target.value;
+    setCodigoIngresado(nuevoValor);
+
+    if (!nuevoValor.trim()) {
+      // Código borrado: reseteamos de inmediato (sin esperar al debounce
+      // del efecto, igual que antes) desde el propio evento.
+      setInstitucion(null);
+      setBuscandoCodigo(false);
+      setValidandoEnlace(false);
+    } else {
+      // Feedback inmediato de "verificando" apenas el usuario escribe algo,
+      // igual que antes — antes lo disparaba el efecto, ahora lo dispara
+      // directamente el evento que realmente lo origina.
+      setBuscandoCodigo(true);
+    }
+  };
 
   const handleRegistro = async (e) => {
     e.preventDefault();
@@ -187,7 +205,7 @@ export default function Registro() {
             <input
               type="text"
               value={codigoIngresado}
-              onChange={(e) => setCodigoIngresado(e.target.value)}
+              onChange={handleCodigoChange}
               placeholder="Ej. UNI-4A9B"
               className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 uppercase ${
                 institucion ? 'border-green-500 bg-green-50' : 'border-gray-300'

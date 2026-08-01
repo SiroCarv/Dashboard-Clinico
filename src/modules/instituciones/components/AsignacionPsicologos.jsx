@@ -16,17 +16,19 @@ export const AsignacionPsicologos = ({ instituciones }) => {
   // Psicólogo pendiente de confirmación de borrado (reemplaza window.confirm)
   const [psicologoAEliminar, setPsicologoAEliminar] = useState(null);
 
-  useEffect(() => {
-    cargarDatos();
-  }, []);
+  // Solo hace las llamadas a Supabase, sin tocar ningún estado. La comparte
+  // cargarDatos() (para los handlers) y el efecto de montaje de abajo, cada
+  // uno con su propio manejo de estado alrededor.
+  const obtenerPsicologosYAsignaciones = () =>
+    Promise.all([
+      psicologoInstitucionService.obtenerPsicologos(),
+      psicologoInstitucionService.obtenerAsignaciones()
+    ]);
 
   const cargarDatos = async () => {
     try {
       setLoading(true);
-      const [psicologosData, asignacionesData] = await Promise.all([
-        psicologoInstitucionService.obtenerPsicologos(),
-        psicologoInstitucionService.obtenerAsignaciones()
-      ]);
+      const [psicologosData, asignacionesData] = await obtenerPsicologosYAsignaciones();
       setPsicologos(psicologosData);
       setAsignaciones(asignacionesData);
     } catch (error) {
@@ -36,6 +38,35 @@ export const AsignacionPsicologos = ({ instituciones }) => {
       setLoading(false);
     }
   };
+
+  // Carga inicial declarada dentro del propio efecto (patrón recomendado
+  // por React para fetch-on-mount): no necesita poner loading en true
+  // porque ya arranca en true por defecto, y la bandera "activo" evita
+  // actualizar estado si el componente se desmonta antes de que responda.
+  useEffect(() => {
+    let activo = true;
+
+    async function cargarInicial() {
+      try {
+        const [psicologosData, asignacionesData] = await obtenerPsicologosYAsignaciones();
+        if (!activo) return;
+        setPsicologos(psicologosData);
+        setAsignaciones(asignacionesData);
+      } catch (error) {
+        if (!activo) return;
+        console.error("Error cargando panel de psicólogos:", error);
+        setError("No se pudieron cargar los datos del panel.");
+      } finally {
+        if (activo) setLoading(false);
+      }
+    }
+
+    cargarInicial();
+
+    return () => {
+      activo = false;
+    };
+  }, []);
 
   const handleToggleAsignacion = async (psicologoId, institucionId, estaAsignado) => {
     try {
@@ -47,6 +78,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
       }
       await cargarDatos();
     } catch (error) {
+      console.error("Error al modificar la asignación:", error);
       alert("Error al modificar la asignación.");
     } finally {
       setProcesandoId(null);

@@ -20,10 +20,6 @@ export default function PanelMaestro() {
   // Institución pendiente de confirmación de borrado (reemplaza window.confirm)
   const [institucionAEliminar, setInstitucionAEliminar] = useState(null);
 
-  useEffect(() => {
-    cargarInstituciones();
-  }, []);
-
   const cargarInstituciones = async () => {
     try {
       setLoading(true);
@@ -36,6 +32,34 @@ export default function PanelMaestro() {
       setLoading(false);
     }
   };
+
+  // Carga inicial declarada dentro del propio efecto (patrón recomendado
+  // por React para fetch-on-mount): no necesita poner loading en true
+  // porque ya arranca en true por defecto, y la bandera "activo" evita
+  // actualizar estado si el componente se desmonta antes de que responda.
+  useEffect(() => {
+    let activo = true;
+
+    async function cargarInicial() {
+      try {
+        const data = await institucionesService.getInstituciones();
+        if (!activo) return;
+        setInstituciones(data);
+      } catch (err) {
+        if (!activo) return;
+        setError('Error al cargar las instituciones.');
+        console.error(err);
+      } finally {
+        if (activo) setLoading(false);
+      }
+    }
+
+    cargarInicial();
+
+    return () => {
+      activo = false;
+    };
+  }, []);
 
   const handleOpenModal = (institucion = null) => {
     setInstitucionEnEdicion(institucion);
