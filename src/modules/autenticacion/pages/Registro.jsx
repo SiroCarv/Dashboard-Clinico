@@ -440,11 +440,17 @@ export default function Registro() {
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center space-y-1">
           <p className="text-sm text-gray-600">
             ¿Ya tienes una cuenta?{' '}
             <Link to="/" className="text-orange-500 hover:text-orange-600 font-bold transition-colors">
               Inicia sesión aquí
+            </Link>
+          </p>
+          <p className="text-sm text-gray-600">
+            ¿Eres Consultante (no perteneces a un colegio)?{' '}
+            <Link to="/registro-particular" className="text-orange-500 hover:text-orange-600 font-bold transition-colors">
+              Regístrate aquí
             </Link>
           </p>
         </div>
