@@ -205,17 +205,11 @@ export default function Login() {
           </button>
         </form>
 
-        <div className="mt-6 text-center space-y-1">
+        <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            ¿Eres estudiante de un colegio?{' '}
-            <Link to="/registro" className="text-orange-500 hover:text-orange-600 font-bold transition-colors">
-              Regístrate aquí
-            </Link>
-          </p>
-          <p className="text-sm text-gray-600">
-            ¿Eres Consultante (no perteneces a un colegio)?{' '}
-            <Link to="/registro-particular" className="text-orange-500 hover:text-orange-600 font-bold transition-colors">
-              Regístrate aquí
+            ¿Aún no tienes cuenta?{' '}
+            <Link to="/registro-nuevo" className="text-orange-500 hover:text-orange-600 font-bold transition-colors">
+              Registro nuevo
             </Link>
           </p>
         </div>

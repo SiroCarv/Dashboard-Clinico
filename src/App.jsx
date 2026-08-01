@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 // --- MÓDULOS ---
 // Autenticación
 import Login from './modules/autenticacion/pages/Login';
+import Bienvenida from './modules/autenticacion/pages/Bienvenida';
 import Registro from './modules/autenticacion/pages/Registro';
 import RegistroParticular from './modules/autenticacion/pages/RegistroParticular';
 import RecuperarPassword from './modules/autenticacion/pages/RecuperarPassword';
@@ -24,7 +25,11 @@ function App() {
     <Routes>
       <Route path="/" element={<RutaPublica><Login /></RutaPublica>} />
       <Route path="/login" element={<RutaPublica><Login /></RutaPublica>} />
-      
+
+      {/* SCRUM-33: pantalla de bienvenida + selector de perfil,
+          previa a los dos flujos de registro ya existentes */}
+      <Route path="/registro-nuevo" element={<RutaPublica><Bienvenida /></RutaPublica>} />
+
       {/* Ruta dinámica para atrapar el código de la institución */}
       <Route path="/registro/:codigo" element={<RutaPublica><Registro /></RutaPublica>} />
       {/* Dejamos la ruta normal por si alguien entra sin código, para mostrarle un mensaje de error */}

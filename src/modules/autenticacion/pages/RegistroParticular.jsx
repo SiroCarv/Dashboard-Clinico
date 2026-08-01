@@ -1,40 +1,132 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, Link, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 
-export default function RegistroParticular() {
-  const [nombre, setNombre] = useState('');
+const OPCIONES_CURSO = [
+  '1ro de Secundaria',
+  '2do de Secundaria',
+  '3ro de Secundaria',
+  '4to de Secundaria',
+  '5to de Secundaria',
+  '6to de Secundaria',
+];
+const OPCIONES_PARALELO = ['A', 'B', 'C', 'D', 'E', 'F'];
+const OPCIONES_TURNO = ['Mañana', 'Tarde'];
+const OPCIONES_GENERO = ['Masculino', 'Femenino', 'Prefiero no decir'];
+
+export default function Registro() {
+  const { codigo: codigoDeRuta } = useParams();
+  const [searchParams] = useSearchParams();
+  const codigoDeQuery = searchParams.get('codigo');
+
+  // Soporta tanto /registro/:codigo como /registro?codigo=...
+  const codigoInicial = (codigoDeRuta || codigoDeQuery || '').trim().toUpperCase();
+
+  const [codigoIngresado, setCodigoIngresado] = useState(codigoInicial);
+  const [institucion, setInstitucion] = useState(null);
+  const [buscandoCodigo, setBuscandoCodigo] = useState(false);
+  const [validandoEnlace, setValidandoEnlace] = useState(!!codigoInicial);
+
+  const esCodigoDeEnlace =
+    !!codigoInicial && codigoIngresado.trim().toUpperCase() === codigoInicial;
+
+  const primerRenderRef = useRef(true);
+
   const [email, setEmail] = useState('');
-  const [telefono, setTelefono] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Campos de perfil diferenciado (SCRUM-33) — solo aplican al estudiante.
+  const [curso, setCurso] = useState('');
+  const [paralelo, setParalelo] = useState('');
+  const [turno, setTurno] = useState('');
+  const [genero, setGenero] = useState('');
+
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const codigoLimpio = codigoIngresado.trim().toUpperCase();
+
+    if (!codigoLimpio) {
+      // El reseteo visible (institucion/buscandoCodigo/validandoEnlace) ya
+      // se hizo de forma inmediata en handleCodigoChange cuando el usuario
+      // borra el campo. Acá solo queda marcar que ya pasó el primer render
+      // para que la próxima búsqueda real no tenga el delay de 500ms.
+      primerRenderRef.current = false;
+      return;
+    }
+
+    const delay = primerRenderRef.current ? 0 : 500;
+    primerRenderRef.current = false;
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const { data, error: supaError } = await supabase
+          .from('instituciones')
+          .select('id, nombre')
+          .eq('codigo_registro', codigoLimpio)
+          .maybeSingle();
+
+        if (supaError) {
+          console.error('Error al verificar el código de institución:', supaError.message);
+        }
+
+        setInstitucion(data || null);
+      } catch (err) {
+        console.error('Error inesperado al verificar el código:', err.message);
+        setInstitucion(null);
+      } finally {
+        setBuscandoCodigo(false);
+        setValidandoEnlace(false);
+      }
+    }, delay);
+
+    return () => clearTimeout(timeoutId);
+  }, [codigoIngresado]);
+
+  const handleCodigoChange = (e) => {
+    const nuevoValor = e.target.value;
+    setCodigoIngresado(nuevoValor);
+
+    if (!nuevoValor.trim()) {
+      // Código borrado: reseteamos de inmediato (sin esperar al debounce
+      // del efecto, igual que antes) desde el propio evento.
+      setInstitucion(null);
+      setBuscandoCodigo(false);
+      setValidandoEnlace(false);
+    } else {
+      // Feedback inmediato de "verificando" apenas el usuario escribe algo,
+      // igual que antes — antes lo disparaba el efecto, ahora lo dispara
+      // directamente el evento que realmente lo origina.
+      setBuscandoCodigo(true);
+    }
+  };
+
   const handleRegistro = async (e) => {
     e.preventDefault();
+
+    if (!institucion) {
+      setError('Ingresa un código de institución válido para continuar.');
+      return;
+    }
+
+    // Respaldo en JS del required nativo de los 4 selects nuevos
+    // (mismo patrón de doble validación que ya usa RegistroParticular).
+    if (!curso || !paralelo || !turno || !genero) {
+      setError('Por favor, completa curso, paralelo, turno y género.');
+      return;
+    }
 
     setLoading(true);
     setError('');
 
-    // Nombre y teléfono: solo recortamos espacios en los extremos (no
-    // colapsamos espacios internos como con el correo, porque un nombre
-    // completo los necesita). Se piden para poder contactar al paciente
-    // ante una emergencia clínica (requisito del cliente).
-    const cleanedNombre = nombre.trim();
-    const cleanedTelefono = telefono.trim();
     const cleanedEmail = email.trim().replace(/\s+/g, '');
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!cleanedNombre || !cleanedTelefono) {
-      setError('Por favor, completa tu nombre y teléfono de contacto.');
-      setLoading(false);
-      return;
-    }
 
     if (!emailRegex.test(cleanedEmail)) {
       setError('Por favor, ingresa un correo electrónico válido (ej. usuario@gmail.com).');
@@ -69,20 +161,21 @@ export default function RegistroParticular() {
         throw new Error('Error al crear el usuario. Intente nuevamente.');
       }
 
-      // Paciente particular: sin institución. institucion_id queda NULL
-      // a propósito (columna nullable, confirmado contra el esquema real).
-      // nombre y telefono se guardan para poder contactar al paciente ante
-      // una emergencia (requisito del cliente, historia SCRUM-29).
+      // Vinculamos al paciente con la institución detectada. codigo_estudiante
+      // NO se envía: lo asigna el trigger asignar_codigo_estudiante() en el
+      // servidor (ver migración SCRUM-33), nunca el cliente.
       const { error: userError } = await supabase
         .from('usuarios')
         .insert([
           {
             id: authData.user.id,
             rol: 'paciente',
-            institucion_id: null,
+            institucion_id: institucion.id,
             email: cleanedEmail,
-            nombre: cleanedNombre,
-            telefono: cleanedTelefono,
+            curso,
+            paralelo,
+            turno,
+            genero,
           },
         ]);
 
@@ -98,6 +191,14 @@ export default function RegistroParticular() {
     }
   };
 
+  if (validandoEnlace) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <p className="text-gray-600 font-bold">Verificando enlace institucional...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <div className="max-w-md w-full bg-white p-8 border-t-8 border-orange-500 rounded-lg shadow-xl">
@@ -106,7 +207,7 @@ export default function RegistroParticular() {
           <h2 className="text-3xl font-extrabold text-black">
             Crear Cuenta
           </h2>
-          <p className="text-gray-500 mt-2 font-medium">Registro de Consultantes</p>
+          <p className="text-gray-500 mt-2 font-medium">Registro de Estudiantes</p>
         </div>
 
         {error && (
@@ -115,20 +216,128 @@ export default function RegistroParticular() {
           </div>
         )}
 
+        {/* Enlace inválido: sin código en la URL, o el código del enlace no existe */}
+        {!institucion && !buscandoCodigo && (codigoIngresado.trim() === '' || esCodigoDeEnlace) && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-center shadow-sm">
+            <p className="font-bold">⚠️ Enlace de registro inválido</p>
+            <p className="text-sm mt-1">
+              {codigoIngresado.trim() === ''
+                ? 'Solicita a tu institución el enlace correcto, o escribe tu código de acceso abajo.'
+                : 'El código de este enlace no es válido. Verifica con tu institución o corrígelo abajo.'}
+            </p>
+          </div>
+        )}
+
         <form onSubmit={handleRegistro} className="space-y-6">
 
           <div>
             <label className="block text-sm font-bold text-black mb-1">
-              Nombre Completo
+              Código de Institución
             </label>
             <input
               type="text"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              required
-              placeholder="Nombre y apellido"
-              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
+              value={codigoIngresado}
+              onChange={handleCodigoChange}
+              placeholder="Ej. UNI-4A9B"
+              className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 uppercase ${
+                institucion ? 'border-green-500 bg-green-50' : 'border-gray-300'
+              }`}
             />
+            <div className="h-5 mt-1 text-xs">
+              {buscandoCodigo ? (
+                <span className="text-gray-500 flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  Verificando código...
+                </span>
+              ) : institucion ? (
+                <span className="text-green-600 font-semibold">✓ Institución encontrada</span>
+              ) : !esCodigoDeEnlace && codigoIngresado.trim().length > 3 ? (
+                <span className="text-red-500 font-semibold">❌ Código no encontrado</span>
+              ) : (
+                <span className="text-gray-400">Pídelo a tu psicólogo si no tienes un enlace directo.</span>
+              )}
+            </div>
+          </div>
+
+          {institucion && (
+            <div className="p-3 bg-green-50 border border-green-200 text-green-800 rounded-md text-center shadow-sm">
+              <p className="text-sm">Estás registrándote en:</p>
+              <p className="font-bold text-lg">{institucion.nombre}</p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-black mb-1">
+                Curso
+              </label>
+              <select
+                value={curso}
+                onChange={(e) => setCurso(e.target.value)}
+                required
+                disabled={!institucion}
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
+              >
+                <option value="">Selecciona...</option>
+                {OPCIONES_CURSO.map((opcion) => (
+                  <option key={opcion} value={opcion}>{opcion}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-black mb-1">
+                Paralelo
+              </label>
+              <select
+                value={paralelo}
+                onChange={(e) => setParalelo(e.target.value)}
+                required
+                disabled={!institucion}
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
+              >
+                <option value="">Selecciona...</option>
+                {OPCIONES_PARALELO.map((opcion) => (
+                  <option key={opcion} value={opcion}>{opcion}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-black mb-1">
+                Turno
+              </label>
+              <select
+                value={turno}
+                onChange={(e) => setTurno(e.target.value)}
+                required
+                disabled={!institucion}
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
+              >
+                <option value="">Selecciona...</option>
+                {OPCIONES_TURNO.map((opcion) => (
+                  <option key={opcion} value={opcion}>{opcion}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-black mb-1">
+                Género
+              </label>
+              <select
+                value={genero}
+                onChange={(e) => setGenero(e.target.value)}
+                required
+                disabled={!institucion}
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
+              >
+                <option value="">Selecciona...</option>
+                {OPCIONES_GENERO.map((opcion) => (
+                  <option key={opcion} value={opcion}>{opcion}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div>
@@ -140,28 +349,12 @@ export default function RegistroParticular() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={!institucion}
               pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
               title="Debe incluir un dominio válido (ej. .com, .es)"
               placeholder="usuario@gmail.com"
-              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
+              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-black mb-1">
-              Teléfono de Contacto
-            </label>
-            <input
-              type="tel"
-              value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
-              required
-              placeholder="Ej. 71234567"
-              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
-            />
-            <p className="text-gray-500 text-xs mt-1">
-              Lo usaremos únicamente para contactarte ante una emergencia.
-            </p>
           </div>
 
           <div>
@@ -174,13 +367,15 @@ export default function RegistroParticular() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={!institucion}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 pr-12"
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 pr-12 disabled:bg-gray-100"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-orange-500 transition-colors"
+                disabled={!institucion}
+                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-orange-500 transition-colors disabled:opacity-50"
                 tabIndex="-1"
               >
                 {showPassword ? (
@@ -202,15 +397,17 @@ export default function RegistroParticular() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
+                disabled={!institucion}
                 placeholder="••••••••"
-                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 pr-12 ${
+                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 pr-12 disabled:bg-gray-100 ${
                   confirmPassword && password !== confirmPassword ? 'border-red-500' : 'border-gray-300'
                 }`}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-orange-500 transition-colors"
+                disabled={!institucion}
+                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-orange-500 transition-colors disabled:opacity-50"
                 tabIndex="-1"
               >
                 {showConfirmPassword ? (
@@ -227,9 +424,9 @@ export default function RegistroParticular() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !institucion}
             className={`w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide flex justify-center items-center ${
-              loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'
+              loading || !institucion ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'
             }`}
           >
             {loading ? (
@@ -243,17 +440,11 @@ export default function RegistroParticular() {
           </button>
         </form>
 
-        <div className="mt-6 text-center space-y-1">
+        <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
             ¿Ya tienes una cuenta?{' '}
             <Link to="/" className="text-orange-500 hover:text-orange-600 font-bold transition-colors">
               Inicia sesión aquí
-            </Link>
-          </p>
-          <p className="text-sm text-gray-600">
-            ¿Tienes un código de institución?{' '}
-            <Link to="/registro" className="text-orange-500 hover:text-orange-600 font-bold transition-colors">
-              Regístrate aquí
             </Link>
           </p>
         </div>

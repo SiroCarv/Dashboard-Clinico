@@ -2,6 +2,18 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 
+const OPCIONES_CURSO = [
+  '1ro de Secundaria',
+  '2do de Secundaria',
+  '3ro de Secundaria',
+  '4to de Secundaria',
+  '5to de Secundaria',
+  '6to de Secundaria',
+];
+const OPCIONES_PARALELO = ['A', 'B', 'C', 'D', 'E', 'F'];
+const OPCIONES_TURNO = ['Mañana', 'Tarde'];
+const OPCIONES_GENERO = ['Masculino', 'Femenino', 'Prefiero no decir'];
+
 export default function Registro() {
   const { codigo: codigoDeRuta } = useParams();
   const [searchParams] = useSearchParams();
@@ -25,6 +37,13 @@ export default function Registro() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Campos de perfil diferenciado (SCRUM-33) — solo aplican al estudiante.
+  const [curso, setCurso] = useState('');
+  const [paralelo, setParalelo] = useState('');
+  const [turno, setTurno] = useState('');
+  const [genero, setGenero] = useState('');
+
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -96,6 +115,13 @@ export default function Registro() {
       return;
     }
 
+    // Respaldo en JS del required nativo de los 4 selects nuevos
+    // (mismo patrón de doble validación que ya usa RegistroParticular).
+    if (!curso || !paralelo || !turno || !genero) {
+      setError('Por favor, completa curso, paralelo, turno y género.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -135,7 +161,9 @@ export default function Registro() {
         throw new Error('Error al crear el usuario. Intente nuevamente.');
       }
 
-      // Vinculamos al paciente con la institución detectada
+      // Vinculamos al paciente con la institución detectada. codigo_estudiante
+      // NO se envía: lo asigna el trigger asignar_codigo_estudiante() en el
+      // servidor (ver migración SCRUM-33), nunca el cliente.
       const { error: userError } = await supabase
         .from('usuarios')
         .insert([
@@ -144,6 +172,10 @@ export default function Registro() {
             rol: 'paciente',
             institucion_id: institucion.id,
             email: cleanedEmail,
+            curso,
+            paralelo,
+            turno,
+            genero,
           },
         ]);
 
@@ -233,6 +265,80 @@ export default function Registro() {
               <p className="font-bold text-lg">{institucion.nombre}</p>
             </div>
           )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-black mb-1">
+                Curso
+              </label>
+              <select
+                value={curso}
+                onChange={(e) => setCurso(e.target.value)}
+                required
+                disabled={!institucion}
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
+              >
+                <option value="">Selecciona...</option>
+                {OPCIONES_CURSO.map((opcion) => (
+                  <option key={opcion} value={opcion}>{opcion}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-black mb-1">
+                Paralelo
+              </label>
+              <select
+                value={paralelo}
+                onChange={(e) => setParalelo(e.target.value)}
+                required
+                disabled={!institucion}
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
+              >
+                <option value="">Selecciona...</option>
+                {OPCIONES_PARALELO.map((opcion) => (
+                  <option key={opcion} value={opcion}>{opcion}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-black mb-1">
+                Turno
+              </label>
+              <select
+                value={turno}
+                onChange={(e) => setTurno(e.target.value)}
+                required
+                disabled={!institucion}
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
+              >
+                <option value="">Selecciona...</option>
+                {OPCIONES_TURNO.map((opcion) => (
+                  <option key={opcion} value={opcion}>{opcion}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-black mb-1">
+                Género
+              </label>
+              <select
+                value={genero}
+                onChange={(e) => setGenero(e.target.value)}
+                required
+                disabled={!institucion}
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
+              >
+                <option value="">Selecciona...</option>
+                {OPCIONES_GENERO.map((opcion) => (
+                  <option key={opcion} value={opcion}>{opcion}</option>
+                ))}
+              </select>
+            </div>
+          </div>
 
           <div>
             <label className="block text-sm font-bold text-black mb-1">
