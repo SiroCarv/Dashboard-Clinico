@@ -8,6 +8,7 @@ import Registro from './modules/autenticacion/pages/Registro';
 import RegistroParticular from './modules/autenticacion/pages/RegistroParticular';
 import RecuperarPassword from './modules/autenticacion/pages/RecuperarPassword';
 import RestablecerPassword from './modules/autenticacion/pages/RestablecerPassword';
+import { Home } from './modules/observatorio';
 
 // Evaluaciones
 import Encuesta from './modules/evaluaciones/pages/Encuesta';
@@ -23,7 +24,7 @@ import RutaPublica from './core/security/RutaPublica';
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<RutaPublica><Login /></RutaPublica>} />
+      <Route path="/" element={<RutaPublica><Home /></RutaPublica>} />
       <Route path="/login" element={<RutaPublica><Login /></RutaPublica>} />
 
       {/* SCRUM-33: pantalla de bienvenida + selector de perfil,
