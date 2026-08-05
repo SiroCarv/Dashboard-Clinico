@@ -44,7 +44,7 @@ export default function HeroCarrusel() {
             onClick={() => irAImagen(indice)}
             aria-label={`Ir a la imagen ${indice + 1}`}
             className={`h-2.5 rounded-full transition-all ${
-              indice === indiceActual ? 'w-8 bg-orange-500' : 'w-2.5 bg-white/70 hover:bg-white'
+              indice === indiceActual ? 'w-8 bg-violet-400' : 'w-2.5 bg-white/70 hover:bg-white'
             }`}
           />
         ))}

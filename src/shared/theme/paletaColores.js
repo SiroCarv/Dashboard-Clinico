@@ -27,11 +27,11 @@
 
 export const COLOR_MARCA = {
   naranja: {
-    franja: 'border-orange-500',
-    tabActivo: 'border-orange-500 text-orange-600',
-    tituloSeccion: 'text-orange-600',
-    botonPrimario: 'bg-orange-500 hover:bg-orange-600 text-white',
-    suave: 'bg-orange-50 text-orange-700 border-orange-200',
+    franja: 'border-violet-400',
+    tabActivo: 'border-violet-400 text-orange-800',
+    tituloSeccion: 'text-orange-800',
+    botonPrimario: 'bg-violet-400 hover:bg-orange-800 text-white',
+    suave: 'bg-orange-50 text-violet-400 border-orange-200',
   },
   tealAzulado: {
     franja: 'border-teal-500',

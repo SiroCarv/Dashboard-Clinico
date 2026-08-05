@@ -5,7 +5,7 @@ export default function Bienvenida() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <div className="max-w-md w-full bg-white p-8 border-t-8 border-orange-500 rounded-lg shadow-xl">
+      <div className="max-w-md w-full bg-white p-8 border-t-8 border-violet-400 rounded-lg shadow-xl">
 
         <div className="text-center mb-6">
           <h2 className="text-3xl font-extrabold text-black">
@@ -37,14 +37,14 @@ export default function Bienvenida() {
           <button
             type="button"
             onClick={() => navigate('/registro')}
-            className="w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide bg-orange-500 hover:bg-orange-600"
+            className="w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide bg-violet-400 hover:bg-orange-800"
           >
             Soy estudiante de colegio
           </button>
           <button
             type="button"
             onClick={() => navigate('/registro-particular')}
-            className="w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide bg-orange-500 hover:bg-orange-600"
+            className="w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide bg-violet-400 hover:bg-orange-800"
           >
             Soy Consultante
           </button>
@@ -53,7 +53,7 @@ export default function Bienvenida() {
         <div className="mt-6 text-center pt-4 border-t border-gray-200">
           <p className="text-sm text-gray-600">
             ¿Ya tienes una cuenta?{' '}
-            <Link to="/" className="text-orange-500 hover:text-orange-600 font-bold transition-colors">
+            <Link to="/" className="text-violet-400 hover:text-orange-800 font-bold transition-colors">
               Inicia sesión aquí
             </Link>
           </p>

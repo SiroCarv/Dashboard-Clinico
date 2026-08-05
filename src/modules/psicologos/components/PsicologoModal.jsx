@@ -36,7 +36,7 @@ function PsicologoModalContenido({ onClose, onSave, psicologoEditado }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white w-full max-w-md rounded-lg shadow-xl border-t-8 border-orange-500 overflow-hidden">
+      <div className="bg-white w-full max-w-md rounded-lg shadow-xl border-t-8 border-violet-400 overflow-hidden">
         <div className="p-8">
           <div className="text-center mb-6">
             <h2 className="text-3xl font-extrabold text-black">
@@ -57,7 +57,7 @@ function PsicologoModalContenido({ onClose, onSave, psicologoEditado }) {
                 required
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
                 placeholder="Ej. Lic. María Fernández"
               />
             </div>
@@ -69,7 +69,7 @@ function PsicologoModalContenido({ onClose, onSave, psicologoEditado }) {
                 required
                 value={correo}
                 onChange={(e) => setCorreo(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
                 placeholder="psicologo@clinica.com"
               />
             </div>
@@ -84,14 +84,14 @@ function PsicologoModalContenido({ onClose, onSave, psicologoEditado }) {
                     minLength={6}
                     value={passwordTemporal}
                     onChange={(e) => setPasswordTemporal(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 pr-12"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800 pr-12"
                     placeholder="Mínimo 6 caracteres"
                   />
                   <button
                     type="button"
                     tabIndex="-1"
                     onClick={() => setMostrarPassword((v) => !v)}
-                    className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-orange-500 transition-colors"
+                    className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-violet-400 transition-colors"
                   >
                     {mostrarPassword ? (
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -120,7 +120,7 @@ function PsicologoModalContenido({ onClose, onSave, psicologoEditado }) {
                 type="submit"
                 disabled={loading}
                 className={`px-6 py-3 rounded-md font-bold uppercase tracking-wide shadow-md transition-colors duration-300 flex justify-center items-center ${
-                  loading ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-orange-500 hover:bg-orange-600 text-white'
+                  loading ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-violet-400 hover:bg-orange-800 text-white'
                 }`}
               >
                 {loading ? (

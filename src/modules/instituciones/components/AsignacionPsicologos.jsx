@@ -159,7 +159,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
         </div>
         <button
           onClick={() => handleOpenModal()}
-          className="bg-orange-500 hover:bg-orange-600 text-white font-bold uppercase tracking-wide text-sm px-4 py-2.5 rounded-md shadow-md transition-colors duration-300 flex items-center justify-center gap-2 self-start sm:self-auto"
+          className="bg-violet-400 hover:bg-orange-800 text-white font-bold uppercase tracking-wide text-sm px-4 py-2.5 rounded-md shadow-md transition-colors duration-300 flex items-center justify-center gap-2 self-start sm:self-auto"
         >
           <span>+ Agregar Psicólogo</span>
         </button>
@@ -174,12 +174,12 @@ export const AsignacionPsicologos = ({ instituciones }) => {
             value={terminoBusqueda}
             onChange={(e) => setTerminoBusqueda(e.target.value)}
             placeholder="Buscar por nombre o correo electrónico..."
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
           />
           <button
             onClick={limpiarFiltros}
             disabled={!hayBusquedaActiva}
-            className="text-sm font-bold uppercase tracking-wide px-4 py-2.5 rounded-md shadow-md transition-colors duration-300 whitespace-nowrap bg-gray-400 text-white disabled:bg-gray-300 disabled:cursor-not-allowed enabled:bg-orange-500 enabled:hover:bg-orange-600"
+            className="text-sm font-bold uppercase tracking-wide px-4 py-2.5 rounded-md shadow-md transition-colors duration-300 whitespace-nowrap bg-gray-400 text-white disabled:bg-gray-300 disabled:cursor-not-allowed enabled:bg-violet-400 enabled:hover:bg-orange-800"
           >
             Limpiar filtros
           </button>
@@ -193,7 +193,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
       )}
 
       {/* Contenedor de la Tabla Principal */}
-      <div className="bg-white rounded-lg shadow-xl border-t-8 border-orange-500 overflow-hidden">
+      <div className="bg-white rounded-lg shadow-xl border-t-8 border-violet-400 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -217,7 +217,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
                 <tr>
                   <td colSpan="4" className="px-6 py-12 text-center">
                     <div className="flex justify-center items-center gap-2">
-                      <svg className="animate-spin h-5 w-5 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                      <svg className="animate-spin h-5 w-5 text-violet-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                       <span className="text-sm text-gray-500 font-medium">Sincronizando registros...</span>
                     </div>
                   </td>
@@ -271,7 +271,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
                                   isProcessing ? 'opacity-40 cursor-not-allowed' : ''
                                 } ${
                                   estaAsignado
-                                    ? 'bg-orange-500 text-white border-orange-600 hover:bg-orange-600'
+                                    ? 'bg-violet-400 text-white border-orange-800 hover:bg-orange-800'
                                     : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50 hover:text-gray-800'
                                 }`}
                               >

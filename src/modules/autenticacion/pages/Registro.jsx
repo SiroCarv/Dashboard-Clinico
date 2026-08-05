@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
+import { FONDO_AUTH } from '../data/fondoAuth';
 
 const OPCIONES_CURSO = [
   '1ro de Secundaria',
@@ -181,7 +182,7 @@ export default function Registro() {
 
       if (userError) throw userError;
 
-      navigate('/', {
+      navigate('/login', {
         state: { mensajeRegistro: '¡Cuenta registrada exitosamente! Ya puedes iniciar sesión.' },
       });
     } catch (err) {
@@ -193,15 +194,37 @@ export default function Registro() {
 
   if (validandoEnlace) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-violet-50">
         <p className="text-gray-600 font-bold">Verificando enlace institucional...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <div className="max-w-md w-full bg-white p-8 border-t-8 border-orange-500 rounded-lg shadow-xl">
+    <div className="min-h-screen flex items-center justify-center bg-violet-50 p-4 relative overflow-hidden">
+
+      {/* Imagen de fondo semi-transparente (placeholder temporal) */}
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-40"
+        style={{ backgroundImage: `url(${FONDO_AUTH})` }}
+        aria-hidden="true"
+      />
+
+      <div className="relative z-10 max-w-md w-full bg-white p-8 border-t-8 border-violet-400 rounded-lg shadow-xl">
+        <div className="flex items-center justify-between mb-4 text-sm font-bold">
+          <Link
+            to="/registro-nuevo"
+            className="text-gray-500 hover:text-orange-700 transition-colors inline-flex items-center gap-1"
+          >
+            ← Atrás
+          </Link>
+          <Link
+            to="/"
+            className="text-gray-500 hover:text-orange-700 transition-colors inline-flex items-center gap-1"
+          >
+            Volver al inicio
+          </Link>
+        </div>
 
         <div className="text-center mb-6">
           <h2 className="text-3xl font-extrabold text-black">
@@ -239,7 +262,7 @@ export default function Registro() {
               value={codigoIngresado}
               onChange={handleCodigoChange}
               placeholder="Ej. UNI-4A9B"
-              className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 uppercase ${
+              className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 uppercase ${
                 institucion ? 'border-green-500 bg-green-50' : 'border-gray-300'
               }`}
             />
@@ -276,7 +299,7 @@ export default function Registro() {
                 onChange={(e) => setCurso(e.target.value)}
                 required
                 disabled={!institucion}
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
               >
                 <option value="">Selecciona...</option>
                 {OPCIONES_CURSO.map((opcion) => (
@@ -294,7 +317,7 @@ export default function Registro() {
                 onChange={(e) => setParalelo(e.target.value)}
                 required
                 disabled={!institucion}
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
               >
                 <option value="">Selecciona...</option>
                 {OPCIONES_PARALELO.map((opcion) => (
@@ -312,7 +335,7 @@ export default function Registro() {
                 onChange={(e) => setTurno(e.target.value)}
                 required
                 disabled={!institucion}
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
               >
                 <option value="">Selecciona...</option>
                 {OPCIONES_TURNO.map((opcion) => (
@@ -330,7 +353,7 @@ export default function Registro() {
                 onChange={(e) => setGenero(e.target.value)}
                 required
                 disabled={!institucion}
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
               >
                 <option value="">Selecciona...</option>
                 {OPCIONES_GENERO.map((opcion) => (
@@ -353,7 +376,7 @@ export default function Registro() {
               pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
               title="Debe incluir un dominio válido (ej. .com, .es)"
               placeholder="usuario@gmail.com"
-              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
+              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
             />
           </div>
 
@@ -369,13 +392,13 @@ export default function Registro() {
                 required
                 disabled={!institucion}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 pr-12 disabled:bg-gray-100"
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 pr-12 disabled:bg-gray-100"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={!institucion}
-                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-orange-500 transition-colors disabled:opacity-50"
+                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-orange-700 transition-colors disabled:opacity-50"
                 tabIndex="-1"
               >
                 {showPassword ? (
@@ -399,7 +422,7 @@ export default function Registro() {
                 required
                 disabled={!institucion}
                 placeholder="••••••••"
-                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 pr-12 disabled:bg-gray-100 ${
+                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 pr-12 disabled:bg-gray-100 ${
                   confirmPassword && password !== confirmPassword ? 'border-red-500' : 'border-gray-300'
                 }`}
               />
@@ -407,7 +430,7 @@ export default function Registro() {
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 disabled={!institucion}
-                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-orange-500 transition-colors disabled:opacity-50"
+                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-orange-700 transition-colors disabled:opacity-50"
                 tabIndex="-1"
               >
                 {showConfirmPassword ? (
@@ -426,7 +449,7 @@ export default function Registro() {
             type="submit"
             disabled={loading || !institucion}
             className={`w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide flex justify-center items-center ${
-              loading || !institucion ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'
+              loading || !institucion ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-700 hover:bg-orange-800'
             }`}
           >
             {loading ? (
@@ -443,13 +466,13 @@ export default function Registro() {
         <div className="mt-6 text-center space-y-1">
           <p className="text-sm text-gray-600">
             ¿Ya tienes una cuenta?{' '}
-            <Link to="/" className="text-orange-500 hover:text-orange-600 font-bold transition-colors">
+            <Link to="/login" className="text-orange-700 hover:text-orange-800 font-bold transition-colors">
               Inicia sesión aquí
             </Link>
           </p>
           <p className="text-sm text-gray-600">
             ¿Eres Consultante (no perteneces a un colegio)?{' '}
-            <Link to="/registro-particular" className="text-orange-500 hover:text-orange-600 font-bold transition-colors">
+            <Link to="/registro-particular" className="text-orange-700 hover:text-orange-800 font-bold transition-colors">
               Regístrate aquí
             </Link>
           </p>

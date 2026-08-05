@@ -40,7 +40,7 @@ export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
         </div>
         <button
           onClick={() => onEdit()}
-          className="bg-orange-500 hover:bg-orange-600 text-white font-bold uppercase tracking-wide text-sm px-4 py-2.5 rounded-md shadow-md transition-colors duration-300 flex items-center justify-center gap-2 self-start sm:self-auto"
+          className="bg-violet-400 hover:bg-orange-800 text-white font-bold uppercase tracking-wide text-sm px-4 py-2.5 rounded-md shadow-md transition-colors duration-300 flex items-center justify-center gap-2 self-start sm:self-auto"
         >
           <span>+ Nueva Institución</span>
         </button>
@@ -55,12 +55,12 @@ export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
             value={terminoBusqueda}
             onChange={(e) => setTerminoBusqueda(e.target.value)}
             placeholder="Buscar por nombre o código de registro..."
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
           />
           <button
             onClick={limpiarFiltros}
             disabled={!hayBusquedaActiva}
-            className="text-sm font-bold uppercase tracking-wide px-4 py-2.5 rounded-md shadow-md transition-colors duration-300 whitespace-nowrap bg-gray-400 text-white disabled:bg-gray-300 disabled:cursor-not-allowed enabled:bg-orange-500 enabled:hover:bg-orange-600"
+            className="text-sm font-bold uppercase tracking-wide px-4 py-2.5 rounded-md shadow-md transition-colors duration-300 whitespace-nowrap bg-gray-400 text-white disabled:bg-gray-300 disabled:cursor-not-allowed enabled:bg-violet-400 enabled:hover:bg-orange-800"
           >
             Limpiar filtros
           </button>
@@ -76,7 +76,7 @@ export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
           <p className="text-gray-500 font-medium">No se encontraron instituciones con estos criterios.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-xl border-t-8 border-orange-500 overflow-hidden">
+        <div className="bg-white rounded-lg shadow-xl border-t-8 border-violet-400 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -100,7 +100,7 @@ export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
                     <td className="p-4 flex justify-end gap-4">
                       <button
                         onClick={() => copiarEnlace(inst)}
-                        className="text-sm font-bold text-orange-500 hover:text-orange-600 transition-colors"
+                        className="text-sm font-bold text-violet-400 hover:text-orange-800 transition-colors"
                       >
                         {copiadoId === inst.id ? '¡Copiado!' : 'Copiar Enlace'}
                       </button>

@@ -42,7 +42,7 @@ export const InstitucionModal = ({ isOpen, onClose, onSave, institucionEditada }
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity">
-      <div className="bg-white w-full max-w-md rounded-lg shadow-xl border-t-8 border-orange-500 overflow-hidden">
+      <div className="bg-white w-full max-w-md rounded-lg shadow-xl border-t-8 border-violet-400 overflow-hidden">
         <div className="p-8">
           <div className="text-center mb-6">
             <h2 className="text-3xl font-extrabold text-black">
@@ -60,7 +60,7 @@ export const InstitucionModal = ({ isOpen, onClose, onSave, institucionEditada }
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
                 placeholder="Ej. Colegio San Agustín"
               />
             </div>
@@ -75,13 +75,13 @@ export const InstitucionModal = ({ isOpen, onClose, onSave, institucionEditada }
                   value={codigoRegistro}
                   onChange={(e) => setCodigoRegistro(e.target.value)}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 font-mono"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800 font-mono"
                   placeholder="Ej. UNI-XXXX"
                 />
                 <button
                   type="button"
                   onClick={generarCodigo}
-                  className="px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors text-sm font-bold shadow-md whitespace-nowrap"
+                  className="px-4 py-3 bg-violet-400 hover:bg-orange-800 text-white rounded-md transition-colors text-sm font-bold shadow-md whitespace-nowrap"
                 >
                   Generar
                 </button>
@@ -103,7 +103,7 @@ export const InstitucionModal = ({ isOpen, onClose, onSave, institucionEditada }
                 type="submit"
                 disabled={loading}
                 className={`px-6 py-3 rounded-md font-bold uppercase tracking-wide shadow-md transition-colors duration-300 flex justify-center items-center ${
-                  loading ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-orange-500 hover:bg-orange-600 text-white'
+                  loading ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-violet-400 hover:bg-orange-800 text-white'
                 }`}
               >
                 {loading ? (

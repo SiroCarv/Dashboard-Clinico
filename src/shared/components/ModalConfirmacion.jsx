@@ -47,7 +47,7 @@ export const ModalConfirmacion = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white w-full max-w-md rounded-lg shadow-xl border-t-8 border-orange-500 overflow-hidden">
+      <div className="bg-white w-full max-w-md rounded-lg shadow-xl border-t-8 border-violet-400 overflow-hidden">
         <div className="p-8">
           <div className="text-center mb-6">
             <h2 className="text-3xl font-extrabold text-black">{titulo}</h2>

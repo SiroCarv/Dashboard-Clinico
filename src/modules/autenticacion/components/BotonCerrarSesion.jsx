@@ -12,7 +12,7 @@ export default function BotonCerrarSesion() {
         transition-colors duration-300 shadow-sm
         ${cargando
           ? 'bg-gray-400 text-white cursor-not-allowed'
-          : 'bg-white text-gray-700 border border-gray-300 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300'}`}
+          : 'bg-white text-gray-700 border border-gray-300 hover:bg-orange-50 hover:text-orange-800 hover:border-orange-300'}`}
     >
       {cargando ? (
         <>

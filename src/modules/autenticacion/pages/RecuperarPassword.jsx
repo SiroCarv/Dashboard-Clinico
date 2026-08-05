@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
+import { FONDO_AUTH } from '../data/fondoAuth';
 
 export default function RecuperarPassword() {
   const [correo, setCorreo] = useState('');
@@ -32,9 +33,26 @@ export default function RecuperarPassword() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
-      <div className="max-w-md w-full bg-white p-8 border-t-8 border-orange-500 rounded-lg shadow-xl">
-        
+    <div className="min-h-screen flex flex-col items-center justify-center bg-violet-50 p-4 relative overflow-hidden">
+
+      {/* Imagen de fondo semi-transparente (placeholder temporal) */}
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-40"
+        style={{ backgroundImage: `url(${FONDO_AUTH})` }}
+        aria-hidden="true"
+      />
+
+      <div className="relative z-10 max-w-md w-full bg-white p-8 border-t-8 border-violet-400 rounded-lg shadow-xl">
+
+        <div className="mb-4">
+          <Link
+            to="/login"
+            className="text-sm font-bold text-gray-500 hover:text-orange-700 transition-colors inline-flex items-center gap-1"
+          >
+            ← Volver al inicio de sesión
+          </Link>
+        </div>
+
         <div className="text-center mb-8">
           <h2 className="text-3xl font-extrabold text-black">
             Recuperar
@@ -66,7 +84,7 @@ export default function RecuperarPassword() {
                 pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
                 title="Debe incluir un dominio válido (ej. .com, .es)"
                 placeholder="usuario@gmail.com"
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800"
               />
             </div>
             
@@ -74,7 +92,7 @@ export default function RecuperarPassword() {
               type="submit"
               disabled={loading}
               className={`w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide flex justify-center items-center ${
-                loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'
+                loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-700 hover:bg-orange-800'
               }`}
             >
               {loading ? (
@@ -90,7 +108,7 @@ export default function RecuperarPassword() {
         )}
 
         <div className="mt-6 text-center pt-4 border-t border-gray-200">
-          <Link to="/login" className="text-sm font-bold text-orange-500 hover:text-orange-600 transition-colors">
+          <Link to="/login" className="text-sm font-bold text-orange-700 hover:text-orange-800 transition-colors">
             Volver al inicio de sesión
           </Link>
         </div>

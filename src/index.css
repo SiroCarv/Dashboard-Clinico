@@ -1,1 +1,16 @@
+/* Montserrat self-hosted (@fontsource) — pesos realmente usados en la app:
+   400 (normal), 500 (medium), 600 (semibold), 700 (bold), 800 (extrabold) */
+@import '@fontsource/montserrat/400.css';
+@import '@fontsource/montserrat/500.css';
+@import '@fontsource/montserrat/600.css';
+@import '@fontsource/montserrat/700.css';
+@import '@fontsource/montserrat/800.css';
+
 @import "tailwindcss";
+
+/* Redefine la fuente "sans" por defecto de Tailwind v4: como ningún
+   componente fuerza font-sans/font-serif explícito, este único cambio
+   aplica Montserrat a toda la app sin tocar archivo por archivo. */
+@theme {
+  --font-sans: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+}

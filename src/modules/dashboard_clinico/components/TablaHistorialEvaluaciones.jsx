@@ -36,7 +36,7 @@ export function TablaHistorialEvaluaciones({ evaluaciones, hayFiltrosActivos = f
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-xl border-t-8 border-orange-500 overflow-hidden">
+    <div className="bg-white rounded-lg shadow-xl border-t-8 border-violet-400 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>

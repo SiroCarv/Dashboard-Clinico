@@ -12,7 +12,7 @@ export default function PreguntaEncuesta({ pregunta, indice, valorSeleccionado, 
         {ESCALA_RESPUESTA.map((opcion) => (
           <label
             key={opcion.valor}
-            className="flex items-center gap-3 px-4 py-2 border border-gray-300 rounded-md cursor-pointer transition-all has-checked:border-orange-500 has-checked:bg-orange-50"
+            className="flex items-center gap-3 px-4 py-2 border border-gray-300 rounded-md cursor-pointer transition-all has-checked:border-violet-400 has-checked:bg-orange-50"
           >
             <input
               type="radio"
@@ -21,7 +21,7 @@ export default function PreguntaEncuesta({ pregunta, indice, valorSeleccionado, 
               checked={valorSeleccionado === opcion.valor}
               onChange={() => onSeleccionar(pregunta.id, opcion.valor)}
               required
-              className="accent-orange-500"
+              className="accent-violet-400"
             />
             <span className="text-sm text-gray-800">{opcion.texto}</span>
           </label>

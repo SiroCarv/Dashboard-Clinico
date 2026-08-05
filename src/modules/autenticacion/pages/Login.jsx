@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 import { RUTA_POR_DEFECTO } from '../../../core/security/rutasPorDefecto';
 import logo from '../../../shared/assets/logo.svg';
+import { FONDO_AUTH } from '../data/fondoAuth';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -102,11 +103,18 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
-      
+    <div className="min-h-screen flex flex-col items-center justify-center bg-violet-50 p-4 relative overflow-hidden">
+
+      {/* Imagen de fondo semi-transparente (placeholder temporal) */}
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-40"
+        style={{ backgroundImage: `url(${FONDO_AUTH})` }}
+        aria-hidden="true"
+      />
+
       {mensajeExito && (
         <div 
-          className={`max-w-md w-full mb-4 p-4 bg-green-100 border border-green-500 text-green-800 rounded-lg shadow-lg text-center font-bold transition-opacity duration-1000 ease-in-out ${
+          className={`relative z-10 max-w-md w-full mb-4 p-4 bg-green-100 border border-green-500 text-green-800 rounded-lg shadow-lg text-center font-bold transition-opacity duration-1000 ease-in-out ${
             desvanecer ? 'opacity-0' : 'opacity-100'
           }`}
         >
@@ -114,7 +122,16 @@ export default function Login() {
         </div>
       )}
 
-      <div className="max-w-md w-full bg-white p-8 border-t-8 border-orange-500 rounded-lg shadow-xl">
+      <div className="relative z-10 max-w-md w-full bg-white p-8 border-t-8 border-violet-400 rounded-lg shadow-xl">
+        <div className="mb-4">
+          <Link
+            to="/"
+            className="text-sm font-bold text-gray-500 hover:text-orange-700 transition-colors inline-flex items-center gap-1"
+          >
+            ← Volver al inicio
+          </Link>
+        </div>
+
         <div className="text-center mb-8">
           <img 
             src={logo} 
@@ -146,7 +163,7 @@ export default function Login() {
               pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
               title="Debe incluir un dominio válido (ej. .com, .es)"
               placeholder="usuario@gmail.com"
-              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800"
+              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800"
             />
           </div>
           
@@ -161,12 +178,12 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="••••••••"
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-gray-800 pr-12"
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 pr-12"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-orange-500 transition-colors"
+                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-orange-700 transition-colors"
                 tabIndex="-1"
               >
                 {showPassword ? (
@@ -181,7 +198,7 @@ export default function Login() {
           <div className="flex justify-end mt-2">
             <Link 
               to="/recuperar-password" 
-              className="text-sm font-medium text-orange-500 hover:text-orange-600 hover:underline transition-colors"
+              className="text-sm font-medium text-orange-700 hover:text-orange-800 hover:underline transition-colors"
             >
               ¿Olvidaste tu contraseña?
             </Link>
@@ -191,7 +208,7 @@ export default function Login() {
             type="submit" 
             disabled={loading}
             className={`w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide flex justify-center items-center ${
-              loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'
+              loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-700 hover:bg-orange-800'
             }`}
           >
             {loading ? (
@@ -208,7 +225,7 @@ export default function Login() {
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
             ¿Aún no tienes cuenta?{' '}
-            <Link to="/registro-nuevo" className="text-orange-500 hover:text-orange-600 font-bold transition-colors">
+            <Link to="/registro-nuevo" className="text-orange-700 hover:text-orange-800 font-bold transition-colors">
               Registro nuevo
             </Link>
           </p>

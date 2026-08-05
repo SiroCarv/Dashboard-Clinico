@@ -11,26 +11,38 @@
 // Reemplazar `url` por la ruta real cuando el cliente entregue las
 // fotos definitivas — no hace falta tocar ningún componente.
 
+import img1 from '../assets/img1.jpg';
+import img2 from '../assets/img2.jpg';
+import img3 from '../assets/img3.jpg';
+import img4 from '../assets/img4.jpg';
+import img5 from '../assets/img5.jpg';
+
+
 export const IMAGENES_HERO = [
   {
     id: 1,
-    url: 'https://placehold.co/1920x1080/f97316/ffffff?text=Observatorio+de+Salud+Mental',
-    alt: 'Observatorio de Salud Mental (imagen institucional, placeholder temporal)',
+    url: img1,
+    alt: 'img inicio',
   },
   {
     id: 2,
-    url: 'https://placehold.co/1920x1080/14b8a6/ffffff?text=Diagnostico+Temprano',
-    alt: 'Diagnóstico temprano y prevención (placeholder temporal)',
+    url: img2,
+    alt: 'img inicio',
   },
   {
     id: 3,
-    url: 'https://placehold.co/1920x1080/10b981/ffffff?text=Evidencia+para+Decidir',
-    alt: 'Evidencia para decidir (placeholder temporal)',
+    url: img3,
+    alt: 'img inicio',
   },
   {
     id: 4,
-    url: 'https://placehold.co/1920x1080/a78bfa/ffffff?text=Redes+para+Cuidar',
-    alt: 'Redes para cuidar (placeholder temporal)',
+    url: img4,
+    alt: 'img inicio',
+  },
+  {
+    id: 5,
+    url: img5,
+    alt: 'img inicio',
   },
 ];
 

@@ -11,7 +11,7 @@ export default function EvaluacionYaRealizada({ fecha }) {
   const fechaFormateada = formatearFecha(fecha);
 
   return (
-    <div className="max-w-md w-full bg-white p-8 border-t-8 border-orange-500 rounded-lg shadow-xl text-center">
+    <div className="max-w-md w-full bg-white p-8 border-t-8 border-violet-400 rounded-lg shadow-xl text-center">
       <div className="mb-4 p-4 bg-green-100 border border-green-500 text-green-800 rounded-lg shadow-sm font-bold">
         ✅ Ya completaste tu evaluación
       </div>
