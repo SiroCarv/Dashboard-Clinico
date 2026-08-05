@@ -104,7 +104,7 @@ export default function PanelMaestro() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 md:p-10">
+    <div className="min-h-screen bg-violet-50 p-6 md:p-10">
       <div className="max-w-6xl mx-auto">
         {/* Cabecera */}
         <div className="mb-8 flex items-start justify-between">
@@ -115,16 +115,15 @@ export default function PanelMaestro() {
           <BotonCerrarSesion />
         </div>
 
-        {/* Pestañas — historia "Paleta de colores institucional": acento
-            puntual por pestaña (igual patrón que en Encuesta.jsx). El
-            resto de la pantalla (franjas, botones, spinner) sigue en
-            naranja, sin cambios. */}
+        {/* Pestañas: acento único en naranja (la app pasó a usar solo 2
+            colores de marca: violeta y naranja — ya no se usan los otros
+            2 colores de COLOR_MARCA como acento por pestaña). */}
         <div className="flex gap-2 mb-6 border-b border-gray-200">
           <button
             onClick={() => setTabActiva('instituciones')}
             className={`px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors ${
               tabActiva === 'instituciones'
-                ? COLOR_MARCA.tealAzulado.tabActivo
+                ? COLOR_MARCA.naranja.tabActivo
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -134,7 +133,7 @@ export default function PanelMaestro() {
             onClick={() => setTabActiva('psicologos')}
             className={`px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors ${
               tabActiva === 'psicologos'
-                ? COLOR_MARCA.verdeMenta.tabActivo
+                ? COLOR_MARCA.naranja.tabActivo
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -152,7 +151,7 @@ export default function PanelMaestro() {
         {/* Contenido Principal */}
         {loading ? (
           <div className="flex flex-col justify-center items-center py-20 gap-3">
-            <svg className="animate-spin h-10 w-10 text-violet-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <svg className="animate-spin h-10 w-10 text-orange-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             <span className="text-gray-500 font-medium">Cargando instituciones...</span>
           </div>
         ) : tabActiva === 'instituciones' ? (

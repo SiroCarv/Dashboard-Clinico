@@ -13,7 +13,7 @@ export default function NavbarFlotante() {
           <img
             src={logo}
             alt="Logo Observatorio de Salud Mental"
-            className="h-14 md:h-16 w-auto"
+            className="h-25 md:h-28 w-auto"
           />
           
           <a

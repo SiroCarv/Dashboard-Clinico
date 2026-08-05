@@ -1,59 +1,134 @@
 import { useState } from 'react';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
-import VistaInstrumentoSoloLectura from '../components/VistaInstrumentoSoloLectura';
+import FormularioInstrumento from '../components/FormularioInstrumento';
+import AvisoInstrumento from '../components/AvisoInstrumento';
+import CapturaFechaNacimiento from '../components/consentimiento/CapturaFechaNacimiento';
+import DocumentoConsentimiento from '../components/consentimiento/DocumentoConsentimiento';
+import ConsentimientoDenegado from '../components/consentimiento/ConsentimientoDenegado';
+import { useConsentimiento } from '../hooks/useConsentimiento';
 import { INSTRUMENTO_CLIMA_AULA } from '../data/climaAulaData';
 import { INSTRUMENTO_GSHS } from '../data/gshsData';
+import { INFO_INSTRUMENTO } from '../data/infoInstrumentos';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 
-// Reemplazo del PHQ-9 (historia SCRUM-30): el paciente ya no completa el
-// PHQ-9 aquí. Ve el Cuestionario de Clima de Aula y la Encuesta GSHS en
-// modo de solo lectura — todavía no se puede responder ni enviar nada; el
-// cálculo y el guardado se definirán con el cliente en una historia
-// posterior. El flujo anterior (AvisoConsentimiento, PreguntaEncuesta,
-// EncuestaExitosa, EvaluacionYaRealizada, PREGUNTAS_ENCUESTA) queda
-// intacto en el código pero sin usar, por si se reutiliza su patrón de
-// UI cuando exista la historia de captura real.
-// `useEncuestaClinica.js` (hook huérfano, versión duplicada y nunca
-// importada de esta misma página) se eliminó en la historia SCRUM-32 —
-// seguía mostrando el título viejo "Evaluación Psicológica (Paciente)".
-// evaluacionesService.js NO se toca: el Dashboard del psicólogo sigue
-// dependiendo de él para leer las evaluaciones PHQ-9 ya guardadas.
-
-// Historia "Paleta de colores institucional": cada instrumento tiene su
-// propio color de acento (uno de los 4 colores de marca), para que el
-// paciente distinga de un vistazo cuál está viendo. El PHQ-9 real (fuera
-// de estas pestañas) conserva el naranja institucional sin cambios.
+// Historia "Consentimiento y asentimiento informado por edad" +
+// "Aviso informativo por instrumento" + "Paginación de formularios en
+// bloques de 10" + "Envío individual de resultados por instrumento".
+//
+// Reemplaza al modo solo-lectura de SCRUM-30: ahora, una vez completado
+// el consentimiento que corresponda según la edad, el paciente puede
+// responder y enviar Clima de Aula y GSHS de forma independiente entre sí.
 const TABS = [
   {
     id: 'clima_aula',
+    tipoInstrumento: 'CLIMA_AULA',
     etiqueta: 'Clima de Aula',
     instrumento: INSTRUMENTO_CLIMA_AULA,
     acento: COLOR_MARCA.tealAzulado,
   },
   {
     id: 'gshs',
+    tipoInstrumento: 'GSHS',
     etiqueta: 'GSHS',
     instrumento: INSTRUMENTO_GSHS,
     acento: COLOR_MARCA.verdeMenta,
   },
 ];
 
+function PantallaCentrada({ children }) {
+  return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">{children}</div>
+  );
+}
+
 export default function Encuesta() {
+  const {
+    cargando,
+    error,
+    idPaciente,
+    faltaFechaNacimiento,
+    documentoRechazado,
+    documentoPendiente,
+    consentimientoCompleto,
+    confirmarFechaNacimiento,
+    decidirDocumento,
+  } = useConsentimiento();
+
   const [tabActiva, setTabActiva] = useState(TABS[0].id);
+  const [avisosAceptados, setAvisosAceptados] = useState(() => new Set());
+
+  if (cargando) {
+    return (
+      <PantallaCentrada>
+        <div className="flex flex-col items-center gap-3 text-gray-500 font-medium">
+          <svg className="animate-spin h-8 w-8 text-violet-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Cargando...
+        </div>
+      </PantallaCentrada>
+    );
+  }
+
+  if (error) {
+    return (
+      <PantallaCentrada>
+        <div className="max-w-md w-full p-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-center shadow-sm">
+          {error}
+        </div>
+      </PantallaCentrada>
+    );
+  }
+
+  if (faltaFechaNacimiento) {
+    return (
+      <PantallaCentrada>
+        <CapturaFechaNacimiento onConfirmar={confirmarFechaNacimiento} />
+      </PantallaCentrada>
+    );
+  }
+
+  if (documentoRechazado) {
+    return (
+      <PantallaCentrada>
+        <ConsentimientoDenegado />
+      </PantallaCentrada>
+    );
+  }
+
+  if (!consentimientoCompleto && documentoPendiente) {
+    return (
+      <PantallaCentrada>
+        <DocumentoConsentimiento
+          contenido={documentoPendiente}
+          onDecidir={(aceptado) => decidirDocumento(documentoPendiente.tipo, aceptado)}
+        />
+      </PantallaCentrada>
+    );
+  }
+
   const tab = TABS.find((t) => t.id === tabActiva) ?? TABS[0];
+  const avisoAceptado = avisosAceptados.has(tab.id);
+
+  const aceptarAviso = () => {
+    setAvisosAceptados((prev) => new Set(prev).add(tab.id));
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
       <BarraSuperior titulo="Observatorio de Salud Mental" />
 
-      <div className="p-6 md:p-10 max-w-3xl mx-auto">
-        <div className="mb-6 p-4 bg-gray-100 border border-gray-300 text-gray-700 rounded-md text-center shadow-sm">
-          <p className="font-bold">Estos formularios están en proceso de habilitación.</p>
-          <p className="text-sm mt-1">
-            Por ahora solo puedes revisarlos. Tu psicólogo te avisará cuándo podrás responderlos.
-          </p>
-        </div>
+      {!avisoAceptado && (
+        <AvisoInstrumento
+          titulo={tab.instrumento.titulo}
+          info={INFO_INSTRUMENTO[tab.id]}
+          acento={tab.acento}
+          onAceptar={aceptarAviso}
+        />
+      )}
 
+      <div className="p-6 md:p-10 max-w-3xl mx-auto">
         <div className="flex gap-2 mb-6 border-b border-gray-200">
           {TABS.map(({ id, etiqueta, acento }) => (
             <button
@@ -71,7 +146,18 @@ export default function Encuesta() {
           ))}
         </div>
 
-        <VistaInstrumentoSoloLectura instrumento={tab.instrumento} acento={tab.acento} />
+        {/* key={tab.id} es intencional: sin esto, React reutiliza la
+            misma instancia de FormularioInstrumento al cambiar de pestaña
+            y arrastra su estado interno (error, página, respuestas) del
+            instrumento anterior — por ejemplo, un error de envío de
+            Clima de Aula seguía apareciendo al saltar a GSHS. */}
+        <FormularioInstrumento
+          key={tab.id}
+          idPaciente={idPaciente}
+          tipoInstrumento={tab.tipoInstrumento}
+          instrumento={tab.instrumento}
+          acento={tab.acento}
+        />
       </div>
     </div>
   );

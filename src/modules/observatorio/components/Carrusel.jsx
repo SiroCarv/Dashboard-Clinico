@@ -4,7 +4,10 @@ import { IMAGENES_HERO, DURACION_CAMBIO_IMAGEN_MS } from '../data/contenidoInsti
 // Sección de Inicio: imágenes institucionales que rotan solas, a
 // pantalla completa, con la barra de navegación flotando por encima.
 // id="inicio" es el ancla que usa el link "Inicio" de NavbarFlotante.
-export default function HeroCarrusel() {
+//
+// Renombrado de HeroCarrusel.jsx -> Carrusel.jsx (mismo componente,
+// solo cambia el nombre de archivo/función).
+export default function Carrusel() {
   const { indiceActual, irAImagen } = useCarrusel(
     IMAGENES_HERO.length,
     DURACION_CAMBIO_IMAGEN_MS
@@ -30,10 +33,29 @@ export default function HeroCarrusel() {
         <h1 className="text-white text-4xl md:text-6xl font-extrabold drop-shadow-lg max-w-3xl">
           Observatorio de Salud Mental
         </h1>
-        <p className="text-white text-lg md:text-2xl font-medium mt-4 max-w-2xl drop-shadow-lg">
-          Datos para prevenir · Evidencia para decidir · Redes para cuidar
-        </p>
       </div>
+
+      {/* Indicador de scroll: fijo cerca del borde inferior, siempre visible
+          sin importar la altura de la ventana (no depende del alto del título) */}
+      
+      <a
+        href="#mision-vision"
+        className="absolute bottom-20 inset-x-0 z-10 flex flex-col items-center gap-1 text-white/90 hover:text-white transition-colors animate-bounce"
+      >
+        <span className="text-sm font-semibold uppercase tracking-wide drop-shadow-lg">
+          Conocé nuestra misión y visión
+        </span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+          className="w-7 h-7 drop-shadow-lg"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </a>
 
       {/* Puntos de navegación manual del carrusel */}
       <div className="absolute bottom-8 inset-x-0 z-10 flex justify-center gap-2">
@@ -44,7 +66,7 @@ export default function HeroCarrusel() {
             onClick={() => irAImagen(indice)}
             aria-label={`Ir a la imagen ${indice + 1}`}
             className={`h-2.5 rounded-full transition-all ${
-              indice === indiceActual ? 'w-8 bg-violet-400' : 'w-2.5 bg-white/70 hover:bg-white'
+              indice === indiceActual ? 'w-8 bg-orange-700' : 'w-2.5 bg-white/70 hover:bg-white'
             }`}
           />
         ))}

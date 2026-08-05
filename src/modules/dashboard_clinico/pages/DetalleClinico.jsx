@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
 import { useDetalleEvaluacion } from '../hooks/useDetalleEvaluacion';
 import { ESCALA_RESPUESTA } from '../../evaluaciones';
 import { ESTILOS_DIAGNOSTICO } from '../../../shared/theme/paletaColores';
+import { exportarAExcel } from '../../../shared/utils/exportarExcel';
 import {
   obtenerEtiquetaIdentidad,
   obtenerNombreMostrado,
@@ -30,26 +32,92 @@ export default function DetalleClinico() {
   const { idEvaluacion } = useParams();
   const navigate = useNavigate();
   const { evaluacion, loading, error, noEncontrada } = useDetalleEvaluacion(idEvaluacion);
+  const [exportando, setExportando] = useState(false);
+
+  const handleExportar = async () => {
+    setExportando(true);
+    try {
+      const nombrePaciente = obtenerNombreMostrado(evaluacion.paciente);
+
+      const filas = evaluacion.respuestas_json.map((respuesta, indice) => ({
+        Paciente: nombrePaciente,
+        Identidad: obtenerEtiquetaIdentidad(evaluacion.paciente),
+        Institución: evaluacion.paciente?.institucion?.nombre || '—',
+        'Fecha de evaluación': formatearFecha(evaluacion.fecha_registro),
+        'Puntaje total': evaluacion.puntaje_total,
+        Diagnóstico: evaluacion.diagnostico,
+        Pregunta: `${indice + 1}. ${respuesta.texto_pregunta}`,
+        Respuesta: textoDeRespuesta(respuesta.valor),
+      }));
+
+      // Nombre de archivo sin espacios/acentos raros: evita problemas al
+      // descargar en distintos sistemas operativos.
+      const nombreArchivoSeguro = nombrePaciente
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9]+/g, '_');
+
+      await exportarAExcel(
+        filas,
+        `Evaluacion_${nombreArchivoSeguro}.xlsx`,
+        'Evaluación'
+      );
+    } catch (err) {
+      console.error('Error al exportar a Excel:', err.message);
+      alert('Ocurrió un error al generar el archivo. Intenta nuevamente.');
+    } finally {
+      setExportando(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-violet-50">
       <BarraSuperior titulo="Detalle Clínico de la Evaluación" />
 
       <div className="p-6 md:p-10 max-w-4xl mx-auto">
-        <button
-          type="button"
-          onClick={() => navigate('/dashboard')}
-          className="mb-6 flex items-center gap-2 text-gray-600 hover:text-orange-800 font-semibold transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-          </svg>
-          Volver al Dashboard
-        </button>
+        <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2 text-gray-600 hover:text-orange-800 font-semibold transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+            </svg>
+            Volver al Dashboard
+          </button>
+
+          {!loading && !error && !noEncontrada && evaluacion && (
+            <button
+              type="button"
+              onClick={handleExportar}
+              disabled={exportando}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md font-bold text-sm shadow-md transition-colors ${
+                exportando
+                  ? 'bg-gray-400 cursor-not-allowed text-white'
+                  : 'bg-orange-700 hover:bg-orange-800 text-white'
+              }`}
+            >
+              {exportando ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  Generando...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                  </svg>
+                  Exportar a Excel
+                </>
+              )}
+            </button>
+          )}
+        </div>
 
         {loading && (
           <div className="flex flex-col justify-center items-center py-20 gap-3">
-            <svg className="animate-spin h-10 w-10 text-violet-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <svg className="animate-spin h-10 w-10 text-orange-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             <span className="text-gray-500 font-medium">Cargando evaluación...</span>
           </div>
         )}

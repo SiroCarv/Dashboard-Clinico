@@ -1,5 +1,5 @@
 import NavbarFlotante from '../components/NavbarFlotante';
-import HeroCarrusel from '../components/HeroCarrusel';
+import Carrusel from '../components/Carrusel';
 import SeccionMisionVision from '../components/SeccionMisionVision';
 
 // Página pública de bienvenida (Home) del Observatorio de Salud
@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       <NavbarFlotante />
-      <HeroCarrusel />
+      <Carrusel />
       <SeccionMisionVision />
     </div>
   );

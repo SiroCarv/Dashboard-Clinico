@@ -32,6 +32,7 @@ export const COLOR_MARCA = {
     tituloSeccion: 'text-orange-800',
     botonPrimario: 'bg-violet-400 hover:bg-orange-800 text-white',
     suave: 'bg-orange-50 text-violet-400 border-orange-200',
+    accent: 'accent-violet-400',
   },
   tealAzulado: {
     franja: 'border-teal-500',
@@ -39,6 +40,7 @@ export const COLOR_MARCA = {
     tituloSeccion: 'text-teal-600',
     botonPrimario: 'bg-teal-500 hover:bg-teal-600 text-white',
     suave: 'bg-teal-50 text-teal-700 border-teal-200',
+    accent: 'accent-teal-500',
   },
   verdeMenta: {
     franja: 'border-emerald-500',
@@ -46,6 +48,7 @@ export const COLOR_MARCA = {
     tituloSeccion: 'text-emerald-600',
     botonPrimario: 'bg-emerald-500 hover:bg-emerald-600 text-white',
     suave: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    accent: 'accent-emerald-500',
   },
   violetaSuave: {
     franja: 'border-violet-400',
@@ -53,6 +56,7 @@ export const COLOR_MARCA = {
     tituloSeccion: 'text-violet-600',
     botonPrimario: 'bg-violet-400 hover:bg-violet-500 text-white',
     suave: 'bg-violet-50 text-violet-700 border-violet-200',
+    accent: 'accent-violet-400',
   },
 };
 
@@ -62,6 +66,21 @@ export const ESTILOS_DIAGNOSTICO = {
   Leve: 'bg-green-50 border-green-200 text-green-800',
   Moderado: 'bg-gray-100 border-gray-300 text-gray-800',
   Severo: 'bg-red-50 border-red-200 text-red-800',
+};
+
+// Historia "Envío individual de resultados por instrumento": Clima de
+// Aula ya calcula, del lado de la base de datos, 5 categorías (no 3 como
+// el PHQ-9). Reutiliza el mismo criterio de color que ESTILOS_DIAGNOSTICO
+// (verde = bien, gris = neutro, amarillo/rojo = atención), reservando
+// amarillo y rojo para las dos categorías más bajas. Pendiente de que el
+// cliente confirme si este esquema de color le sirve tal cual (ítem
+// abierto documentado desde Sprint 4).
+export const ESTILOS_CATEGORIA_CLIMA_AULA = {
+  'Muy positivo': 'bg-green-50 border-green-200 text-green-800',
+  Positivo: 'bg-green-50 border-green-200 text-green-800',
+  'Medianamente favorable': 'bg-gray-100 border-gray-300 text-gray-800',
+  'Poco favorable': 'bg-yellow-50 border-yellow-300 text-yellow-800',
+  Negativo: 'bg-red-50 border-red-200 text-red-800',
 };
 
 // Fila resaltada en las tablas cuando el registro activó una alerta.

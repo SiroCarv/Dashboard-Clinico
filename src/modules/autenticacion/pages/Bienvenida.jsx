@@ -4,29 +4,16 @@ export default function Bienvenida() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-violet-50 p-4">
       <div className="max-w-md w-full bg-white p-8 border-t-8 border-violet-400 rounded-lg shadow-xl">
 
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-extrabold text-black">
-            Observatorio de Salud Mental
-          </h2>
-          <p className="text-gray-500 mt-2 font-medium">UNIFRANZ</p>
-        </div>
-
-        <div className="space-y-4 mb-8">
-          <div>
-            <p className="text-sm font-bold text-black mb-1">Misión</p>
-            <p className="text-sm text-gray-600">
-              Generar, analizar y difundir información científica y contextualizada sobre la salud mental en Santa Cruz y Bolivia, con el fin de orientar políticas públicas, fortalecer prácticas clínicas y promover el bienestar emocional en distintos entornos sociales.
-            </p>
-          </div>
-          <div>
-            <p className="text-sm font-bold text-black mb-1">Visión</p>
-            <p className="text-sm text-gray-600">
-              Ser el principal referente regional en monitoreo, investigación, formación y articulación interinstitucional en temas de salud mental, contribuyendo a la construcción de una sociedad más saludable, informada y resiliente.
-            </p>
-          </div>
+        <div className="mb-4">
+          <Link
+            to="/"
+            className="text-sm font-bold text-gray-500 hover:text-orange-700 transition-colors inline-flex items-center gap-1"
+          >
+            ← Volver atrás
+          </Link>
         </div>
 
         <div className="mb-3 text-center">
@@ -37,14 +24,14 @@ export default function Bienvenida() {
           <button
             type="button"
             onClick={() => navigate('/registro')}
-            className="w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide bg-violet-400 hover:bg-orange-800"
+            className="w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide bg-orange-700 hover:bg-orange-800"
           >
             Soy estudiante de colegio
           </button>
           <button
             type="button"
             onClick={() => navigate('/registro-particular')}
-            className="w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide bg-violet-400 hover:bg-orange-800"
+            className="w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide bg-orange-700 hover:bg-orange-800"
           >
             Soy Consultante
           </button>
@@ -53,7 +40,7 @@ export default function Bienvenida() {
         <div className="mt-6 text-center pt-4 border-t border-gray-200">
           <p className="text-sm text-gray-600">
             ¿Ya tienes una cuenta?{' '}
-            <Link to="/" className="text-violet-400 hover:text-orange-800 font-bold transition-colors">
+            <Link to="/login" className="text-orange-700 hover:text-orange-800 font-bold transition-colors">
               Inicia sesión aquí
             </Link>
           </p>
