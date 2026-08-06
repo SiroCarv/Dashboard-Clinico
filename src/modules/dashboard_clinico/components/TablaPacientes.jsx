@@ -5,7 +5,7 @@ import {
   obtenerEstiloEtiquetaIdentidad,
 } from '../../../shared/utils/identidadUsuario';
 
-export function TablaPacientes({ pacientes }) {
+export function TablaPacientes({ pacientes, hayFiltrosActivos = false }) {
   const navigate = useNavigate();
 
   const irAInforme = (id) => navigate(`/dashboard/informe/${id}`);
@@ -13,7 +13,11 @@ export function TablaPacientes({ pacientes }) {
   if (pacientes.length === 0) {
     return (
       <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-        <p className="text-gray-500 font-medium">No hay participantes ni consultantes registrados aún.</p>
+        <p className="text-gray-500 font-medium">
+          {hayFiltrosActivos
+            ? 'No se encontraron participantes ni consultantes con estos criterios.'
+            : 'No hay participantes ni consultantes registrados aún.'}
+        </p>
       </div>
     );
   }

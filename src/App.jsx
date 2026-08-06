@@ -14,7 +14,7 @@ import { Home } from './modules/observatorio';
 import Encuesta from './modules/evaluaciones/pages/Encuesta';
 // Dashboard
 import Dashboard from './modules/dashboard_clinico/pages/Dashboard';
-import DetalleClinico from './modules/dashboard_clinico/pages/DetalleClinico';
+import InformeConsolidado from './modules/dashboard_clinico/pages/InformeConsolidado';
 // Instituciones
 import PanelMaestro from './modules/instituciones/pages/PanelMaestro';
 // --- CORE ---
@@ -65,10 +65,10 @@ function App() {
       />
 
       <Route 
-        path="/dashboard/evaluacion/:idEvaluacion" 
+        path="/dashboard/informe/:idPaciente" 
         element={
           <RutaProtegida rolRequerido="psicologo">
-            <DetalleClinico />
+            <InformeConsolidado />
           </RutaProtegida>
         } 
       />

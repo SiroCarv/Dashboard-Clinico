@@ -1,91 +1,72 @@
 import { useMemo, useState } from 'react';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
-import { useHistorialEvaluaciones } from '../hooks/useHistorialEvaluaciones';
 import { useListaPacientes } from '../hooks/useListaPacientes';
-import { TablaHistorialEvaluaciones } from '../components/TablaHistorialEvaluaciones';
 import { TablaPacientes } from '../components/TablaPacientes';
-import { exportarHistorialAExcel } from '../utils/exportarHistorialExcel';
+import { exportarPacientesAExcel } from '../utils/exportarPacientesExcel';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 
-const FILTRO_DIAGNOSTICO_TODOS = 'todos';
 const FILTRO_INSTITUCION_TODAS = 'todas';
 
 // SCRUM-31 — "Informe Consolidado de Pruebas por Paciente": el Dashboard
-// pasa a tener 2 vistas. "Clima de Aula y GSHS" es la vista principal
-// ahora (antes se abría directo en el historial PHQ-9, que ya no es el
-// formulario vigente). "Historial anterior (PHQ-9)" sigue disponible tal
-// cual estaba — no se borra ni se toca ningún dato — pero pasa a ser la
-// pestaña secundaria, para no mostrarla como si fuera el formulario
-// activo.
-const VISTA_HISTORIAL = 'historial';
-const VISTA_PACIENTES = 'pacientes';
-
+// dejó de tener 2 pestañas (Clima de Aula/GSHS + "Historial anterior
+// PHQ-9"). La pantalla de historial PHQ-9 y su ruta de detalle
+// (DetalleClinico.jsx, SCRUM-21) se retiraron por completo — decisión
+// explícita del cliente, ver notas de la sesión. La única vista ahora es
+// el listado de pacientes; buscar/filtrar/exportar se aplican sobre ese
+// listado, no sobre evaluaciones puntuales.
 export default function Dashboard() {
-  const [vista, setVista] = useState(VISTA_PACIENTES);
-  const { evaluaciones, loading, error } = useHistorialEvaluaciones();
-  const { pacientes, loading: cargandoPacientes, error: errorPacientes } = useListaPacientes();
+  const { pacientes, loading, error } = useListaPacientes();
   const [busqueda, setBusqueda] = useState('');
-  const [filtroDiagnostico, setFiltroDiagnostico] = useState(FILTRO_DIAGNOSTICO_TODOS);
   const [filtroInstitucion, setFiltroInstitucion] = useState(FILTRO_INSTITUCION_TODAS);
   const [exportando, setExportando] = useState(false);
 
-  // Instituciones únicas derivadas de las evaluaciones ya cargadas: el join de
-  // `obtenerHistorial()` ya trae `paciente.institucion.nombre`, así que no se
-  // necesita ninguna llamada nueva a Supabase ni un import cruzado al módulo
-  // `instituciones` para poblar este filtro (historia SCRUM-20).
+  // Instituciones únicas derivadas de los pacientes ya cargados: no se
+  // necesita ninguna llamada nueva a Supabase ni un import cruzado al
+  // módulo `instituciones` para poblar este filtro (mismo patrón que ya
+  // usaba SCRUM-20 sobre `evaluaciones`).
   const instituciones = useMemo(() => {
-    const nombres = evaluaciones
-      .map((ev) => ev.paciente?.institucion?.nombre)
-      .filter(Boolean);
+    const nombres = pacientes.map((p) => p.institucion?.nombre).filter(Boolean);
     return Array.from(new Set(nombres)).sort((a, b) => a.localeCompare(b));
-  }, [evaluaciones]);
+  }, [pacientes]);
 
-  const evaluacionesFiltradas = useMemo(() => {
+  const pacientesFiltrados = useMemo(() => {
     const texto = busqueda.trim().toLowerCase();
 
-    return evaluaciones.filter((ev) => {
-      const coincideDiagnostico =
-        filtroDiagnostico === FILTRO_DIAGNOSTICO_TODOS || ev.diagnostico === filtroDiagnostico;
-
+    return pacientes.filter((p) => {
       const coincideInstitucion =
         filtroInstitucion === FILTRO_INSTITUCION_TODAS ||
-        ev.paciente?.institucion?.nombre === filtroInstitucion;
+        p.institucion?.nombre === filtroInstitucion;
 
       const coincideBusqueda =
         texto === '' ||
-        ev.paciente?.nombre?.toLowerCase().includes(texto) ||
-        ev.paciente?.email?.toLowerCase().includes(texto);
+        p.nombre?.toLowerCase().includes(texto) ||
+        p.email?.toLowerCase().includes(texto);
 
-      return coincideDiagnostico && coincideInstitucion && coincideBusqueda;
+      return coincideInstitucion && coincideBusqueda;
     });
-  }, [evaluaciones, busqueda, filtroDiagnostico, filtroInstitucion]);
+  }, [pacientes, busqueda, filtroInstitucion]);
 
   const hayFiltrosActivos =
-    busqueda.trim() !== '' ||
-    filtroDiagnostico !== FILTRO_DIAGNOSTICO_TODOS ||
-    filtroInstitucion !== FILTRO_INSTITUCION_TODAS;
+    busqueda.trim() !== '' || filtroInstitucion !== FILTRO_INSTITUCION_TODAS;
 
   const limpiarFiltros = () => {
     setBusqueda('');
-    setFiltroDiagnostico(FILTRO_DIAGNOSTICO_TODOS);
     setFiltroInstitucion(FILTRO_INSTITUCION_TODAS);
   };
 
-  // Historia "Exportación a Excel" (SCRUM-14). Recibe `evaluacionesFiltradas`
-  // -no `evaluaciones`- a propósito: el archivo debe reflejar exactamente
-  // lo que el psicólogo ve en pantalla tras aplicar búsqueda/filtros
-  // (criterio de aceptación #3), nunca el historial completo.
+  // Historia "Exportación a Excel" (SCRUM-14), adaptada al listado de
+  // pacientes. Recibe `pacientesFiltrados` -no `pacientes`- a propósito:
+  // el archivo debe reflejar exactamente lo que el psicólogo ve en
+  // pantalla tras aplicar búsqueda/filtros, nunca el padrón completo.
   const handleExportarExcel = async () => {
-    if (evaluacionesFiltradas.length === 0) return;
+    if (pacientesFiltrados.length === 0) return;
     setExportando(true);
     try {
-      await exportarHistorialAExcel(evaluacionesFiltradas);
+      await exportarPacientesAExcel(pacientesFiltrados);
     } finally {
       setExportando(false);
     }
   };
-
-  const totalAlertas = evaluaciones.filter((ev) => ev.alerta_activada).length;
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -99,68 +80,13 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="flex gap-2 mb-6 border-b border-gray-200">
-          <button
-            type="button"
-            onClick={() => setVista(VISTA_PACIENTES)}
-            className={`px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors ${
-              vista === VISTA_PACIENTES
-                ? 'border-violet-400 text-violet-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Clima de Aula y GSHS
-          </button>
-          <button
-            type="button"
-            onClick={() => setVista(VISTA_HISTORIAL)}
-            className={`px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors ${
-              vista === VISTA_HISTORIAL
-                ? 'border-violet-400 text-violet-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Historial anterior (PHQ-9)
-          </button>
-        </div>
-
-        {vista === VISTA_PACIENTES ? (
-          <>
-            {errorPacientes && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-center shadow-sm">
-                {errorPacientes}
-              </div>
-            )}
-            {cargandoPacientes ? (
-              <div className="flex flex-col justify-center items-center py-20 gap-3">
-                <svg className="animate-spin h-10 w-10 text-violet-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span className="text-gray-500 font-medium">Cargando participantes y consultantes...</span>
-              </div>
-            ) : (
-              <TablaPacientes pacientes={pacientes} />
-            )}
-          </>
-        ) : (
-          <>
-        {totalAlertas > 0 && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-md shadow-sm">
-            <p className="font-bold">
-              ⚠️ {totalAlertas} evaluación{totalAlertas !== 1 ? 'es' : ''} con diagnóstico Severo
-            </p>
-            <p className="text-sm mt-1">Revisa estos casos con prioridad.</p>
-          </div>
-        )}
-
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-center shadow-sm">
             {error}
           </div>
         )}
 
-        {!loading && evaluaciones.length > 0 && (
+        {!loading && pacientes.length > 0 && (
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm mb-6">
             <input
               type="text"
@@ -169,16 +95,6 @@ export default function Dashboard() {
               placeholder="Buscar por nombre o correo..."
               className="flex-1 px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
             />
-            <select
-              value={filtroDiagnostico}
-              onChange={(e) => setFiltroDiagnostico(e.target.value)}
-              className="px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
-            >
-              <option value={FILTRO_DIAGNOSTICO_TODOS}>Todos los diagnósticos</option>
-              <option value="Leve">Leve</option>
-              <option value="Moderado">Moderado</option>
-              <option value="Severo">Severo</option>
-            </select>
 
             {instituciones.length > 0 && (
               <select
@@ -220,9 +136,9 @@ export default function Dashboard() {
             <button
               type="button"
               onClick={handleExportarExcel}
-              disabled={evaluacionesFiltradas.length === 0 || exportando}
+              disabled={pacientesFiltrados.length === 0 || exportando}
               title={
-                evaluacionesFiltradas.length === 0
+                pacientesFiltrados.length === 0
                   ? 'No hay datos visibles para exportar'
                   : undefined
               }
@@ -277,15 +193,10 @@ export default function Dashboard() {
         {loading ? (
           <div className="flex flex-col justify-center items-center py-20 gap-3">
             <svg className="animate-spin h-10 w-10 text-violet-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            <span className="text-gray-500 font-medium">Cargando historiales...</span>
+            <span className="text-gray-500 font-medium">Cargando participantes y consultantes...</span>
           </div>
         ) : (
-          <TablaHistorialEvaluaciones
-            evaluaciones={evaluacionesFiltradas}
-            hayFiltrosActivos={hayFiltrosActivos}
-          />
-        )}
-          </>
+          <TablaPacientes pacientes={pacientesFiltrados} hayFiltrosActivos={hayFiltrosActivos} />
         )}
       </div>
     </div>
