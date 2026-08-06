@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
-import { FONDO_AUTH } from '../data/fondoAuth';
+import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
 const OPCIONES_GENERO = ['Masculino', 'Femenino', 'Prefiero no decir'];
 
@@ -115,7 +115,7 @@ export default function RegistroParticular() {
       {/* Imagen de fondo semi-transparente (placeholder temporal) */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-40"
-        style={{ backgroundImage: `url(${FONDO_AUTH})` }}
+        style={{ backgroundImage: `url(${FONDO_PLATAFORMA})` }}
         aria-hidden="true"
       />
 

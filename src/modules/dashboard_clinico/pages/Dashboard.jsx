@@ -4,6 +4,7 @@ import { useListaPacientes } from '../hooks/useListaPacientes';
 import { TablaPacientes } from '../components/TablaPacientes';
 import { exportarPacientesAExcel } from '../utils/exportarPacientesExcel';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
+import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
 const FILTRO_INSTITUCION_TODAS = 'todas';
 
@@ -69,10 +70,17 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 relative overflow-hidden">
+      {/* Imagen de fondo institucional, compartida con el resto de la plataforma */}
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-40"
+        style={{ backgroundImage: `url(${FONDO_PLATAFORMA})` }}
+        aria-hidden="true"
+      />
+
       <BarraSuperior titulo="Panel de Administración (Psicólogo/a)" />
 
-      <div className="p-6 md:p-10 max-w-6xl mx-auto">
+      <div className="relative z-10 p-6 md:p-10 max-w-6xl mx-auto">
         <div className="mb-6">
           <h2 className="text-2xl font-extrabold text-black">Dashboard Clínico</h2>
           <p className="text-gray-500 mt-1 font-medium">

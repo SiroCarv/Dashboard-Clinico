@@ -1,5 +1,5 @@
 import { useNavigate, Link } from 'react-router-dom';
-import { FONDO_AUTH } from '../data/fondoAuth';
+import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
 export default function Bienvenida() {
   const navigate = useNavigate();
@@ -10,7 +10,7 @@ export default function Bienvenida() {
       {/* Imagen de fondo semi-transparente (mismo patrón que Login/Registro/RecuperarPassword) */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-40"
-        style={{ backgroundImage: `url(${FONDO_AUTH})` }}
+        style={{ backgroundImage: `url(${FONDO_PLATAFORMA})` }}
         aria-hidden="true"
       />
 

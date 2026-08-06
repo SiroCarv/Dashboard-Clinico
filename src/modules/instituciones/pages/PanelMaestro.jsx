@@ -6,6 +6,7 @@ import { AsignacionPsicologos } from '../components/AsignacionPsicologos';
 import { BotonCerrarSesion } from '../../autenticacion';
 import { ModalConfirmacion } from '../../../shared/components/ModalConfirmacion';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
+import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
 export default function PanelMaestro() {
   const [instituciones, setInstituciones] = useState([]);
@@ -104,8 +105,15 @@ export default function PanelMaestro() {
   };
 
   return (
-    <div className="min-h-screen bg-violet-50 p-6 md:p-10">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-violet-50 p-6 md:p-10 relative overflow-hidden">
+      {/* Imagen de fondo institucional, compartida con el resto de la plataforma */}
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-40"
+        style={{ backgroundImage: `url(${FONDO_PLATAFORMA})` }}
+        aria-hidden="true"
+      />
+
+      <div className="relative z-10 max-w-6xl mx-auto">
         {/* Cabecera */}
         <div className="mb-8 flex items-start justify-between">
           <div>

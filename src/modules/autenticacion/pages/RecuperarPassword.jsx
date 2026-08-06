@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
-import { FONDO_AUTH } from '../data/fondoAuth';
+import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
 export default function RecuperarPassword() {
   const [correo, setCorreo] = useState('');
@@ -38,7 +38,7 @@ export default function RecuperarPassword() {
       {/* Imagen de fondo semi-transparente (placeholder temporal) */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-40"
-        style={{ backgroundImage: `url(${FONDO_AUTH})` }}
+        style={{ backgroundImage: `url(${FONDO_PLATAFORMA})` }}
         aria-hidden="true"
       />
 

@@ -10,6 +10,7 @@ import { INSTRUMENTO_CLIMA_AULA } from '../data/climaAulaData';
 import { INSTRUMENTO_GSHS } from '../data/gshsData';
 import { INFO_INSTRUMENTO } from '../data/infoInstrumentos';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
+import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
 // Historia "Consentimiento y asentimiento informado por edad" +
 // "Aviso informativo por instrumento" + "Paginación de formularios en
@@ -37,7 +38,15 @@ const TABS = [
 
 function PantallaCentrada({ children }) {
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">{children}</div>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Imagen de fondo institucional, compartida con el resto de la plataforma */}
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-40"
+        style={{ backgroundImage: `url(${FONDO_PLATAFORMA})` }}
+        aria-hidden="true"
+      />
+      <div className="relative z-10">{children}</div>
+    </div>
   );
 }
 
@@ -116,19 +125,28 @@ export default function Encuesta() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 relative overflow-hidden">
+      {/* Imagen de fondo institucional, compartida con el resto de la plataforma */}
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-40"
+        style={{ backgroundImage: `url(${FONDO_PLATAFORMA})` }}
+        aria-hidden="true"
+      />
+
       <BarraSuperior titulo="Observatorio de Salud Mental" />
 
       {!avisoAceptado && (
-        <AvisoInstrumento
-          titulo={tab.instrumento.titulo}
-          info={INFO_INSTRUMENTO[tab.id]}
-          acento={tab.acento}
-          onAceptar={aceptarAviso}
-        />
+        <div className="relative z-10">
+          <AvisoInstrumento
+            titulo={tab.instrumento.titulo}
+            info={INFO_INSTRUMENTO[tab.id]}
+            acento={tab.acento}
+            onAceptar={aceptarAviso}
+          />
+        </div>
       )}
 
-      <div className="p-6 md:p-10 max-w-3xl mx-auto">
+      <div className="relative z-10 p-6 md:p-10 max-w-3xl mx-auto">
         <div className="flex gap-2 mb-6 border-b border-gray-200">
           {TABS.map(({ id, etiqueta, acento }) => (
             <button

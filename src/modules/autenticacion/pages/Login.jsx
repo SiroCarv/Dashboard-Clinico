@@ -3,7 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 import { RUTA_POR_DEFECTO } from '../../../core/security/rutasPorDefecto';
 import logo from '../../../shared/assets/logo.svg';
-import { FONDO_AUTH } from '../data/fondoAuth';
+import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -108,7 +108,7 @@ export default function Login() {
       {/* Imagen de fondo semi-transparente (placeholder temporal) */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-40"
-        style={{ backgroundImage: `url(${FONDO_AUTH})` }}
+        style={{ backgroundImage: `url(${FONDO_PLATAFORMA})` }}
         aria-hidden="true"
       />
 
