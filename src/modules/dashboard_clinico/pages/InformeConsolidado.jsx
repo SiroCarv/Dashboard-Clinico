@@ -9,7 +9,7 @@ export default function InformeConsolidado() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <BarraSuperior titulo="Panel de Administración (Psicólogo)" />
+      <BarraSuperior titulo="Panel de Administración (Psicólogo/a)" />
 
       <div className="p-6 md:p-10 max-w-4xl mx-auto">
         <div className="mb-6 flex items-center justify-between flex-wrap gap-3">

@@ -9,7 +9,7 @@ export default function ConsentimientoDenegado() {
         </p>
       </div>
       <p className="text-gray-500 text-sm font-medium">
-        Si esta decisión fue un error, comunícate con tu psicólogo(a) o con la institución
+        Si esta decisión fue un error, comunícate con tu psicólogo/a o con la institución
         educativa para volver a intentarlo.
       </p>
     </div>

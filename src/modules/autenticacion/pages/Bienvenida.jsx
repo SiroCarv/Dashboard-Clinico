@@ -1,11 +1,20 @@
 import { useNavigate, Link } from 'react-router-dom';
+import { FONDO_AUTH } from '../data/fondoAuth';
 
 export default function Bienvenida() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-violet-50 p-4">
-      <div className="max-w-md w-full bg-white p-8 border-t-8 border-violet-400 rounded-lg shadow-xl">
+    <div className="min-h-screen flex items-center justify-center bg-violet-50 p-4 relative overflow-hidden">
+
+      {/* Imagen de fondo semi-transparente (mismo patrón que Login/Registro/RecuperarPassword) */}
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-40"
+        style={{ backgroundImage: `url(${FONDO_AUTH})` }}
+        aria-hidden="true"
+      />
+
+      <div className="relative z-10 max-w-md w-full bg-white p-8 border-t-8 border-violet-400 rounded-lg shadow-xl">
 
         <div className="mb-4">
           <Link

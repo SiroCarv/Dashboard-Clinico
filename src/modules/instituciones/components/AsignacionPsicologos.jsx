@@ -161,7 +161,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
           onClick={() => handleOpenModal()}
           className="bg-violet-400 hover:bg-orange-800 text-white font-bold uppercase tracking-wide text-sm px-4 py-2.5 rounded-md shadow-md transition-colors duration-300 flex items-center justify-center gap-2 self-start sm:self-auto"
         >
-          <span>+ Agregar Psicólogo</span>
+          <span>+ Agregar Psicólogo/a</span>
         </button>
       </div>
 
@@ -227,7 +227,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
                   <td colSpan="4" className="px-6 py-16 text-center text-sm font-medium text-gray-400 bg-gray-50">
                     <div className="max-w-md mx-auto space-y-2">
                       <p className="text-gray-500 text-base font-bold">No se encontraron cuentas activas</p>
-                      <p className="text-xs text-gray-400">Aún no hay usuarios registrados con el rol de Psicólogo en la plataforma diagnóstica.</p>
+                      <p className="text-xs text-gray-400">Aún no hay usuarios registrados con el rol de Psicólogo/a en la plataforma diagnóstica.</p>
                     </div>
                   </td>
                 </tr>

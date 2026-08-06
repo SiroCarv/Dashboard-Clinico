@@ -40,7 +40,7 @@ function PsicologoModalContenido({ onClose, onSave, psicologoEditado }) {
         <div className="p-8">
           <div className="text-center mb-6">
             <h2 className="text-3xl font-extrabold text-black">
-              {enEdicion ? 'Editar Psicólogo' : 'Agregar Psicólogo'}
+              {enEdicion ? 'Editar Psicólogo/a' : 'Agregar Psicólogo/a'}
             </h2>
             <p className="text-gray-500 mt-2 font-medium">
               {enEdicion

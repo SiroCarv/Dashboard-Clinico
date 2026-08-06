@@ -144,7 +144,7 @@ export default function FormularioInstrumento({ idPaciente, tipoInstrumento, ins
             Registrado el {new Date(fechaEnvioPrevio).toLocaleDateString('es-BO')}.
           </p>
         )}
-        <p className="text-gray-500 text-sm mt-1">Tu psicólogo(a) revisará tus respuestas.</p>
+        <p className="text-gray-500 text-sm mt-1">Tu psicólogo/a revisará tus respuestas.</p>
       </div>
     );
   }
