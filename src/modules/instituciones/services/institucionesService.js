@@ -3,11 +3,6 @@ import { supabase } from '../../../core/api/supabaseClient';
 
 const TABLA = 'instituciones';
 
-export const PG_ERRORES = {
-  UNIQUE_VIOLATION: '23505',
-  FOREIGN_KEY_VIOLATION: '23503',
-};
-
 export const institucionesService = {
   async getInstituciones() {
     const { data, error } = await supabase

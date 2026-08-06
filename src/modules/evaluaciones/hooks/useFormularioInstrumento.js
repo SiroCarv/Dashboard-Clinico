@@ -3,6 +3,19 @@ import { evaluacionesInstrumentoService } from '../services/evaluacionesInstrume
 
 const PREGUNTAS_POR_PAGINA = 10;
 
+// Una pregunta cuenta como "contestada" solo si tiene un valor real. Sin
+// esto, los dos únicos campos de texto libre del formulario (estatura y
+// peso, Módulo sobre Conductas Alimentarias de GSHS) podían quedar en
+// blanco y pasar la validación: si el usuario escribía y borraba todo,
+// `CampoTexto` dispara onCambiar(''), y '' !== undefined, así que
+// quedaba marcada como respondida aunque estuviera vacía. Todas las
+// preguntas de GSHS son obligatorias (decisión del cliente, documentada
+// en gshsData.js) — este helper es la única fuente de verdad de qué
+// cuenta como "contestada" en todo el formulario.
+function estaRespondida(valor) {
+  return valor !== undefined && valor !== null && valor !== '';
+}
+
 // Aplana las secciones del instrumento en una sola lista ordenada de
 // preguntas, cada una con el título de su sección adjunto — necesario
 // para paginar de 10 en 10 sin perder de qué tema es cada pregunta, y
@@ -70,8 +83,8 @@ export function useFormularioInstrumento({ idPaciente, tipoInstrumento, instrume
     setRespuestas((prev) => ({ ...prev, [clave]: valor }));
   };
 
-  const paginaCompleta = preguntasDePagina.every((p) => respuestas[p.clave] !== undefined);
-  const todoRespondido = preguntas.every((p) => respuestas[p.clave] !== undefined);
+  const paginaCompleta = preguntasDePagina.every((p) => estaRespondida(respuestas[p.clave]));
+  const todoRespondido = preguntas.every((p) => estaRespondida(respuestas[p.clave]));
   const esUltimaPagina = pagina === totalPaginas - 1;
 
   // Reemplaza al "Siguiente" directo: si falta alguna respuesta de la
@@ -103,7 +116,7 @@ export function useFormularioInstrumento({ idPaciente, tipoInstrumento, instrume
     if (!idPaciente) return;
 
     if (!todoRespondido) {
-      const indicePrimeraFaltante = preguntas.findIndex((p) => respuestas[p.clave] === undefined);
+      const indicePrimeraFaltante = preguntas.findIndex((p) => !estaRespondida(respuestas[p.clave]));
       const paginaFaltante = Math.floor(indicePrimeraFaltante / PREGUNTAS_POR_PAGINA);
       setPagina(paginaFaltante);
       setMostrarFaltantes(true);

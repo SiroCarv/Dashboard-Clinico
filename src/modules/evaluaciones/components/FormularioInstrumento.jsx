@@ -73,7 +73,11 @@ function CampoTexto({ valor, onCambiar }) {
 }
 
 function Pregunta({ item, valor, onCambiar, tipoRespuesta, acento, marcarSiFalta }) {
-  const respondida = valor !== undefined;
+  // Mismo criterio que useFormularioInstrumento.estaRespondida(): un campo
+  // de texto vacío ('') no cuenta como contestado, para no mostrar
+  // inconsistencia entre esta etiqueta visual y lo que realmente bloquea
+  // el avance/envío.
+  const respondida = valor !== undefined && valor !== null && valor !== '';
   const marcar = marcarSiFalta && !respondida;
 
   return (
@@ -173,7 +177,9 @@ export default function FormularioInstrumento({ idPaciente, tipoInstrumento, ins
     }
   });
 
-  const respondidasEnPagina = preguntasDePagina.filter((p) => respuestas[p.clave] !== undefined).length;
+  const respondidasEnPagina = preguntasDePagina.filter(
+    (p) => respuestas[p.clave] !== undefined && respuestas[p.clave] !== null && respuestas[p.clave] !== ''
+  ).length;
 
   return (
     <div ref={inicioRef} className={`bg-white rounded-lg shadow-xl border-t-8 ${acento.franja} overflow-hidden scroll-mt-20`}>
