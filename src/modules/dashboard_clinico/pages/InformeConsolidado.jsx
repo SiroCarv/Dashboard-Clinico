@@ -2,26 +2,37 @@ import { useParams, Link } from 'react-router-dom';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
 import { useInformeConsolidado } from '../hooks/useInformeConsolidado';
 import InformeConsolidadoPaciente from '../components/InformeConsolidadoPaciente';
+import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
 export default function InformeConsolidado() {
   const { idPaciente } = useParams();
   const { paciente, instrumentos, loading, error } = useInformeConsolidado(idPaciente);
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 relative overflow-hidden">
+      {/* Imagen de fondo institucional, compartida con el resto de la plataforma.
+          Opacidad baja (10%, no el 40% que usan las pantallas de auth) a
+          propósito: acá el título y el link "Volver" quedan sueltos sobre
+          el fondo, sin una tarjeta blanca debajo que los proteja. */}
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-10"
+        style={{ backgroundImage: `url(${FONDO_PLATAFORMA})` }}
+        aria-hidden="true"
+      />
+
       <BarraSuperior titulo="Panel de Administración (Psicólogo/a)" />
 
-      <div className="p-6 md:p-10 max-w-4xl mx-auto">
+      <div className="relative z-10 p-6 md:p-10 max-w-4xl mx-auto">
         <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
           <div>
             <h2 className="text-2xl font-extrabold text-black">Informe Consolidado de Pruebas</h2>
-            <p className="text-gray-500 mt-1 font-medium">
+            <p className="text-gray-700 mt-1 font-semibold">
               Todas las pruebas completadas por esta persona, cada una por separado.
             </p>
           </div>
           <Link
             to="/dashboard"
-            className="text-violet-400 hover:text-orange-800 font-bold transition-colors"
+            className="text-violet-700 hover:text-orange-800 font-bold transition-colors"
           >
             ← Volver al Dashboard
           </Link>
@@ -39,7 +50,7 @@ export default function InformeConsolidado() {
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <span className="text-gray-500 font-medium">Cargando informe...</span>
+            <span className="text-gray-700 font-semibold">Cargando informe...</span>
           </div>
         ) : !paciente ? (
           <div className="p-6 bg-white border border-gray-200 rounded-lg text-center text-gray-500 font-medium">

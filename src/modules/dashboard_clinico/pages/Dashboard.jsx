@@ -73,7 +73,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-100 relative overflow-hidden">
       {/* Imagen de fondo institucional, compartida con el resto de la plataforma */}
       <div
-        className="absolute inset-0 bg-cover bg-center opacity-40"
+        className="absolute inset-0 bg-cover bg-center opacity-10"
         style={{ backgroundImage: `url(${FONDO_PLATAFORMA})` }}
         aria-hidden="true"
       />
@@ -83,7 +83,7 @@ export default function Dashboard() {
       <div className="relative z-10 p-6 md:p-10 max-w-6xl mx-auto">
         <div className="mb-6">
           <h2 className="text-2xl font-extrabold text-black">Dashboard Clínico</h2>
-          <p className="text-gray-500 mt-1 font-medium">
+          <p className="text-gray-700 mt-1 font-semibold">
             Seguimiento consolidado del estado clínico de tus participantes y consultantes.
           </p>
         </div>
@@ -201,7 +201,7 @@ export default function Dashboard() {
         {loading ? (
           <div className="flex flex-col justify-center items-center py-20 gap-3">
             <svg className="animate-spin h-10 w-10 text-violet-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            <span className="text-gray-500 font-medium">Cargando participantes y consultantes...</span>
+            <span className="text-gray-700 font-semibold">Cargando participantes y consultantes...</span>
           </div>
         ) : (
           <TablaPacientes pacientes={pacientesFiltrados} hayFiltrosActivos={hayFiltrosActivos} />

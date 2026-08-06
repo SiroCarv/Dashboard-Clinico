@@ -108,7 +108,7 @@ export default function PanelMaestro() {
     <div className="min-h-screen bg-violet-50 p-6 md:p-10 relative overflow-hidden">
       {/* Imagen de fondo institucional, compartida con el resto de la plataforma */}
       <div
-        className="absolute inset-0 bg-cover bg-center opacity-40"
+        className="absolute inset-0 bg-cover bg-center opacity-10"
         style={{ backgroundImage: `url(${FONDO_PLATAFORMA})` }}
         aria-hidden="true"
       />
@@ -118,7 +118,7 @@ export default function PanelMaestro() {
         <div className="mb-8 flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-extrabold text-black">Panel Maestro</h1>
-            <p className="text-gray-500 mt-2 font-medium">Gestión administrativa de instituciones y códigos de acceso.</p>
+            <p className="text-gray-700 mt-2 font-semibold">Gestión administrativa de instituciones y códigos de acceso.</p>
           </div>
           <BotonCerrarSesion />
         </div>
@@ -132,7 +132,7 @@ export default function PanelMaestro() {
             className={`px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors ${
               tabActiva === 'instituciones'
                 ? COLOR_MARCA.naranja.tabActivo
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                : 'border-transparent text-gray-700 hover:text-gray-900'
             }`}
           >
             Instituciones
@@ -142,7 +142,7 @@ export default function PanelMaestro() {
             className={`px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors ${
               tabActiva === 'psicologos'
                 ? COLOR_MARCA.naranja.tabActivo
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                : 'border-transparent text-gray-700 hover:text-gray-900'
             }`}
           >
             Psicólogos
@@ -160,7 +160,7 @@ export default function PanelMaestro() {
         {loading ? (
           <div className="flex flex-col justify-center items-center py-20 gap-3">
             <svg className="animate-spin h-10 w-10 text-orange-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            <span className="text-gray-500 font-medium">Cargando instituciones...</span>
+            <span className="text-gray-700 font-semibold">Cargando instituciones...</span>
           </div>
         ) : tabActiva === 'instituciones' ? (
           <InstitucionList 
