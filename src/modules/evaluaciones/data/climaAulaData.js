@@ -1,12 +1,22 @@
 // Instrumento: Cuestionario de Clima de Aula
 // (Adaptación de Gina del Carmen Anchundia Rivadeneira, 2011).
 //
-// Historia "Vista Previa de Nuevos Instrumentos Clínicos (Clima de Aula y
-// GSHS)": este archivo solo alimenta la vista de SOLO LECTURA. No calcula
-// puntaje, no guarda nada en Supabase y no está conectado a
-// `historial_evaluaciones` todavía — eso queda para una historia posterior,
-// una vez el cliente confirme cómo debe generalizarse el esquema para
-// convivir con el PHQ-9.
+// 20 afirmaciones que se responden como Verdadero/Falso, agrupadas en 4
+// dimensiones. INSTRUMENTO_CLIMA_AULA (al final del archivo) es la forma
+// que consume FormularioInstrumento.jsx para renderizar el formulario
+// real y calcular el envío.
+//
+// El cálculo del resultado (puntaje + categoría) ocurre del lado de la
+// base de datos, nunca acá ni en el cliente — ver el trigger
+// `calcular_resultado_instrumento()` sobre la tabla
+// `evaluaciones_instrumento`. Las reglas que usa ese trigger, para
+// referencia:
+//   Puntaje por dimensión — Interés y Motivación: ítems 1-5 (máx. 5 pts) ·
+//   Compañerismo: ítems 6-9 (máx. 4 pts) · Relación Docente-Estudiante:
+//   ítems 10-16 (máx. 7 pts) · Trabajo en Equipo: ítems 17-20 (máx. 4 pts).
+//   Total posible: 20 puntos.
+//   Interpretación: 17-20 Muy positivo · 13-16 Positivo · 9-12 Medianamente
+//   favorable · 5-8 Poco favorable · 0-4 Negativo.
 
 const ITEMS_POR_DIMENSION = [
   {
@@ -51,9 +61,9 @@ const ITEMS_POR_DIMENSION = [
   },
 ];
 
-// Forma ya lista para <VistaInstrumentoSoloLectura />: dashboard_clinico no
-// necesita conocer la estructura por dimensión, solo consume este objeto
-// a través de la API pública del módulo (`evaluaciones/index.js`).
+// dashboard_clinico no necesita conocer la estructura por dimensión, solo
+// consume este objeto a través de la API pública del módulo
+// (`evaluaciones/index.js`).
 export const INSTRUMENTO_CLIMA_AULA = {
   titulo: 'Cuestionario de Clima de Aula',
   subtitulo:
@@ -64,11 +74,3 @@ export const INSTRUMENTO_CLIMA_AULA = {
     items,
   })),
 };
-
-// Pendiente para la historia de cálculo (fuera de alcance de esta vista):
-//   Puntaje por dimensión — Interés y Motivación: ítems 1-5 (máx. 5 pts) ·
-//   Compañerismo: ítems 6-9 (máx. 4 pts) · Relación Docente-Estudiante:
-//   ítems 10-16 (máx. 7 pts) · Trabajo en Equipo: ítems 17-20 (máx. 4 pts).
-//   Total posible: 20 puntos.
-//   Interpretación: 17-20 Muy positivo · 13-16 Positivo · 9-12 Medianamente
-//   favorable · 5-8 Poco favorable · 0-4 Negativo.

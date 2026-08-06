@@ -1,9 +1,8 @@
 // Exporta el Informe Consolidado de UN paciente puntual: una fila por
 // cada pregunta respondida, en cada instrumento que haya completado.
-// Complementa a `exportarPacientesExcel.js` (que exporta el padrón
-// completo, una fila por persona) — este es el export individual pedido
-// para la pantalla de Informe Consolidado.
-
+// Complementa a exportarPacientesExcel.js (que exporta el padrón
+// completo, una fila por persona) — este es el export individual de la
+// pantalla de Informe Consolidado.
 import { exportarAExcel } from '../../../shared/utils/exportarExcel';
 import {
   obtenerNombreMostrado,
@@ -25,9 +24,9 @@ function formatearFecha(fechaIso) {
   });
 }
 
-// Mismo criterio de nombre de archivo "seguro" que ya usaba el export de
-// detalle clínico: sin acentos ni espacios, para que descargue bien en
-// cualquier sistema operativo.
+// Mismo criterio de nombre de archivo "seguro" que usa el resto de
+// exports del proyecto: sin acentos ni espacios, para que descargue bien
+// en cualquier sistema operativo.
 function generarNombreArchivo(paciente) {
   const nombreSeguro = obtenerNombreMostrado(paciente)
     .normalize('NFD')

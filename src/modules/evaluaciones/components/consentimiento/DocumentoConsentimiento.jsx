@@ -1,9 +1,14 @@
+// Muestra CUALQUIERA de las 3 variantes de textosConsentimiento.js — el
+// contenido llega por prop (`contenido`), este componente no sabe cuál
+// de las 3 es ni si el paciente es menor o mayor de edad, esa decisión ya
+// la tomó useConsentimiento.js antes de renderizarlo.
+//
+// Reproduce el patrón del documento original en papel: hay que marcar
+// TODAS las casillas del checklist antes de que se habiliten los botones
+// de autorizar/no autorizar — nadie puede saltarse la lectura de los
+// puntos clave.
 import { useState } from 'react';
 
-// Renderiza CUALQUIERA de las 3 variantes de textosConsentimiento.js.
-// Reproduce el patrón del documento original en papel: hay que marcar
-// TODAS las casillas antes de poder elegir la decisión final
-// (autorizar / no autorizar).
 export default function DocumentoConsentimiento({ contenido, onDecidir }) {
   const [checks, setChecks] = useState(() => contenido.checklist.map(() => false));
   const [enviando, setEnviando] = useState(null); // 'aceptar' | 'rechazar' | null

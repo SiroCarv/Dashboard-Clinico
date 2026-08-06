@@ -1,11 +1,14 @@
+// Modal de creación/edición de una cuenta de psicólogo. En modo
+// creación pide contraseña temporal (el psicólogo la cambia en su
+// primer login); en modo edición esa sección desaparece porque
+// editar-psicologo.ts no toca la contraseña, solo nombre y correo.
+//
+// PsicologoModalContenido se separa de PsicologoModal (el wrapper) para
+// que, mientras isOpen es false, el contenido ni siquiera se monte —
+// así cada apertura arranca con estado fresco desde psicologoEditado,
+// sin useEffect ni sincronización manual.
 import { useState } from 'react';
 
-/**
- * Envoltorio delgado: mientras isOpen es false, el contenido ni siquiera
- * se monta. Así, cada vez que el modal se abre, PsicologoModalContenido
- * nace de cero y toma su estado inicial directamente de psicologoEditado
- * (sin useEffect ni sincronización manual de estado).
- */
 export const PsicologoModal = ({ isOpen, onClose, onSave, psicologoEditado }) => {
   if (!isOpen) return null;
 

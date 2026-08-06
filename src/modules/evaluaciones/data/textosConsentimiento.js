@@ -3,20 +3,28 @@
 // por el cliente: "Consentimiento_Asentimiento_Tamizaje_OSM_UNIFRANZ.docx"
 // (Versión 1 — Julio 2026).
 //
-// Historia "Consentimiento y asentimiento informado por edad".
+// Este archivo alimenta a DocumentoConsentimiento.jsx: cada export de
+// abajo (CONSENTIMIENTO_TUTOR_MENOR, ASENTIMIENTO_MENOR,
+// CONSENTIMIENTO_PROPIO_MAYOR) es el contenido completo de UNA de las 3
+// variantes del documento. useConsentimiento.js decide cuál(es) mostrar
+// según la edad calculada del paciente.
 //
-// Decisión documentada (ver reporte de la sesión): el documento del cliente
-// define 3 variantes, una por rama de edad. Los rangos de edad no eran
-// consistentes dentro del propio documento (12-17 / 11-18 / 11-17 / 18 según
-// la sección); se adoptó el corte 11-17 -> tutor + asentimiento propio,
-// 18+ -> autoconsentimiento, quedando documentado acá para que quede a la
-// vista si el cliente confirma un corte distinto.
+// Decisión documentada: el documento del cliente define 3 variantes, una
+// por rama de edad. Los rangos de edad no eran consistentes dentro del
+// propio documento (12-17 / 11-18 / 11-17 / 18 según la sección); se
+// adoptó el corte 11-17 -> tutor + asentimiento propio, 18+ ->
+// autoconsentimiento (ver EDAD_CORTE_AUTOCONSENTIMIENTO más abajo),
+// quedando documentado acá para que quede a la vista si el cliente
+// confirma un corte distinto.
 //
 // El contenido de "checklist" reproduce las casillas "☐" del documento
 // original (sección de Autorización/Declaración): el usuario debe marcar
 // TODAS antes de habilitar la decisión final. Los textos de "autorizar" y
 // "noAutorizar" son las dos opciones finales en negrita del documento.
 
+// Edad a partir de la cual una persona autoconsiente su propia
+// participación (18+). Por debajo de este corte se pide consentimiento
+// del tutor legal + asentimiento propio del menor.
 export const EDAD_CORTE_AUTOCONSENTIMIENTO = 18;
 
 export const TIPO_CONSENTIMIENTO = {

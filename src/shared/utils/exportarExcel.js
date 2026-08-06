@@ -4,15 +4,14 @@
 // sabe qué es un "diagnóstico" ni una "evaluación"), solo sabe convertir
 // un array de objetos planos —cuyas claves YA deben ser los encabezados
 // legibles finales— en un archivo .xlsx y disparar su descarga. Cualquier
-// módulo futuro que necesite exportar datos a Excel (ej. instituciones,
-// psicólogos) puede reutilizarla sin duplicar lógica de SheetJS ni violar
-// la regla de que un módulo no puede importar de otro módulo.
+// módulo futuro que necesite exportar datos a Excel puede reutilizarla
+// sin duplicar lógica de SheetJS ni violar la regla de que un módulo no
+// puede importar de otro módulo.
 //
-// Historia: "Exportación a Excel" (SCRUM-14).
 // Todo el procesamiento ocurre en el navegador de quien exporta: no se
-// envía ningún dato a un servidor externo (criterio de aceptación #6,
-// obligatorio al tratarse de información clínica sensible).
-
+// envía ningún dato a un servidor externo (obligatorio al tratarse de
+// información clínica sensible).
+//
 // SheetJS se importa de forma DIFERIDA (dynamic import), no en el top
 // del archivo. La librería completa pesa varios cientos de KB y, si se
 // importa de forma estática, Vite la empaqueta dentro del chunk principal

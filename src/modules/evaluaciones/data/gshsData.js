@@ -2,19 +2,29 @@
 // Student Health Survey (GSHS), adaptación de términos y ejemplos para el
 // Estado Plurinacional de Bolivia.
 //
-// Historia "Vista Previa de Nuevos Instrumentos Clínicos (Clima de Aula y
-// GSHS)": este archivo solo alimenta la vista de SOLO LECTURA. No calcula
-// prevalencia, no guarda nada en Supabase y no está conectado a
-// `historial_evaluaciones` todavía.
+// 11 módulos temáticos (demografía, alcohol, alimentación, drogas,
+// higiene, salud mental, actividad física, factores protectores,
+// comportamientos sexuales, tabaco, violencia/lesiones, más un módulo
+// opcional de VIH/SIDA). INSTRUMENTO_GSHS (al final del archivo) es la
+// forma que consume FormularioInstrumento.jsx.
 //
 // Aclaración del cliente (no tocar sin confirmar de nuevo): a diferencia
-// del PHQ-9, la GSHS NO genera un puntaje único ni un diagnóstico — son
-// datos sociodemográficos para que el psicólogo los cruce manualmente con
-// los resultados de otros tests. El sistema solo alerta; no diagnostica.
-// Las preguntas 3, 4 y 5 del módulo "Salud Mental" (ideación, planificación
-// e intento de suicidio) sí requieren derivación inmediata cuando la
-// respuesta es afirmativa — esa lógica de alerta puntual queda para la
-// historia de almacenamiento real, no para esta vista previa.
+// de Clima de Aula, la GSHS NO genera un puntaje único ni un diagnóstico
+// — son datos sociodemográficos para que el psicólogo los cruce
+// manualmente con los resultados de otros tests. El sistema solo alerta;
+// no diagnostica. TODAS las preguntas son obligatorias (decisión del
+// cliente, aunque el protocolo oficial de GSHS marca algunas como
+// voluntarias — ver useFormularioInstrumento.js).
+//
+// Alerta de riesgo suicida: las preguntas 3, 4 y 5 del módulo "Salud
+// Mental" (ideación, planificación e intento de suicidio) activan
+// `alerta_activada` en cuanto se envía el formulario. Ese cálculo corre
+// del lado de la base de datos (trigger `calcular_resultado_instrumento`
+// sobre `evaluaciones_instrumento`), nunca en el cliente — así ningún
+// paciente puede evitar la alerta manipulando la petición antes de
+// enviarla. El trigger compara por texto exacto de módulo/número/valor,
+// así que si el texto de estas 3 preguntas o sus opciones cambia acá,
+// hay que actualizar el trigger en la misma migración.
 
 const MODULOS = [
   {
@@ -385,7 +395,6 @@ const MODULOS = [
   },
 ];
 
-// Forma ya lista para <VistaInstrumentoSoloLectura />.
 export const INSTRUMENTO_GSHS = {
   titulo: 'Encuesta Mundial de Salud a Escolares (GSHS)',
   subtitulo:

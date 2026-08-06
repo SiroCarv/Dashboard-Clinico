@@ -1,3 +1,19 @@
+// Guardián de rutas PRIVADAS (Encuesta, Dashboard, Panel Maestro, etc.).
+// Envuelve a cada página protegida así: <RutaProtegida rolRequerido="psicologo"><Dashboard /></RutaProtegida>
+//
+// Qué hace, paso a paso:
+//   1. Lee la sesión local de Supabase (rápido, no pega a la red).
+//   2. Si hay sesión, busca en la tabla `usuarios` qué rol tiene esa
+//      persona (la sesión de Auth no sabe nada de roles de negocio).
+//   3. Si el rol NO coincide con `rolRequerido`, redirige a la propia
+//      vista por defecto de ese rol (o a "/" si no hay sesión o el rol
+//      es desconocido) — nunca deja pasar a una pantalla ajena.
+//   4. Si coincide, renderiza `children` normalmente.
+//
+// El chequeo de rol vive acá y no en el backend porque el backend YA lo
+// exige de verdad vía RLS (auth.uid() + rol) — esto es solo la capa de
+// experiencia de usuario, para no dejar ver ni por un instante una
+// pantalla que de todos modos le va a fallar cada consulta.
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { supabase } from '../api/supabaseClient';

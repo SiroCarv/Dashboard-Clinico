@@ -1,3 +1,7 @@
+// Botón de "Cerrar sesión" reutilizado en toda la app (BarraSuperior de
+// paciente/psicólogo, y directo en el header del Panel Maestro). Toda la
+// lógica real vive en useCerrarSesion — este componente solo se encarga
+// del estado visual (deshabilitado + spinner mientras cierra sesión).
 import { useCerrarSesion } from '../hooks/useCerrarSesion';
 
 export default function BotonCerrarSesion() {

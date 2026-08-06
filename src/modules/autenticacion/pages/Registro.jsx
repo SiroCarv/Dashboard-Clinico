@@ -1,3 +1,25 @@
+// Registro de ESTUDIANTES (con institución). Para consultantes
+// particulares ver RegistroParticular.jsx — son dos componentes
+// separados a propósito, para no meter lógica condicional de
+// "¿tiene institución o no?" en un único formulario gigante.
+//
+// Entrada al formulario, dos formas:
+//   - /registro/:codigo o /registro?codigo=... -> viene de un enlace que
+//     la institución comparte con sus estudiantes. El código llega
+//     precargado y se valida automáticamente (esCodigoDeEnlace).
+//   - /registro a secas -> el estudiante escribe el código a mano.
+//
+// El código de institución se verifica en vivo contra Supabase con un
+// debounce de 500ms (no en cada tecla) mientras el usuario escribe, y
+// TODO el resto del formulario (curso, paralelo, turno, género, correo,
+// contraseña) queda deshabilitado hasta que el código sea válido —así
+// nunca se puede armar una cuenta a medias sin institución real detrás.
+//
+// Al enviar: crea el usuario en Supabase Auth y, en el mismo flujo,
+// inserta su fila en `usuarios` con institucion_id ya resuelto.
+// codigo_estudiante NUNCA se manda desde acá: lo asigna el trigger
+// `asignar_codigo_estudiante()` en el servidor (ver migración SCRUM-33),
+// para que el cliente no pueda inventarse ni repetir un código.
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
@@ -50,6 +72,11 @@ export default function Registro() {
 
   const navigate = useNavigate();
 
+  // Verificación en vivo del código de institución: espera 500ms desde la
+  // última tecla (para no pegarle a Supabase en cada carácter) salvo la
+  // primera vez que llega un código desde la URL, que se valida sin
+  // demora (delay = 0) para no mostrar la pantalla de "verificando" más
+  // tiempo del necesario.
   useEffect(() => {
     const codigoLimpio = codigoIngresado.trim().toUpperCase();
 

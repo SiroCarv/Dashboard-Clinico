@@ -1,3 +1,16 @@
+// Paso 2 del flujo de recuperación: acá se llega SOLO desde el enlace que
+// manda RecuperarPassword.jsx por correo. Ese enlace abre una sesión
+// "oculta" de Supabase automáticamente (por eso esta ruta va SIN
+// <RutaPublica> en App.jsx: envolverla la mandaría de vuelta a Login
+// antes de poder mostrar el formulario), suficiente para llamar a
+// `auth.updateUser({ password })` pero sin ser una sesión real de
+// aplicación.
+//
+// Por eso, después de guardar la nueva contraseña, se hace
+// `auth.signOut()` explícito: si no se cerrara esa sesión oculta, la
+// persona quedaría "logueada a medias" y GuardianDeSesion o RutaPublica
+// podrían comportarse de forma inesperada en la siguiente navegación.
+// Recién ahí se manda a /login para que entre con su contraseña nueva.
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
@@ -31,7 +44,8 @@ export default function RestablecerPassword() {
       setErrorSubmit('Error al actualizar. El enlace podría haber caducado.');
       setLoading(false);
     } else {
-      // ¡SOLUCIÓN!: Cerramos la sesión "oculta" que abre Supabase con el enlace
+      // Cerramos la sesión "oculta" que abre Supabase con el enlace del
+      // correo, para no dejar a la persona logueada a medias.
       await supabase.auth.signOut();
       
       navigate('/login', { 

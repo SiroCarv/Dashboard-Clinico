@@ -1,9 +1,11 @@
+// Primer paso obligatorio del flujo de consentimiento (ver
+// useConsentimiento.js): pide la fecha de nacimiento porque es el único
+// dato que permite calcular la edad y decidir qué documento legal
+// mostrar después. Una vez guardada, la RPC `registrar_fecha_nacimiento`
+// no permite sobrescribirla (ver consentimientoService.js) — por eso el
+// input no tiene forma de "editar después" en esta pantalla.
 import { useState } from 'react';
 
-// Paso obligatorio antes de mostrar cualquier documento de consentimiento:
-// todavía no existe ningún campo de edad en `usuarios`, así que se pide acá,
-// una sola vez (la función RPC que la guarda no permite sobreescribirla
-// después — ver migración 006 y consentimientoService.js).
 export default function CapturaFechaNacimiento({ onConfirmar }) {
   const [fecha, setFecha] = useState('');
   const [enviando, setEnviando] = useState(false);

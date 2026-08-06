@@ -1,3 +1,19 @@
+// Orquesta TODO el flujo de consentimiento/asentimiento antes de dejar a
+// un paciente ver el formulario de instrumentos. Es el "cerebro" que
+// consume Encuesta.jsx para decidir qué pantalla mostrar:
+//
+//   1. faltaFechaNacimiento -> CapturaFechaNacimiento.jsx
+//   2. documentoRechazado   -> ConsentimientoDenegado.jsx
+//   3. documentoPendiente   -> DocumentoConsentimiento.jsx (puede
+//      encadenar dos documentos seguidos si es menor: primero el del
+//      tutor, después el asentimiento propio)
+//   4. consentimientoCompleto -> recién ahí Encuesta.jsx muestra
+//      FormularioInstrumento.jsx
+//
+// La edad se calcula en el cliente a partir de fecha_nacimiento (nunca se
+// pide "tu edad" directo, para no depender de que la persona la escriba
+// bien). El corte de rama (menor/mayor) usa EDAD_CORTE_AUTOCONSENTIMIENTO
+// de textosConsentimiento.js.
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../../../core/api/supabaseClient';
 import { consentimientoService } from '../services/consentimientoService';
@@ -9,6 +25,9 @@ import {
   TIPO_CONSENTIMIENTO,
 } from '../data/textosConsentimiento';
 
+// Versión del texto legal que se guarda junto a cada decisión, para
+// poder auditar más adelante bajo qué redacción exacta consintió cada
+// persona si el documento llega a cambiar.
 const VERSION_DOCUMENTO = 'v1-julio-2026';
 
 function calcularEdad(fechaNacimientoISO) {
@@ -76,6 +95,10 @@ export function useConsentimiento() {
     };
   }, [version]);
 
+  // recargar() fuerza que el efecto de arriba vuelva a correr — se llama
+  // después de confirmar la fecha de nacimiento o decidir un documento,
+  // para que el hook refleje el estado recién guardado en Supabase (no se
+  // "adivina" el resultado en el cliente).
   const recargar = useCallback(() => setVersion((v) => v + 1), []);
 
   const confirmarFechaNacimiento = useCallback(

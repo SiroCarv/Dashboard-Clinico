@@ -1,3 +1,8 @@
+// Pantalla final cuando el paciente (o su tutor) elige NO autorizar la
+// participación en DocumentoConsentimiento.jsx. Es un callejón sin salida
+// a propósito: no hay botón para "reintentar" desde acá, porque la
+// participación es voluntaria y no se debe presionar a nadie a cambiar
+// de decisión desde la misma pantalla donde la rechazó.
 export default function ConsentimientoDenegado() {
   return (
     <div className="max-w-md w-full bg-white p-8 border-t-8 border-violet-400 rounded-lg shadow-xl text-center">

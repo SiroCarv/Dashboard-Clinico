@@ -1,29 +1,36 @@
 // Paleta de colores institucional (UNIFRANZ) — referencia única y
-// centralizada para toda la plataforma.
-//
-// Historia "Paleta de colores institucional". Reemplaza a las
-// definiciones sueltas que antes vivían duplicadas en
-// TablaHistorialEvaluaciones.jsx y DetalleClinico.jsx.
+// centralizada para toda la plataforma. Ningún componente escribe un
+// color de marca directo (ej. "bg-orange-700"); siempre importa un
+// bloque de este archivo (ej. COLOR_MARCA.naranja.botonPrimario).
+// Cambiar un tono acá lo cambia en toda la app sin tocar pantallas.
 //
 // Reglas de uso (acordadas con el cliente):
-// 1. Los 4 colores de marca (naranja, verde azulado, verde menta y
-//    violeta suave) son los únicos colores "decorativos" o de identidad
-//    permitidos en el resto de la plataforma.
+// 1. La app usa 2 colores de marca activos: violeta claro (COLOR_MARCA.
+//    violetaSuave) y naranja oscuro (COLOR_MARCA.naranja) — franjas de
+//    tarjetas, botones primarios, links y acentos en general. tealAzulado
+//    y verdeMenta quedan reservados para diferenciar visualmente los
+//    instrumentos clínicos entre sí (Clima de Aula / GSHS) dentro de la
+//    Encuesta y el Informe Consolidado — no se usan como acento de marca
+//    general en el resto de la app.
 // 2. Rojo y amarillo quedan reservados EXCLUSIVAMENTE para indicar
 //    severidad o riesgo clínico (diagnóstico, alertas). No deben usarse
 //    como acento de marca, botón genérico ni elemento puramente visual.
-// 3. Los tonos exactos de Tailwind (teal-500, emerald-500, violet-400)
-//    son una aproximación a "verde azulado / verde menta / violeta
-//    suave" hecha en ausencia de códigos de color exactos de la
-//    Licenciada. Si UNIFRANZ entrega una guía de marca con códigos HEX,
-//    esos 3 valores se ajustan en este único archivo — no hace falta
-//    tocar ninguna pantalla.
+// 3. Los tonos exactos de Tailwind (orange-700, teal-500, emerald-500,
+//    violet-400) son una aproximación hecha en ausencia de códigos de
+//    color exactos de la Licenciada. Si UNIFRANZ entrega una guía de
+//    marca con códigos HEX, esos valores se ajustan en este único
+//    archivo — no hace falta tocar ninguna pantalla.
 //
 // Nota: por convención del proyecto no se agregan tokens custom en
 // tailwind.config.js — cada entrada de este archivo es una cadena de
 // clases de Tailwind ya existentes, tal como ya lo hacía el mapa de
 // diagnóstico original. Las clases se escriben siempre completas (nunca
 // `bg-${color}-500`) para que el escaneo de Tailwind las detecte.
+//
+// Cada bloque de color sigue la misma forma (franja / tabActivo /
+// tituloSeccion / botonPrimario / suave / accent) para que cualquier
+// componente pueda recibir "un color" como prop sin saber cuál es —
+// ver `acento` en FormularioInstrumento.jsx o InformeConsolidadoPaciente.jsx.
 
 export const COLOR_MARCA = {
   naranja: {
@@ -68,9 +75,9 @@ export const ESTILOS_DIAGNOSTICO = {
   Severo: 'bg-red-50 border-red-200 text-red-800',
 };
 
-// Historia "Envío individual de resultados por instrumento": Clima de
-// Aula ya calcula, del lado de la base de datos, 5 categorías (no 3 como
-// el PHQ-9). Reutiliza el mismo criterio de color que ESTILOS_DIAGNOSTICO
+// Clima de Aula calcula, del lado de la base de datos (trigger
+// calcular_resultado_instrumento), 5 categorías en vez de las 3 que
+// usaba el antiguo PHQ-9. Mismo criterio de color que ESTILOS_DIAGNOSTICO
 // (verde = bien, gris = neutro, amarillo/rojo = atención), reservando
 // amarillo y rojo para las dos categorías más bajas. Pendiente de que el
 // cliente confirme si este esquema de color le sirve tal cual (ítem
@@ -83,12 +90,7 @@ export const ESTILOS_CATEGORIA_CLIMA_AULA = {
   Negativo: 'bg-red-50 border-red-200 text-red-800',
 };
 
-// Fila resaltada en las tablas cuando el registro activó una alerta.
+// Fila resaltada en las tablas cuando el registro activó una alerta
+// (ej. GSHS con alerta_activada = true por riesgo suicida).
 export const FILA_ALERTA_ACTIVADA =
   'bg-red-50 border-l-4 border-red-500 hover:bg-red-100';
-
-// Pendiente (ítem abierto con el cliente, Sprint 4): Clima de Aula usa 5
-// niveles de severidad y GSHS dispara alertas puntuales por pregunta.
-// Cuando el cliente confirme ese esquema, sus colores se agregan acá
-// —nunca sueltos en un componente— y seguirán usando exclusivamente
-// rojo/amarillo/verde, nunca los 4 colores de marca de arriba.

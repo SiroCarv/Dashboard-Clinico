@@ -1,3 +1,22 @@
+// Registro de CONSULTANTES particulares (sin institución) — historia
+// SCRUM-29. Componente propio, separado de Registro.jsx a propósito para
+// no meter lógica condicional de "¿tiene institución o no?" dentro del
+// flujo institucional ya aprobado por el cliente.
+//
+// Diferencias clave contra Registro.jsx:
+//   - No pide código de institución: el formulario está habilitado desde
+//     el inicio.
+//   - Pide teléfono (contacto ante una emergencia clínica, requisito del
+//     cliente) en vez de curso/paralelo/turno.
+//   - Inserta institucion_id = NULL en `usuarios` a propósito. Por eso
+//     esta cuenta NUNCA recibe codigo_estudiante: el trigger
+//     asignar_codigo_estudiante() solo actúa cuando institucion_id no es
+//     nulo.
+//
+// IMPORTANTE: hoy ningún psicólogo puede ver a estos usuarios en su
+// listado (ver nota de RLS en identidadUsuario.js) — el registro
+// funciona igual, pero el seguimiento clínico posterior está pendiente
+// de una decisión del cliente sobre qué psicólogo(s) los atienden.
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';

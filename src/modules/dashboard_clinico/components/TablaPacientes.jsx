@@ -1,3 +1,7 @@
+// Tabla del Dashboard: una fila por paciente (Participante o
+// Consultante), con su institución y un link al Informe Consolidado. La
+// fila entera es clickeable (rol="button" + onKeyDown) para navegar,
+// no solo el texto "Ver informe →".
 import { useNavigate } from 'react-router-dom';
 import {
   obtenerEtiquetaIdentidad,

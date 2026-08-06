@@ -1,3 +1,12 @@
+// Contenido del Informe Consolidado (SCRUM-31): datos del paciente arriba
+// (correo, teléfono, género, etc. — solo se muestran los campos que
+// tienen valor) y, debajo, una tarjeta expandible por cada instrumento
+// que completó, cada una con su propio resumen de resultado.
+//
+// Solo se renderiza cuando `paciente` es truthy — InformeConsolidado.jsx
+// (la página) ya filtra el caso "no encontrado / sin acceso" antes de
+// montar este componente, así que acá se asume que `paciente` siempre
+// existe.
 import { useState } from 'react';
 import { COLOR_MARCA, ESTILOS_CATEGORIA_CLIMA_AULA } from '../../../shared/theme/paletaColores';
 import {
@@ -18,6 +27,10 @@ const ACENTO_INSTRUMENTO = {
 
 const PUNTAJE_MAXIMO_CLIMA_AULA = 20;
 
+// Agrupa las respuestas planas (una fila por pregunta) en bloques
+// consecutivos por módulo, para mostrar el encabezado de tema solo
+// cuando cambia — mismo patrón visual que usa FormularioInstrumento.jsx
+// al responder.
 function agruparPorModulo(respuestas) {
   const grupos = [];
   (respuestas ?? []).forEach((r) => {
@@ -51,6 +64,9 @@ function Dato({ etiqueta, valor }) {
   );
 }
 
+// Resumen visible sin expandir la tarjeta: puntaje+categoría para Clima
+// de Aula, o el estado de la alerta puntual para GSHS (que no tiene
+// puntaje ni diagnóstico, ver nota en gshsData.js).
 function ResumenInstrumento({ registro }) {
   if (registro.tipo_instrumento === 'CLIMA_AULA' && registro.resultado_json) {
     const { puntaje_total: puntaje, categoria } = registro.resultado_json;

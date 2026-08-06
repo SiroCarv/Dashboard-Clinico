@@ -1,3 +1,13 @@
+// Orquesta el cierre de sesión: estado de carga para el botón, llamada al
+// servidor (vía authService), limpieza local y redirección — en ese orden,
+// pase lo que pase.
+//
+// Nota: Login.jsx, Registro.jsx, RegistroParticular.jsx y
+// RecuperarPassword.jsx siguen llamando a `supabase.auth` directamente en
+// vez de pasar por una capa de `service` — es una inconsistencia de
+// patrón conocida (el módulo creció de forma incremental), documentada
+// pero no corregida por no ser parte del alcance de ninguna historia
+// todavía.
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';

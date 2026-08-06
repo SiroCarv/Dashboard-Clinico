@@ -1,3 +1,19 @@
+// Pestaña "Psicólogos" del Panel Maestro: tabla de cuentas con rol
+// 'psicologo', un botón por institución para asignar/desasignar
+// (toggle), y las acciones de crear/editar/eliminar la cuenta en sí.
+//
+// La creación/edición/eliminación real de la CUENTA (Supabase Auth +
+// fila en `usuarios`) pasa por `psicologosService`, que a su vez invoca
+// las Edge Functions con service_role — nunca se hace directo desde acá
+// con el cliente anónimo, porque eso invalidaría la sesión del
+// superadmin que está operando. La ASIGNACIÓN a instituciones sí es
+// directa contra `psicologo_institucion` vía `psicologoInstitucionService`
+// (no requiere privilegios especiales, solo RLS de superadmin).
+//
+// Importa PsicologoModal y psicologosService desde la API pública del
+// módulo `psicologos` (nunca una ruta interna) — es la única forma de
+// consumo cruzado entre módulos que permite la arquitectura del
+// proyecto.
 import { useState, useEffect, useMemo } from 'react';
 import { psicologoInstitucionService } from '../services/psicologoInstitucionService';
 import { PsicologoModal, psicologosService } from '../../psicologos';
@@ -68,6 +84,9 @@ export const AsignacionPsicologos = ({ instituciones }) => {
     };
   }, []);
 
+  // toggleAsignacion(psicologoId, institucionId, estaAsignado): un solo
+  // botón por celda que asigna si no existe la relación, o remueve si ya
+  // existe.
   const handleToggleAsignacion = async (psicologoId, institucionId, estaAsignado) => {
     try {
       setProcesandoId(`${psicologoId}-${institucionId}`);
@@ -110,7 +129,8 @@ export const AsignacionPsicologos = ({ instituciones }) => {
     }
   };
 
-  // Ya no confirma aquí: solo abre el modal con el psicólogo elegido.
+  // Ya no confirma acá directamente: solo abre el modal con el psicólogo
+  // elegido; confirmarEliminarPsicologo es quien realmente lo elimina.
   const handleDelete = (psicologo) => {
     setPsicologoAEliminar(psicologo);
   };
@@ -165,7 +185,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
         </button>
       </div>
 
-      {/* Barra de búsqueda: solo se muestra si existe al menos un psicólogo cargado (AC4) */}
+      {/* Barra de búsqueda: solo se muestra si existe al menos un psicólogo cargado */}
       {!loading && psicologos.length > 0 && (
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
           <input

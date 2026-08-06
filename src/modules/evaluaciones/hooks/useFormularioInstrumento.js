@@ -1,3 +1,7 @@
+// Toda la lógica de un formulario de instrumento: paginación de 10 en
+// 10, qué preguntas faltan, verificación de envío previo, y el envío en
+// sí. FormularioInstrumento.jsx es la capa puramente visual que consume
+// este hook — ningún estado ni regla de negocio vive en el componente.
 import { useEffect, useMemo, useState } from 'react';
 import { evaluacionesInstrumentoService } from '../services/evaluacionesInstrumentoService';
 

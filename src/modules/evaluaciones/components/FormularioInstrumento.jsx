@@ -1,3 +1,9 @@
+// Renderiza el formulario real de un instrumento (Clima de Aula o GSHS):
+// una página de hasta 10 preguntas por vez, con 3 tipos de campo posibles
+// (Verdadero/Falso, opción múltiple, o texto libre para estatura/peso).
+// Toda la lógica de estado, validación y envío vive en
+// useFormularioInstrumento — este archivo solo decide qué se ve en
+// pantalla según lo que ese hook devuelve.
 import { useEffect, useRef } from 'react';
 import { useFormularioInstrumento } from '../hooks/useFormularioInstrumento';
 

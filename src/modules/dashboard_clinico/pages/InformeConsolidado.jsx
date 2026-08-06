@@ -1,3 +1,8 @@
+// Página de detalle de UN paciente (SCRUM-31), a la que se llega al
+// hacer clic en una fila de la tabla del Dashboard. Solo orquesta:
+// useInformeConsolidado trae los datos, InformeConsolidadoPaciente
+// decide cómo mostrarlos, y acá se resuelve el estado de carga/error/
+// "no encontrado o sin acceso" antes de renderizar cualquiera de los dos.
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
@@ -69,6 +74,10 @@ export default function InformeConsolidado() {
             <span className="text-gray-700 font-semibold">Cargando informe...</span>
           </div>
         ) : !paciente ? (
+          // Mensaje único a propósito para "no existe" y "existe pero no
+          // tengo acceso" (RLS deniega en silencio) — no se distingue
+          // entre ambos casos para no revelarle a un psicólogo si un ID
+          // de paciente ajeno existe o no en la base de datos.
           <div className="p-6 bg-white border border-gray-200 rounded-lg text-center text-gray-500 font-medium">
             No se encontró esta persona, o no tienes acceso a su información.
           </div>

@@ -1,9 +1,9 @@
+// Sección que aparece al hacer scroll hacia abajo desde el Carrusel:
+// Misión y Visión institucional en dos tarjetas. Reutiliza el mismo
+// patrón visual (franja violeta superior) que las pantallas de auth,
+// para mantener un único sistema visual en toda la app.
 import { MISION, VISION } from '../data/contenidoInstitucional';
 
-// Sección que aparece al hacer scroll hacia abajo desde el Hero:
-// Misión y Visión institucional. Reutiliza el mismo patrón de
-// tarjeta (franja naranja superior) que las pantallas de auth, para
-// mantener el mismo sistema visual en toda la app.
 export default function SeccionMisionVision() {
   return (
     <section className="bg-gray-100 py-16 md:py-24 px-4">

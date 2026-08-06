@@ -1,3 +1,15 @@
+// Mapa de rutas de toda la aplicación. Cada página vive en su módulo
+// (src/modules/[dominio]/) y se importa acá solo para declarar su ruta —
+// App.jsx es la única parte del código que puede "ver" todos los módulos
+// a la vez; ningún módulo se importa a sí mismo desde otro módulo.
+//
+// Capas de protección alrededor de <Routes>:
+//   - GuardianDeSesion: cierra sesiones "abandonadas" (pestaña cerrada
+//     sin logout) antes de que se renderice cualquier ruta.
+//   - RutaPublica: pantallas de acceso libre (Home, Login, Registro...);
+//     si ya hay sesión activa, redirige lejos de ellas.
+//   - RutaProtegida: pantallas privadas; exige un `rolRequerido` exacto
+//     (paciente / psicologo / superadmin) o redirige.
 import { Routes, Route } from 'react-router-dom';
 
 // --- MÓDULOS ---

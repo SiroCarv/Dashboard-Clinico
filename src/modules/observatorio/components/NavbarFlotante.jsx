@@ -1,10 +1,10 @@
+// Barra de navegación fija (flotante) de la landing pública. Solo enlaza
+// a rutas ya existentes (/login, /registro-nuevo) por href de React
+// Router — nunca importa componentes de otro módulo, respetando el
+// aislamiento entre dominios (DDD).
 import { Link } from 'react-router-dom';
-import logo from '../../../shared/assets/logo.svg'; // Asegúrate de que esta ruta sea la correcta en tu proyecto
+import logo from '../../../shared/assets/logo.svg';
 
-// Barra de navegación fija (flotante) de la landing pública.
-// Solo enlaza a rutas ya existentes (/login, /registro-nuevo) por
-// href de React Router — nunca importa componentes de otro módulo,
-// respetando el aislamiento entre dominios (DDD).
 export default function NavbarFlotante() {
   return (
     <nav className="fixed top-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm shadow-md">

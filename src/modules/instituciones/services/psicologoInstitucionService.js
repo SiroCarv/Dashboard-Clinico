@@ -1,4 +1,12 @@
-// src/modules/instituciones/services/psicologoInstitucionService.js
+// Acceso a la tabla puente `psicologo_institucion` (relación
+// muchos-a-muchos) y al listado de cuentas con rol 'psicologo' — usado
+// por AsignacionPsicologos.jsx para armar la matriz de "qué psicólogo
+// está asignado a qué institución".
+//
+// Este servicio NO crea/edita/elimina cuentas de psicólogo (eso vive en
+// el módulo `psicologos`, vía Edge Functions con service_role) — solo
+// maneja la relación de asignación entre uno ya existente y una
+// institución.
 import { supabase } from '../../../core/api/supabaseClient';
 
 export const psicologoInstitucionService = {

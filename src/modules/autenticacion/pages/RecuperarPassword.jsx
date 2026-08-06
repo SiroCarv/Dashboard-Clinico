@@ -1,3 +1,13 @@
+// Paso 1 del flujo de recuperación de contraseña: pide el correo y le
+// pide a Supabase que mande el enlace mágico. El enlace del correo lleva
+// a /restablecer-password (ver RestablecerPassword.jsx), donde recién se
+// ingresa la contraseña nueva.
+//
+// El mensaje de éxito es siempre el mismo exista o no esa cuenta
+// ("Si el correo está registrado, recibirás un enlace...") — es el
+// comportamiento propio de Supabase Auth y evita que alguien use este
+// formulario para averiguar qué correos están registrados en la
+// plataforma.
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';

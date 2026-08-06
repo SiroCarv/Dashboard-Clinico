@@ -1,3 +1,9 @@
+// Alta, edición y baja REAL de cuentas de psicólogo. Nunca se hace
+// directo con el cliente anónimo de Supabase: crear/editar/eliminar un
+// usuario de Auth requiere la service_role key, que solo existe del lado
+// servidor. Por eso cada método acá invoca una Edge Function
+// (supabase/functions/crear-psicologo, editar-psicologo,
+// eliminar-psicologo) en vez de hablarle directo a la tabla `usuarios`.
 import { supabase } from '../../../core/api/supabaseClient';
 
 /**

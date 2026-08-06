@@ -1,12 +1,10 @@
+// Sección de Inicio de la landing pública: imágenes institucionales que
+// rotan solas a pantalla completa, con la barra de navegación
+// (NavbarFlotante) flotando por encima. id="inicio" es el ancla que usa
+// el link "Inicio" de esa barra.
 import { useCarrusel } from '../hooks/useCarrusel';
 import { IMAGENES_HERO, DURACION_CAMBIO_IMAGEN_MS } from '../data/contenidoInstitucional';
 
-// Sección de Inicio: imágenes institucionales que rotan solas, a
-// pantalla completa, con la barra de navegación flotando por encima.
-// id="inicio" es el ancla que usa el link "Inicio" de NavbarFlotante.
-//
-// Renombrado de HeroCarrusel.jsx -> Carrusel.jsx (mismo componente,
-// solo cambia el nombre de archivo/función).
 export default function Carrusel() {
   const { indiceActual, irAImagen } = useCarrusel(
     IMAGENES_HERO.length,

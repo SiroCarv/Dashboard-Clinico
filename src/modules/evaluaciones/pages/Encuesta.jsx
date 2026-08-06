@@ -1,3 +1,18 @@
+// Pantalla principal del paciente. Orquesta, en orden, todo lo que debe
+// pasar antes de dejarlo responder un instrumento:
+//   1. useConsentimiento() decide si falta fecha de nacimiento, si hay un
+//      documento de consentimiento pendiente o rechazado, o si ya está
+//      todo aceptado (ver comentario completo en useConsentimiento.js).
+//   2. Una vez completo el consentimiento, se muestran 2 pestañas —
+//      Clima de Aula y GSHS— que el paciente puede responder en el orden
+//      que quiera y de forma independiente entre sí (completar una no
+//      obliga a completar la otra en el momento).
+//   3. Antes de ver las preguntas de una pestaña por primera vez,
+//      aparece un aviso informativo (AvisoInstrumento) que hay que
+//      aceptar — se recuerda por pestaña durante la sesión
+//      (`avisosAceptados`), no queda guardado en el servidor.
+//   4. FormularioInstrumento hace el trabajo pesado real: paginación,
+//      validación de "todo respondido" y el envío en sí.
 import { useState } from 'react';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
 import FormularioInstrumento from '../components/FormularioInstrumento';
@@ -12,13 +27,9 @@ import { INFO_INSTRUMENTO } from '../data/infoInstrumentos';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
-// Historia "Consentimiento y asentimiento informado por edad" +
-// "Aviso informativo por instrumento" + "Paginación de formularios en
-// bloques de 10" + "Envío individual de resultados por instrumento".
-//
-// Reemplaza al modo solo-lectura de SCRUM-30: ahora, una vez completado
-// el consentimiento que corresponda según la edad, el paciente puede
-// responder y enviar Clima de Aula y GSHS de forma independiente entre sí.
+// Cada instrumento se identifica con su propio color de acento (ver
+// paletaColores.js) para que el paciente distinga de un vistazo en cuál
+// pestaña está parado.
 const TABS = [
   {
     id: 'clima_aula',

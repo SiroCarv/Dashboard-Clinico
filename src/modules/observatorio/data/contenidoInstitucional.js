@@ -1,15 +1,16 @@
-// Contenido estático de la landing pública (Home).
+// Contenido estático de la landing pública (Home): imágenes del
+// carrusel, cuánto dura cada una en pantalla, y los textos de Misión y
+// Visión institucional.
 //
-// Historia "Landing pública institucional" — Épica "Observatorio de
-// Salud Mental" (pendiente de confirmación de alcance con la
-// Licenciada, ver mensaje enviado).
+// Épica "Observatorio de Salud Mental" — landing pública pendiente de
+// confirmación final de alcance con la Licenciada.
 //
 // Las imágenes son PLACEHOLDERS TEMPORALES generados con un servicio
 // de bloques de color (no son fotografías reales ni de stock, para
 // no dejar contenido con licencia dudosa en el repositorio). Usan los
 // mismos tonos de marca que src/shared/theme/paletaColores.js.
-// Reemplazar `url` por la ruta real cuando el cliente entregue las
-// fotos definitivas — no hace falta tocar ningún componente.
+// Reemplazar cada `img` por la foto real cuando el cliente la entregue —
+// no hace falta tocar ningún componente, solo estos imports.
 
 import img1 from '../assets/img1.jpg';
 import img2 from '../assets/img2.jpg';

@@ -1,11 +1,11 @@
-// Texto de apoyo para el aviso flotante que se muestra al seleccionar cada
-// instrumento (historia "Aviso informativo por instrumento"). Los tiempos
-// son una estimación en base a la cantidad de preguntas de cada
-// instrumento (Clima de Aula: 20 ítems Verdadero/Falso · GSHS: ~62 ítems
-// de opción múltiple repartidos en varios módulos), ya que el documento de
-// consentimiento del cliente solo da un tiempo agregado de 30 a 45 minutos
-// para todo el paquete, no por formulario. Pendiente de que el responsable
-// clínico confirme o ajuste estos dos rangos.
+// Texto de apoyo para el aviso flotante que se muestra al seleccionar
+// cada instrumento (ver AvisoInstrumento.jsx). Los tiempos son una
+// estimación en base a la cantidad de preguntas de cada instrumento
+// (Clima de Aula: 20 ítems Verdadero/Falso · GSHS: ~62 ítems de opción
+// múltiple repartidos en varios módulos), ya que el documento de
+// consentimiento del cliente solo da un tiempo agregado de 30 a 45
+// minutos para todo el paquete, no por formulario. Pendiente de que el
+// responsable clínico confirme o ajuste estos dos rangos.
 export const INFO_INSTRUMENTO = {
   clima_aula: {
     tiempoEstimado: '5 a 8 minutos',

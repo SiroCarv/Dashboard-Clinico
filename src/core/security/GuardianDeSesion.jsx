@@ -1,3 +1,28 @@
+// Envuelve TODA la app (ver App.jsx) para cerrar la sesión
+// automáticamente si la pestaña se cerró y se volvió a abrir — pero NO
+// si el usuario solo recargó la página (F5) o navegó dentro del mismo
+// sitio. Complementa a la historia "Sesión única por cuenta": si alguien
+// cierra el navegador sin darle a "Cerrar sesión", esto libera la cuenta
+// para que pueda volver a entrar (o para que otra persona pueda usarla)
+// la próxima vez que se abra una pestaña nueva.
+//
+// Cómo distingue "recargué" de "cerré y volví a abrir": usa
+// `sessionStorage`, que el navegador borra cuando la PESTAÑA se cierra
+// pero mantiene intacto ante una recarga.
+//   - Si la marca de "pestaña activa" ya está puesta -> esta pestaña
+//     viene abierta desde antes -> no se toca nada.
+//   - Si NO está -> o es la primera apertura, o se cerró y se volvió a
+//     abrir -> si había una sesión (heredada de localStorage, que sí
+//     sobrevive el cierre de pestaña), se cierra y se manda a Login. Si
+//     no había sesión, no se fuerza ninguna navegación, para que un
+//     enlace público (ej. el registro de una institución) siga
+//     funcionando normal.
+//
+// Por qué no se usa "beforeunload"/"pagehide" para disparar el cierre en
+// el momento exacto en que se cierra la pestaña: una llamada de red
+// asíncrona ahí no es confiable, muchos navegadores cortan la petición a
+// mitad de camino. Revisar al ABRIR es 100% confiable porque no depende
+// de que nada termine de ejecutarse durante el cierre.
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../api/supabaseClient';
@@ -12,26 +37,6 @@ const CLAVE_PESTANA = 'pestana_activa';
 // apenas se abre el link.
 const RUTAS_EXENTAS = ['/restablecer-password'];
 
-// Cierra la sesión automáticamente si la pestaña se cerró y se volvió a
-// abrir — pero NO si solo se recargó la página (F5) o se navegó dentro
-// del mismo sitio.
-//
-// La pieza clave es `sessionStorage`: el navegador la borra cuando la
-// PESTAÑA se cierra, pero la mantiene intacta ante una recarga. Entonces:
-//   - Si la marca ya está → esta pestaña estuvo abierta todo este tiempo
-//     → no se toca nada.
-//   - Si la marca NO está → o es la primera apertura, o se cerró y se
-//     volvió a abrir → si había una sesión (heredada de localStorage, que
-//     SÍ sobrevive el cierre de pestaña), se cierra y se manda al inicio.
-//     Si no había sesión, no se fuerza ninguna navegación — así un enlace
-//     público (ej. registro de una institución) sigue funcionando normal.
-//
-// A propósito NO se usa "beforeunload"/"pagehide" para disparar el cierre
-// de sesión en el momento en que la pestaña se cierra: una llamada de red
-// asíncrona (avisarle al servidor) no es confiable ahí, muchos
-// navegadores cortan la petición a mitad de camino. Revisar al ABRIR es
-// 100% confiable porque no depende de que nada termine de ejecutarse
-// durante el cierre.
 export default function GuardianDeSesion({ children }) {
   const [listo, setListo] = useState(false);
   const navigate = useNavigate();

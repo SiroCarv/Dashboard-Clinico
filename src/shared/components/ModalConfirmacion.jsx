@@ -1,25 +1,24 @@
+// Modal de confirmación genérico para acciones destructivas o
+// irreversibles (eliminar una institución, un psicólogo, etc.).
+// Reemplaza el uso de `window.confirm()` para mantener la consistencia
+// visual del resto de la app: misma tarjeta con franja de color, mismos
+// botones, mismo spinner.
+//
+// Vive en `shared/` porque no pertenece a ningún dominio en particular —
+// cualquier módulo puede necesitar confirmar una acción destructiva.
+//
+// Uso típico:
+//   const [aEliminar, setAEliminar] = useState(null);
+//
+//   <ModalConfirmacion
+//     isOpen={!!aEliminar}
+//     titulo="¿Eliminar esta institución?"
+//     mensaje="Esta acción no se puede deshacer."
+//     onConfirm={async () => { await eliminar(aEliminar.id); setAEliminar(null); }}
+//     onCancel={() => setAEliminar(null)}
+//   />
 import { useState } from 'react';
 
-/**
- * Modal de confirmación genérico para acciones destructivas o irreversibles
- * (eliminar una institución, un psicólogo, etc.). Reemplaza el uso de
- * `window.confirm()` para mantener la consistencia visual del resto de la
- * app: misma tarjeta con franja naranja, mismos botones, mismo spinner.
- *
- * Vive en `shared/` porque no pertenece a ningún dominio en particular —
- * cualquier módulo puede necesitar confirmar una acción destructiva.
- *
- * Uso típico:
- *   const [aEliminar, setAEliminar] = useState(null);
- *
- *   <ModalConfirmacion
- *     isOpen={!!aEliminar}
- *     titulo="¿Eliminar esta institución?"
- *     mensaje={`Esta acción no se puede deshacer.`}
- *     onConfirm={async () => { await eliminar(aEliminar.id); setAEliminar(null); }}
- *     onCancel={() => setAEliminar(null)}
- *   />
- */
 export const ModalConfirmacion = ({
   isOpen,
   titulo = '¿Estás seguro?',

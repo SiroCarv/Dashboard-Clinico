@@ -1,15 +1,19 @@
+// Acceso a datos de consentimiento/asentimiento y fecha de nacimiento del
+// paciente autenticado. Usado por useConsentimiento.js.
+//
+// Requiere la migración "006_consentimiento_y_envio_individual.sql":
+// - usuarios.fecha_nacimiento + función RPC registrar_fecha_nacimiento()
+// - tabla consentimientos con sus políticas RLS
 import { supabase } from '../../../core/api/supabaseClient';
 
 const TABLA = 'consentimientos';
 
-// Requiere la migración "006_consentimiento_y_envio_individual.sql":
-// - usuarios.fecha_nacimiento + función RPC registrar_fecha_nacimiento()
-// - tabla consentimientos con sus políticas RLS
 export const consentimientoService = {
   /**
    * Lee la fecha de nacimiento ya registrada del paciente autenticado (o
-   * null si todavía no la cargó). Determina qué rama de consentimiento le
-   * corresponde (menor con tutor+asentimiento, o mayor con autoconsentimiento).
+   * null si todavía no la cargó). useConsentimiento.js la usa para
+   * calcular la edad y decidir qué rama de consentimiento le corresponde
+   * (menor con tutor+asentimiento, o mayor con autoconsentimiento).
    */
   async obtenerFechaNacimientoPropia(idPaciente) {
     const { data, error } = await supabase
@@ -24,10 +28,11 @@ export const consentimientoService = {
 
   /**
    * Registra la fecha de nacimiento UNA sola vez, vía función RPC
-   * (SECURITY DEFINER, se lo audita en la migración). No existe una
-   * política de UPDATE abierta sobre `usuarios` a propósito: un paciente
-   * no debe poder reescribir su propio rol o institución modificando su
-   * fila directamente.
+   * (SECURITY DEFINER, auditada en la migración). No existe una política
+   * de UPDATE abierta sobre `usuarios` a propósito: un paciente no debe
+   * poder reescribir su propio rol o institución modificando su fila
+   * directamente — la RPC solo permite tocar esa única columna, y solo
+   * si todavía está vacía.
    */
   async registrarFechaNacimiento(fechaNacimiento) {
     const { error } = await supabase.rpc('registrar_fecha_nacimiento', {
@@ -37,11 +42,11 @@ export const consentimientoService = {
   },
 
   /**
-   * Trae el último registro de decisión (aceptado/rechazado) por tipo de
-   * documento para el paciente autenticado. Se pide TODO el historial (no
-   * solo el más reciente) porque, si alguna vez se rechaza y luego se
-   * vuelve a intentar, queremos poder mostrar cuál fue la última decisión
-   * sin perder el rastro de auditoría de las anteriores.
+   * Trae TODO el historial de decisiones (aceptado/rechazado) por tipo de
+   * documento para el paciente autenticado, no solo la más reciente:
+   * si alguna vez se rechaza y luego se vuelve a intentar, se necesita
+   * poder mostrar cuál fue la última decisión sin perder el rastro de
+   * auditoría de las anteriores.
    */
   async obtenerConsentimientosPropios(idPaciente) {
     const { data, error } = await supabase

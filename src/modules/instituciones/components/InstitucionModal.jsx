@@ -1,3 +1,7 @@
+// Modal de creación/edición de una institución (nombre + código de
+// registro único). Se abre desde InstitucionList.jsx ("+ Nueva
+// Institución" o "Editar"); el guardado real (insert/update) lo hace
+// PanelMaestro.jsx a través de la prop onSave.
 import { useState } from 'react';
 
 export const InstitucionModal = ({ isOpen, onClose, onSave, institucionEditada }) => {
@@ -7,10 +11,9 @@ export const InstitucionModal = ({ isOpen, onClose, onSave, institucionEditada }
 
   // Reemplaza al useEffect que reseteaba el formulario: en vez de "reaccionar"
   // después del render, ajustamos el estado DURANTE el render cuando cambia
-  // la apertura del modal o la institución que se está editando (mismo
-  // criterio que antes tenía como dependencias [institucionEditada, isOpen]).
-  // Es el patrón que React recomienda para este caso exacto — llamar
-  // setState en el cuerpo del render está soportado y no dispara un efecto.
+  // la apertura del modal o la institución que se está editando. Es el
+  // patrón que React recomienda para este caso exacto — llamar setState en
+  // el cuerpo del render está soportado y no dispara un efecto extra.
   const formKey = `${isOpen ? 'abierto' : 'cerrado'}:${institucionEditada?.id ?? 'nueva'}`;
   const [formKeyAplicada, setFormKeyAplicada] = useState(formKey);
 
@@ -26,7 +29,8 @@ export const InstitucionModal = ({ isOpen, onClose, onSave, institucionEditada }
   }
 
   const generarCodigo = () => {
-    // Genera un código único tipo "UNI-4A9B"
+    // Genera un código único tipo "UNI-4A9B" (aleatorio, no secuencial —
+    // el superadmin puede editarlo a mano si prefiere un código propio).
     const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
     setCodigoRegistro(`UNI-${randomStr}`);
   };

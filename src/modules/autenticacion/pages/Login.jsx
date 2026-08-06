@@ -1,3 +1,20 @@
+// Pantalla de inicio de sesión. Envuelta en <RutaPublica> desde App.jsx
+// (si ya hay sesión activa, nunca llega a mostrarse).
+//
+// Flujo de handleLogin, en orden:
+//   1. Valida formato de correo en el cliente (respaldo del `pattern`
+//      nativo del input).
+//   2. Autentica contra Supabase Auth (`signInWithPassword`).
+//   3. Busca el rol en `usuarios` — si no tiene un rol reconocido,
+//      corta acá con un error explícito (nunca asume "paciente" por
+//      defecto).
+//   4. Reclama la "sesión única" de la cuenta (ver RPC
+//      `iniciar_sesion_unica`, SECURITY DEFINER): si otra persona ya
+//      tiene esta cuenta abierta hace menos de 12 horas, el login se
+//      rechaza y se cierra la sesión recién creada.
+//   5. Si todo salió bien, navega a la vista por defecto de ese rol
+//      (RUTA_POR_DEFECTO, la misma fuente única de verdad que usan
+//      RutaProtegida/RutaPublica).
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';

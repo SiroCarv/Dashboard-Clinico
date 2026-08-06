@@ -1,6 +1,9 @@
-// Mensaje flotante que aparece al seleccionar un instrumento, ya con el
+// Mensaje flotante (overlay a pantalla completa) que aparece la primera
+// vez que el paciente entra a la pestaña de un instrumento, ya con el
 // consentimiento/asentimiento general aceptado. Bloquea el acceso a las
-// preguntas hasta que el paciente presiona "Aceptar y comenzar".
+// preguntas hasta que presiona "Aceptar y comenzar" — Encuesta.jsx lleva
+// la cuenta de qué instrumentos ya fueron aceptados en la sesión actual
+// (`avisosAceptados`) para no repetir el aviso al volver a esa pestaña.
 export default function AvisoInstrumento({ titulo, info, acento, onAceptar }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">

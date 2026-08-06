@@ -1,3 +1,12 @@
+// Panel principal del psicólogo: listado de sus pacientes con búsqueda
+// por nombre/correo, filtro por institución y exportación a Excel.
+//
+// El Dashboard dejó de tener 2 pestañas (Clima de Aula/GSHS + "Historial
+// anterior PHQ-9"). La pantalla de historial PHQ-9 y su ruta de detalle
+// se retiraron por completo — decisión explícita del cliente. La única
+// vista ahora es este listado de pacientes; buscar/filtrar/exportar se
+// aplican sobre ese listado, no sobre evaluaciones puntuales (eso vive en
+// InformeConsolidado.jsx, al hacer clic en una fila).
 import { useMemo, useState } from 'react';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
 import { useListaPacientes } from '../hooks/useListaPacientes';
@@ -8,13 +17,6 @@ import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
 const FILTRO_INSTITUCION_TODAS = 'todas';
 
-// SCRUM-31 — "Informe Consolidado de Pruebas por Paciente": el Dashboard
-// dejó de tener 2 pestañas (Clima de Aula/GSHS + "Historial anterior
-// PHQ-9"). La pantalla de historial PHQ-9 y su ruta de detalle
-// (DetalleClinico.jsx, SCRUM-21) se retiraron por completo — decisión
-// explícita del cliente, ver notas de la sesión. La única vista ahora es
-// el listado de pacientes; buscar/filtrar/exportar se aplican sobre ese
-// listado, no sobre evaluaciones puntuales.
 export default function Dashboard() {
   const { pacientes, loading, error } = useListaPacientes();
   const [busqueda, setBusqueda] = useState('');
@@ -23,8 +25,7 @@ export default function Dashboard() {
 
   // Instituciones únicas derivadas de los pacientes ya cargados: no se
   // necesita ninguna llamada nueva a Supabase ni un import cruzado al
-  // módulo `instituciones` para poblar este filtro (mismo patrón que ya
-  // usaba SCRUM-20 sobre `evaluaciones`).
+  // módulo `instituciones` para poblar este filtro.
   const instituciones = useMemo(() => {
     const nombres = pacientes.map((p) => p.institucion?.nombre).filter(Boolean);
     return Array.from(new Set(nombres)).sort((a, b) => a.localeCompare(b));
@@ -55,10 +56,9 @@ export default function Dashboard() {
     setFiltroInstitucion(FILTRO_INSTITUCION_TODAS);
   };
 
-  // Historia "Exportación a Excel" (SCRUM-14), adaptada al listado de
-  // pacientes. Recibe `pacientesFiltrados` -no `pacientes`- a propósito:
-  // el archivo debe reflejar exactamente lo que el psicólogo ve en
-  // pantalla tras aplicar búsqueda/filtros, nunca el padrón completo.
+  // Recibe `pacientesFiltrados` -no `pacientes`- a propósito: el archivo
+  // debe reflejar exactamente lo que el psicólogo ve en pantalla tras
+  // aplicar búsqueda/filtros, nunca el padrón completo.
   const handleExportarExcel = async () => {
     if (pacientesFiltrados.length === 0) return;
     setExportando(true);

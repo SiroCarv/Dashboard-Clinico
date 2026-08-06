@@ -1,3 +1,7 @@
+// Carga el listado de pacientes del psicólogo autenticado, una sola vez
+// al montar. Dashboard.jsx aplica búsqueda/filtro/exportación sobre el
+// array que devuelve este hook — el hook en sí no sabe nada de filtros,
+// solo trae los datos.
 import { useEffect, useState } from 'react';
 import { pacientesService } from '../services/pacientesService';
 

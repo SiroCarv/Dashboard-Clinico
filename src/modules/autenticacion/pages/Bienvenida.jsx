@@ -1,3 +1,9 @@
+// Pantalla intermedia entre Login y los dos flujos de registro (SCRUM-33).
+// Antes había un único /registro; ahora primero se pregunta el tipo de
+// perfil, para que un Consultante particular no tenga que ver ni intentar
+// llenar los campos de curso/paralelo/turno que solo aplican a estudiantes.
+//   "Soy estudiante de colegio"  -> /registro (código de institución)
+//   "Soy Consultante"            -> /registro-particular
 import { useNavigate, Link } from 'react-router-dom';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 

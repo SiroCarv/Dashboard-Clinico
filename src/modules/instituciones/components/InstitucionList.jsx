@@ -1,3 +1,9 @@
+// Pestaña "Instituciones" del Panel Maestro: tabla con búsqueda por
+// nombre/código, botón para copiar el enlace de registro
+// (`/registro/:codigo`) al portapapeles, y las acciones de editar/
+// eliminar que delegan en el padre (PanelMaestro.jsx) vía props.
+// Este componente no habla con Supabase directamente — solo recibe
+// `instituciones` ya cargadas y notifica intenciones (onEdit, onDelete).
 import { useState, useMemo } from 'react';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 
@@ -32,7 +38,9 @@ export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
 
   return (
     <div className="space-y-6">
-      {/* Barra de acciones superior idéntica a Psicólogos */}
+      {/* Barra de acciones superior idéntica a Psicólogos, para que ambas
+          pestañas del Panel Maestro tengan el botón principal en la
+          misma posición relativa. */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
         <div>
           <h2 className="text-lg font-bold text-black">Instituciones Registradas</h2>
@@ -46,7 +54,7 @@ export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
         </button>
       </div>
 
-      {/* Barra de búsqueda: solo se muestra si existe al menos una institución registrada (AC4) */}
+      {/* Barra de búsqueda: solo se muestra si existe al menos una institución registrada */}
       {instituciones.length > 0 && (
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
           <input

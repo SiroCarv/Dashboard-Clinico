@@ -1,3 +1,12 @@
+// Barra superior fija (sticky), reutilizada por las pantallas privadas
+// de paciente y psicólogo (Encuesta, Dashboard, Informe Consolidado):
+// un título a la izquierda y el botón de cerrar sesión a la derecha,
+// siempre visible aunque la página tenga scroll.
+//
+// Importa BotonCerrarSesion desde la API pública del módulo
+// `autenticacion` (nunca desde su ruta interna) — es la única forma de
+// consumo cruzado entre módulos que permite la arquitectura del
+// proyecto.
 import { BotonCerrarSesion } from '../../modules/autenticacion';
 
 export default function BarraSuperior({ titulo }) {

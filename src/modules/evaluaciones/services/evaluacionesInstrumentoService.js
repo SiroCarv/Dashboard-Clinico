@@ -1,11 +1,17 @@
+// Acceso a la tabla `evaluaciones_instrumento` — un registro por cada
+// instrumento que un paciente completa y envía (uno para Clima de Aula,
+// otro para GSHS; nunca se pisan entre sí gracias a la constraint UNIQUE
+// (id_paciente, tipo_instrumento)).
+//
+// Requiere la migración "006_consentimiento_y_envio_individual.sql", que
+// agrega los GRANTs que le faltaban a esta tabla (ya tenía RLS pero no
+// GRANT) y el trigger `calcular_resultado_instrumento()` que calcula
+// `resultado_json` (Clima de Aula) y `alerta_activada` (GSHS) del lado
+// del servidor.
 import { supabase } from '../../../core/api/supabaseClient';
 
 const TABLA = 'evaluaciones_instrumento';
 
-// Requiere la migración "006_consentimiento_y_envio_individual.sql":
-// otorga los GRANTs que le faltaban a esta tabla (ya tenía RLS pero no
-// GRANT, así que hoy fallaría en cualquier insert/select real) y agrega
-// el trigger que calcula `alerta_activada` en el servidor para GSHS.
 export const evaluacionesInstrumentoService = {
   /**
    * Envía las respuestas de UN instrumento puntual. `respuestas` debe ser
@@ -54,12 +60,12 @@ export const evaluacionesInstrumentoService = {
   },
 
   /**
-   * Recupera todos los envíos de un paciente puntual, para el "Informe
-   * Consolidado de Pruebas por Paciente" (SCRUM-31) del panel del
-   * psicólogo. La política RLS "instrumento_select_psicologo" es quien
-   * decide si estas filas son visibles para auth.uid() — si el psicólogo
-   * fuerza el acceso a un paciente fuera de sus instituciones, esto
-   * simplemente devuelve un arreglo vacío.
+   * Recupera todos los envíos de un paciente puntual, para el Informe
+   * Consolidado (SCRUM-31) del panel del psicólogo. La política RLS
+   * "instrumento_select_psicologo" es quien decide si estas filas son
+   * visibles para auth.uid() — si el psicólogo fuerza el acceso a un
+   * paciente fuera de sus instituciones, esto simplemente devuelve un
+   * arreglo vacío.
    */
   async obtenerInstrumentosDePaciente(idPaciente) {
     const { data, error } = await supabase

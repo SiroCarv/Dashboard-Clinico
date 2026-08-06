@@ -1,3 +1,8 @@
+// Pantalla del superadmin: 2 pestañas — "Instituciones" (alta/edición/
+// borrado, código de acceso) y "Psicólogos" (alta/edición/borrado +
+// asignación a instituciones). Ambas pestañas comparten la lista de
+// `instituciones` cargada acá arriba (AsignacionPsicologos la necesita
+// para poder asignar psicólogos a cada una).
 import { useState, useEffect } from 'react';
 import { institucionesService } from '../services/institucionesService';
 import { InstitucionList } from '../components/InstitucionList';
@@ -21,6 +26,9 @@ export default function PanelMaestro() {
   // Institución pendiente de confirmación de borrado (reemplaza window.confirm)
   const [institucionAEliminar, setInstitucionAEliminar] = useState(null);
 
+  // Recarga completa de la lista, usada después de crear/editar/eliminar
+  // (los handlers de abajo la llaman explícitamente; la carga inicial usa
+  // su propia copia dentro del useEffect, ver comentario ahí).
   const cargarInstituciones = async () => {
     try {
       setLoading(true);
@@ -87,7 +95,9 @@ export default function PanelMaestro() {
     }
   };
 
-  // Ya no confirma aquí: solo abre el modal con la institución elegida.
+  // Ya no confirma acá directamente: solo abre el modal de confirmación
+  // con la institución elegida; confirmarEliminarInstitucion es quien
+  // realmente ejecuta el borrado.
   const handleDelete = (id) => {
     const institucion = instituciones.find((inst) => inst.id === id);
     setInstitucionAEliminar(institucion);
@@ -99,6 +109,9 @@ export default function PanelMaestro() {
       await cargarInstituciones();
       setInstitucionAEliminar(null);
     } catch (err) {
+      // El error más común acá es la FK sin ON DELETE CASCADE: no se
+      // puede borrar una institución con psicólogos o pacientes
+      // vinculados, a propósito, para no dejar registros huérfanos.
       alert('Error al eliminar. Puede que haya psicólogos o pacientes asignados a esta institución.');
       console.error(err);
     }
@@ -123,9 +136,11 @@ export default function PanelMaestro() {
           <BotonCerrarSesion />
         </div>
 
-        {/* Pestañas: acento único en naranja (la app pasó a usar solo 2
-            colores de marca: violeta y naranja — ya no se usan los otros
-            2 colores de COLOR_MARCA como acento por pestaña). */}
+        {/* Pestañas: acento único en naranja oscuro (COLOR_MARCA.naranja) —
+            la app usa solo 2 colores de marca activos (violeta claro y
+            naranja oscuro); los otros 2 colores de COLOR_MARCA quedan
+            reservados para diferenciar instrumentos clínicos, no se usan
+            como acento de pestaña acá. */}
         <div className="flex gap-2 mb-6 border-b border-gray-200">
           <button
             onClick={() => setTabActiva('instituciones')}
