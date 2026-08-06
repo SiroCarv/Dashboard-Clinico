@@ -36,7 +36,7 @@ export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
         <div>
           <h2 className="text-lg font-bold text-black">Instituciones Registradas</h2>
-          <p className="text-xs text-gray-500">Administra los centros educativos y sus códigos de acceso institucional.</p>
+          <p className="text-xs text-gray-700 font-medium">Administra los centros educativos y sus códigos de acceso institucional.</p>
         </div>
         <button
           onClick={() => onEdit()}

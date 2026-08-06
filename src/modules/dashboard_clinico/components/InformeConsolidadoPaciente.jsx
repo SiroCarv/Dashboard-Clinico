@@ -38,6 +38,31 @@ function agruparPorModulo(respuestas) {
   return grupos;
 }
 
+// Columna 'fecha_nacimiento' es tipo `date` de Postgres ('YYYY-MM-DD'):
+// se fuerza la hora a mediodía local antes de formatear para que no
+// "retroceda" un día por husos horarios al construir el Date en el navegador.
+function formatearFechaNacimiento(fecha) {
+  if (!fecha) return null;
+  return new Date(`${fecha}T12:00:00`).toLocaleDateString('es-BO', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+}
+
+// Un dato de registro puntual (etiqueta + valor). No se renderiza nada si
+// el valor está vacío — así, un consultante particular (sin curso, turno,
+// código de estudiante) no deja huecos en blanco con etiquetas vacías.
+function Dato({ etiqueta, valor }) {
+  if (!valor) return null;
+  return (
+    <div>
+      <p className="text-xs font-bold uppercase tracking-wide text-gray-500">{etiqueta}</p>
+      <p className="text-gray-800 font-semibold">{valor}</p>
+    </div>
+  );
+}
+
 // Resumen propio de cada instrumento — nada de "puntaje/diagnóstico"
 // genérico heredado del PHQ-9. Clima de Aula muestra su puntaje sobre 20
 // y su categoría (5 niveles); GSHS no tiene un puntaje único por diseño
@@ -79,7 +104,7 @@ function TarjetaInstrumento({ registro }) {
       <div className="px-5 py-4 flex items-center justify-between flex-wrap gap-2">
         <div>
           <h4 className="font-extrabold text-black">{etiqueta}</h4>
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-700 text-sm font-medium">
             {new Date(registro.fecha_registro).toLocaleString('es-BO')}
           </p>
         </div>
@@ -88,7 +113,7 @@ function TarjetaInstrumento({ registro }) {
           <button
             type="button"
             onClick={() => setExpandido((v) => !v)}
-            className="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors"
+            className="text-sm font-bold text-gray-700 hover:text-gray-900 transition-colors"
           >
             {expandido ? 'Ocultar respuestas' : 'Ver respuestas'}
           </button>
@@ -96,7 +121,7 @@ function TarjetaInstrumento({ registro }) {
       </div>
 
       {registro.tipo_instrumento === 'GSHS' && (
-        <p className="px-5 pb-3 -mt-2 text-xs text-gray-400">
+        <p className="px-5 pb-3 -mt-2 text-xs text-gray-600">
           La GSHS es un instrumento de prevalencia: no genera un puntaje único ni un diagnóstico
           automático. Cruzar estos datos con otros instrumentos es responsabilidad del
           profesional.
@@ -113,7 +138,7 @@ function TarjetaInstrumento({ registro }) {
               <div className="divide-y divide-gray-100">
                 {grupo.items.map((item) => (
                   <div key={`${grupo.modulo}-${item.numero}`} className="py-1.5 text-sm flex justify-between gap-4">
-                    <span className="text-gray-500">Pregunta {item.numero}</span>
+                    <span className="text-gray-700">Pregunta {item.numero}</span>
                     <span className="text-gray-800 font-semibold text-right">{item.valorMostrado}</span>
                   </div>
                 ))}
@@ -128,6 +153,7 @@ function TarjetaInstrumento({ registro }) {
 
 export default function InformeConsolidadoPaciente({ paciente, instrumentos }) {
   const etiquetaIdentidad = obtenerEtiquetaIdentidad(paciente);
+  const esParticipante = Boolean(paciente.institucion);
 
   return (
     <div>
@@ -149,15 +175,30 @@ export default function InformeConsolidadoPaciente({ paciente, instrumentos }) {
             </span>
           </div>
           <h3 className="text-xl font-extrabold text-black">{obtenerNombreMostrado(paciente)}</h3>
-          <p className="text-gray-500 text-sm mt-1">
-            {paciente.institucion?.nombre ?? 'Sin institución asignada'}
+          <p className="text-gray-700 text-sm mt-1 font-medium">
+            {esParticipante
+              ? paciente.institucion.nombre
+              : 'Consultante particular (sin institución)'}
             {paciente.curso ? ` · ${paciente.curso}${paciente.paralelo ? ` "${paciente.paralelo}"` : ''}` : ''}
           </p>
+
+          {/* Toda la información capturada al registrarse — cambia según
+              haya sido un registro institucional (participante, con
+              curso/paralelo/turno/código) o particular (consultante, con
+              teléfono). Cada campo se omite solo si está vacío. */}
+          <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <Dato etiqueta="Correo" valor={paciente.email} />
+            <Dato etiqueta="Teléfono" valor={paciente.telefono} />
+            <Dato etiqueta="Género" valor={paciente.genero} />
+            <Dato etiqueta="Fecha de nacimiento" valor={formatearFechaNacimiento(paciente.fecha_nacimiento)} />
+            <Dato etiqueta="Turno" valor={paciente.turno} />
+            <Dato etiqueta="Código de estudiante" valor={paciente.codigo_estudiante} />
+          </div>
         </div>
       )}
 
       {instrumentos.length === 0 ? (
-        <div className="p-6 bg-white border border-gray-200 rounded-lg text-center text-gray-500 font-medium">
+        <div className="p-6 bg-white border border-gray-200 rounded-lg text-center text-gray-700 font-medium">
           Todavía no se completó ningún instrumento.
         </div>
       ) : (

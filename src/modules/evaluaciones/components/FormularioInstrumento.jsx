@@ -45,16 +45,28 @@ function CampoOpciones({ nombre, opciones, valor, onCambiar, acento }) {
 }
 
 // Único uso hoy: estatura y peso (Módulo sobre Conductas Alimentarias,
-// GSHS). Filtra cualquier tecla que no sea un dígito — no admite letras
-// ni símbolos, tal como se pidió para la pregunta de peso (se aplicó
-// también a estatura, mismo tipo de dato, para no dejarla inconsistente).
+// GSHS). Admite dígitos y UN separador decimal (coma o punto, cualquiera
+// de los dos — común que alguien tipee "65,5" y otra persona "65.5").
+// Filtra cualquier otra tecla (letras, símbolos) y colapsa un segundo
+// separador si se llega a tipear, para no terminar con algo como "65,5,2".
 function CampoTexto({ valor, onCambiar }) {
+  const limpiar = (texto) => {
+    let limpio = texto.replace(/[^0-9.,]/g, '');
+    const indiceSeparador = limpio.search(/[.,]/);
+    if (indiceSeparador !== -1) {
+      limpio =
+        limpio.slice(0, indiceSeparador + 1) +
+        limpio.slice(indiceSeparador + 1).replace(/[.,]/g, '');
+    }
+    return limpio;
+  };
+
   return (
     <input
       type="text"
-      inputMode="numeric"
+      inputMode="decimal"
       value={valor ?? ''}
-      onChange={(e) => onCambiar(e.target.value.replace(/[^0-9]/g, ''))}
+      onChange={(e) => onCambiar(limpiar(e.target.value))}
       className="mt-2 w-full sm:w-48 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
     />
   );

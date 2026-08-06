@@ -155,7 +155,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
         <div>
           <h2 className="text-lg font-bold text-black">Personal Clínico Autorizado</h2>
-          <p className="text-xs text-gray-500">Asigna profesionales de la salud mental a los entornos operativos del Observatorio.</p>
+          <p className="text-xs text-gray-700 font-medium">Asigna profesionales de la salud mental a los entornos operativos del Observatorio.</p>
         </div>
         <button
           onClick={() => handleOpenModal()}

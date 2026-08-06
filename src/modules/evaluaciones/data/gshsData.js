@@ -55,8 +55,8 @@ const MODULOS = [
       },
       {
         numero: 3,
-        texto: 'Durante los últimos 30 días, en los días en que tomaste alcohol, ¿cuántos tragos tomaste normalmente por día?',
-        opciones: ['No tomé alcohol durante los últimos 30 días', 'Menos de un trago', '1 trago', '2 tragos', '3 tragos', '4 tragos', '5 tragos o más'],
+        texto: 'Durante los últimos 30 días, en los días en que tomaste alcohol, ¿cuántos vasos tomaste normalmente por día?',
+        opciones: ['No tomé alcohol durante los últimos 30 días', 'Menos de un vaso', '1 vaso', '2 vasos', '3 vasos', '4 vasos', '5 vasos o más'],
       },
       {
         numero: 4,

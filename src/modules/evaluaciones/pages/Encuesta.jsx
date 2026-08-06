@@ -136,14 +136,12 @@ export default function Encuesta() {
       <BarraSuperior titulo="Observatorio de Salud Mental" />
 
       {!avisoAceptado && (
-        <div className="relative z-10">
-          <AvisoInstrumento
-            titulo={tab.instrumento.titulo}
-            info={INFO_INSTRUMENTO[tab.id]}
-            acento={tab.acento}
-            onAceptar={aceptarAviso}
-          />
-        </div>
+        <AvisoInstrumento
+          titulo={tab.instrumento.titulo}
+          info={INFO_INSTRUMENTO[tab.id]}
+          acento={tab.acento}
+          onAceptar={aceptarAviso}
+        />
       )}
 
       <div className="relative z-10 p-6 md:p-10 max-w-3xl mx-auto">

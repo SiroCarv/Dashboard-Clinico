@@ -15,10 +15,16 @@ export const pacientesService = {
     return data ?? [];
   },
 
+  // Trae TODOS los campos capturados al registrarse (institucional o
+  // particular), para el Informe Consolidado — antes solo traía
+  // curso/paralelo. `obtenerPacientesPropios()` (el listado general) no
+  // se tocó: no necesita este detalle completo para cada fila de la tabla.
   async obtenerPacientePropio(idPaciente) {
     const { data, error } = await supabase
       .from('usuarios')
-      .select('id, nombre, email, curso, paralelo, institucion:instituciones(nombre)')
+      .select(
+        'id, nombre, email, telefono, genero, curso, paralelo, turno, codigo_estudiante, fecha_nacimiento, institucion:instituciones(nombre)'
+      )
       .eq('id', idPaciente)
       .eq('rol', 'paciente')
       .maybeSingle();

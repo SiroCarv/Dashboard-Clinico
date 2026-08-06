@@ -88,6 +88,26 @@ export default function Login() {
         return;
       }
 
+      // Historia "Sesión única por cuenta": se reclama la sesión de forma
+      // atómica en el servidor (función con SECURITY DEFINER, no una
+      // política RLS de UPDATE — así ningún cliente puede tocar otras
+      // columnas de su propia fila, como `rol`). Si otra persona ya tiene
+      // la cuenta abierta hace menos de 12 horas, se rechaza este login.
+      const { data: sesionConcedida, error: sesionError } = await supabase.rpc('iniciar_sesion_unica');
+
+      if (sesionError) {
+        console.error('Error al verificar sesión única:', sesionError.message);
+        setError('No se pudo verificar la sesión. Intenta nuevamente.');
+        await supabase.auth.signOut();
+        return;
+      }
+
+      if (!sesionConcedida) {
+        setError('Esta cuenta ya tiene una sesión activa. Cerrá esa sesión antes de continuar.');
+        await supabase.auth.signOut();
+        return;
+      }
+
       // replace: true evita que /login quede apilado en el historial:
       // sin esto, un solo "Atrás" desde el panel devolvía a esta pantalla
       // con la sesión todavía activa (RutaPublica es la segunda capa de

@@ -20,68 +20,71 @@ import PanelMaestro from './modules/instituciones/pages/PanelMaestro';
 // --- CORE ---
 import RutaProtegida from './core/security/RutaProtegida';
 import RutaPublica from './core/security/RutaPublica';
+import GuardianDeSesion from './core/security/GuardianDeSesion';
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<RutaPublica><Home /></RutaPublica>} />
-      <Route path="/login" element={<RutaPublica><Login /></RutaPublica>} />
+    <GuardianDeSesion>
+      <Routes>
+        <Route path="/" element={<RutaPublica><Home /></RutaPublica>} />
+        <Route path="/login" element={<RutaPublica><Login /></RutaPublica>} />
 
-      {/* SCRUM-33: pantalla de bienvenida + selector de perfil,
-          previa a los dos flujos de registro ya existentes */}
-      <Route path="/registro-nuevo" element={<RutaPublica><Bienvenida /></RutaPublica>} />
+        {/* SCRUM-33: pantalla de bienvenida + selector de perfil,
+            previa a los dos flujos de registro ya existentes */}
+        <Route path="/registro-nuevo" element={<RutaPublica><Bienvenida /></RutaPublica>} />
 
-      {/* Ruta dinámica para atrapar el código de la institución */}
-      <Route path="/registro/:codigo" element={<RutaPublica><Registro /></RutaPublica>} />
-      {/* Dejamos la ruta normal por si alguien entra sin código, para mostrarle un mensaje de error */}
-      <Route path="/registro" element={<RutaPublica><Registro /></RutaPublica>} />
+        {/* Ruta dinámica para atrapar el código de la institución */}
+        <Route path="/registro/:codigo" element={<RutaPublica><Registro /></RutaPublica>} />
+        {/* Dejamos la ruta normal por si alguien entra sin código, para mostrarle un mensaje de error */}
+        <Route path="/registro" element={<RutaPublica><Registro /></RutaPublica>} />
 
-      {/* Registro para personas sin institución (SCRUM-29): componente propio,
-          no reutiliza Registro.jsx para no alterar el flujo institucional ya aprobado. */}
-      <Route path="/registro-particular" element={<RutaPublica><RegistroParticular /></RutaPublica>} />
+        {/* Registro para personas sin institución (SCRUM-29): componente propio,
+            no reutiliza Registro.jsx para no alterar el flujo institucional ya aprobado. */}
+        <Route path="/registro-particular" element={<RutaPublica><RegistroParticular /></RutaPublica>} />
       
-      <Route path="/recuperar-password" element={<RutaPublica><RecuperarPassword /></RutaPublica>} />
-      {/* /restablecer-password queda SIN RutaPublica a propósito: depende de la
-          sesión "oculta" que Supabase abre desde el link del correo de recuperación
-          (ver comentario en RestablecerPassword.jsx). Envolverla la rompería. */}
-      <Route path="/restablecer-password" element={<RestablecerPassword />} />
+        <Route path="/recuperar-password" element={<RutaPublica><RecuperarPassword /></RutaPublica>} />
+        {/* /restablecer-password queda SIN RutaPublica a propósito: depende de la
+            sesión "oculta" que Supabase abre desde el link del correo de recuperación
+            (ver comentario en RestablecerPassword.jsx). Envolverla la rompería. */}
+        <Route path="/restablecer-password" element={<RestablecerPassword />} />
       
-      <Route 
-        path="/encuesta" 
-        element={
-          <RutaProtegida rolRequerido="paciente">
-            <Encuesta />
-          </RutaProtegida>
-        } 
-      />
+        <Route 
+          path="/encuesta" 
+          element={
+            <RutaProtegida rolRequerido="paciente">
+              <Encuesta />
+            </RutaProtegida>
+          } 
+        />
       
-      <Route 
-        path="/dashboard" 
-        element={
-          <RutaProtegida rolRequerido="psicologo">
-            <Dashboard />
-          </RutaProtegida>
-        } 
-      />
+        <Route 
+          path="/dashboard" 
+          element={
+            <RutaProtegida rolRequerido="psicologo">
+              <Dashboard />
+            </RutaProtegida>
+          } 
+        />
 
-      <Route 
-        path="/dashboard/informe/:idPaciente" 
-        element={
-          <RutaProtegida rolRequerido="psicologo">
-            <InformeConsolidado />
-          </RutaProtegida>
-        } 
-      />
+        <Route 
+          path="/dashboard/informe/:idPaciente" 
+          element={
+            <RutaProtegida rolRequerido="psicologo">
+              <InformeConsolidado />
+            </RutaProtegida>
+          } 
+        />
 
-      <Route 
-        path="/panel-maestro" 
-        element={
-          <RutaProtegida rolRequerido="superadmin">
-            <PanelMaestro />
-          </RutaProtegida>
-        } 
-      />
-    </Routes>
+        <Route 
+          path="/panel-maestro" 
+          element={
+            <RutaProtegida rolRequerido="superadmin">
+              <PanelMaestro />
+            </RutaProtegida>
+          } 
+        />
+      </Routes>
+    </GuardianDeSesion>
   );
 }
 
