@@ -1,8 +1,20 @@
-// Exporta el Informe Consolidado de UN paciente puntual: una fila por
-// cada pregunta respondida, en cada instrumento que haya completado.
-// Complementa a `exportarPacientesExcel.js` (que exporta el padrón
-// completo, una fila por persona) — este es el export individual pedido
-// para la pantalla de Informe Consolidado.
+// Traduce el listado de pacientes visible en el Dashboard (la misma forma
+// que ya consume `TablaPacientes`, ver
+// `pacientesService.obtenerPacientesPropios()`) al formato de fila que
+// espera el Excel exportado: encabezados legibles en español, nunca los
+// nombres técnicos de columna de Supabase (`institucion_id`, etc.).
+//
+// Reemplaza a `exportarHistorialExcel.js` (historia "Exportación a
+// Excel", SCRUM-14). Esa versión exportaba evaluaciones PHQ-9 con
+// diagnóstico y puntaje — formato que dejó de tener sentido al retirar
+// esa pantalla en favor del modelo multi-instrumento por paciente
+// (SCRUM-31). El Dashboard ya no tiene una vista de "evaluaciones", tiene
+// una de "pacientes", así que esto exporta un padrón de personas, no un
+// instrumento puntual.
+//
+// Se mantiene separado de `shared/utils/exportarExcel.js` a propósito:
+// ese archivo es genérico y no debe conocer nada del dominio clínico
+// ("participante", "consultante", "institución").
 
 import { exportarAExcel } from '../../../shared/utils/exportarExcel';
 import {
@@ -10,74 +22,41 @@ import {
   obtenerEtiquetaIdentidad,
 } from '../../../shared/utils/identidadUsuario';
 
-const ETIQUETA_INSTRUMENTO = {
-  CLIMA_AULA: 'Cuestionario de Clima de Aula',
-  GSHS: 'Encuesta Mundial de Salud a Escolares (GSHS)',
-};
-
-function formatearFecha(fechaIso) {
-  return new Date(fechaIso).toLocaleDateString('es-BO', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-// Mismo criterio de nombre de archivo "seguro" que ya usaba el export de
-// detalle clínico: sin acentos ni espacios, para que descargue bien en
-// cualquier sistema operativo.
-function generarNombreArchivo(paciente) {
-  const nombreSeguro = obtenerNombreMostrado(paciente)
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9]+/g, '_');
-  return `informe_${nombreSeguro}.xlsx`;
+/**
+ * Arma el nombre `listado_pacientes_AAAA-MM-DD.xlsx` usando la fecha
+ * LOCAL del equipo de quien exporta, no UTC, para que coincida con el día
+ * que esa persona ve en su propio reloj al momento de exportar (mismo
+ * criterio que ya usaba `exportarHistorialExcel.js`).
+ *
+ * @returns {string}
+ */
+function generarNombreArchivo() {
+  const hoy = new Date();
+  const anio = hoy.getFullYear();
+  const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+  const dia = String(hoy.getDate()).padStart(2, '0');
+  return `listado_pacientes_${anio}-${mes}-${dia}.xlsx`;
 }
 
 /**
- * @param {object} paciente - Mismo objeto que recibe `InformeConsolidadoPaciente`.
- * @param {Array<object>} instrumentos - Mismo array (cada uno con `respuestas_json`).
+ * Convierte el array de pacientes YA FILTRADOS visibles en el Dashboard
+ * (mismo criterio de aceptación #3 de SCRUM-14: el archivo debe reflejar
+ * exactamente lo que la búsqueda/filtros dejan en pantalla, nunca el
+ * padrón completo de la base de datos) en filas de Excel con encabezados
+ * legibles, y dispara la descarga.
+ *
+ * @param {Array<object>} pacientes - Pacientes ya filtrados (mismo array que recibe `TablaPacientes`).
  * @returns {Promise<void>}
  */
-export async function exportarInformePacienteAExcel(paciente, instrumentos) {
-  const nombre = obtenerNombreMostrado(paciente);
-  const tipo = obtenerEtiquetaIdentidad(paciente);
-  const institucion = paciente.institucion?.nombre || '—';
+export async function exportarPacientesAExcel(pacientes) {
+  const filas = pacientes.map((p) => ({
+    Nombre: obtenerNombreMostrado(p),
+    Tipo: obtenerEtiquetaIdentidad(p),
+    Correo: p.email || '—',
+    Institución: p.institucion?.nombre || '—',
+    Curso: p.curso || '—',
+    Paralelo: p.paralelo || '—',
+  }));
 
-  const filas = instrumentos.flatMap((registro) =>
-    (registro.respuestas_json ?? []).map((respuesta) => ({
-      Nombre: nombre,
-      Tipo: tipo,
-      Institución: institucion,
-      Instrumento: ETIQUETA_INSTRUMENTO[registro.tipo_instrumento] ?? registro.tipo_instrumento,
-      'Fecha de envío': formatearFecha(registro.fecha_registro),
-      Módulo: respuesta.modulo,
-      'N° pregunta': respuesta.numero,
-      Respuesta:
-        typeof respuesta.valor === 'boolean'
-          ? respuesta.valor
-            ? 'Verdadero'
-            : 'Falso'
-          : respuesta.valor,
-    }))
-  );
-
-  // Si todavía no completó ningún instrumento, igual se genera un archivo
-  // (con una sola fila avisándolo) en vez de fallar o exportar vacío sin
-  // explicación.
-  const filasFinales =
-    filas.length > 0
-      ? filas
-      : [
-          {
-            Nombre: nombre,
-            Tipo: tipo,
-            Institución: institucion,
-            Aviso: 'Todavía no completó ningún instrumento',
-          },
-        ];
-
-  await exportarAExcel(filasFinales, generarNombreArchivo(paciente), 'Informe');
+  await exportarAExcel(filas, generarNombreArchivo(), 'Pacientes');
 }

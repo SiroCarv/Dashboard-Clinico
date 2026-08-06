@@ -18,12 +18,6 @@ const ACENTO_INSTRUMENTO = {
 
 const PUNTAJE_MAXIMO_CLIMA_AULA = 20;
 
-// Agrupa `respuestas_json` (formato [{ modulo, numero, valor }]) por
-// módulo, para mostrarlo igual de organizado que el formulario original
-// que respondió el paciente. Clima de Aula guarda `valor` como booleano
-// real (lo pide el trigger que calcula el puntaje) — acá se muestra de
-// nuevo como "Verdadero"/"Falso" para que se lea igual que en el
-// formulario, en vez de "true"/"false".
 function agruparPorModulo(respuestas) {
   const grupos = [];
   (respuestas ?? []).forEach((r) => {
@@ -38,9 +32,6 @@ function agruparPorModulo(respuestas) {
   return grupos;
 }
 
-// Columna 'fecha_nacimiento' es tipo `date` de Postgres ('YYYY-MM-DD'):
-// se fuerza la hora a mediodía local antes de formatear para que no
-// "retroceda" un día por husos horarios al construir el Date en el navegador.
 function formatearFechaNacimiento(fecha) {
   if (!fecha) return null;
   return new Date(`${fecha}T12:00:00`).toLocaleDateString('es-BO', {
@@ -50,9 +41,6 @@ function formatearFechaNacimiento(fecha) {
   });
 }
 
-// Un dato de registro puntual (etiqueta + valor). No se renderiza nada si
-// el valor está vacío — así, un consultante particular (sin curso, turno,
-// código de estudiante) no deja huecos en blanco con etiquetas vacías.
 function Dato({ etiqueta, valor }) {
   if (!valor) return null;
   return (
@@ -63,10 +51,6 @@ function Dato({ etiqueta, valor }) {
   );
 }
 
-// Resumen propio de cada instrumento — nada de "puntaje/diagnóstico"
-// genérico heredado del PHQ-9. Clima de Aula muestra su puntaje sobre 20
-// y su categoría (5 niveles); GSHS no tiene un puntaje único por diseño
-// clínico, así que solo muestra si activó una alerta puntual.
 function ResumenInstrumento({ registro }) {
   if (registro.tipo_instrumento === 'CLIMA_AULA' && registro.resultado_json) {
     const { puntaje_total: puntaje, categoria } = registro.resultado_json;
@@ -151,7 +135,7 @@ function TarjetaInstrumento({ registro }) {
   );
 }
 
-export default function InformeConsolidadoPaciente({ paciente, instrumentos }) {
+export default function InformeConsolidadoPaciente({ paciente, instrumentos, exportando, onExportar }) {
   const etiquetaIdentidad = obtenerEtiquetaIdentidad(paciente);
   const esParticipante = Boolean(paciente.institucion);
 
@@ -165,22 +149,52 @@ export default function InformeConsolidadoPaciente({ paciente, instrumentos }) {
 
       {paciente && (
         <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-          <div className="flex items-center gap-2 mb-1">
-            <span
-              className={`inline-block px-2 py-0.5 border rounded-full text-xs font-semibold ${obtenerEstiloEtiquetaIdentidad(
-                etiquetaIdentidad
-              )}`}
-            >
-              {etiquetaIdentidad}
-            </span>
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span
+                  className={`inline-block px-2 py-0.5 border rounded-full text-xs font-semibold ${obtenerEstiloEtiquetaIdentidad(
+                    etiquetaIdentidad
+                  )}`}
+                >
+                  {etiquetaIdentidad}
+                </span>
+              </div>
+              <h3 className="text-xl font-extrabold text-black">{obtenerNombreMostrado(paciente)}</h3>
+              <p className="text-gray-700 text-sm mt-1 font-medium">
+                {esParticipante
+                  ? paciente.institucion.nombre
+                  : 'Consultante particular (sin institución)'}
+                {paciente.curso ? ` · ${paciente.curso}${paciente.paralelo ? ` "${paciente.paralelo}"` : ''}` : ''}
+              </p>
+            </div>
+
+            {onExportar && (
+              <button
+                type="button"
+                onClick={onExportar}
+                disabled={exportando}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-md font-semibold shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0 ${COLOR_MARCA.tealAzulado.botonPrimario}`}
+              >
+                {exportando ? (
+                  <>
+                    <svg className="animate-spin -ml-1 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Generando...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Exportar a Excel
+                  </>
+                )}
+              </button>
+            )}
           </div>
-          <h3 className="text-xl font-extrabold text-black">{obtenerNombreMostrado(paciente)}</h3>
-          <p className="text-gray-700 text-sm mt-1 font-medium">
-            {esParticipante
-              ? paciente.institucion.nombre
-              : 'Consultante particular (sin institución)'}
-            {paciente.curso ? ` · ${paciente.curso}${paciente.paralelo ? ` "${paciente.paralelo}"` : ''}` : ''}
-          </p>
 
           {/* Toda la información capturada al registrarse — cambia según
               haya sido un registro institucional (participante, con
