@@ -2,12 +2,20 @@
 // Consultante), con su institución y un link al Informe Consolidado. La
 // fila entera es clickeable (rol="button" + onKeyDown) para navegar,
 // no solo el texto "Ver informe →".
+//
+// Las filas con tieneAlertaActiva=true (alguna evaluación con
+// alerta_activada, ej. riesgo suicida en el módulo de Salud Mental del
+// GSHS) se resaltan con FILA_ALERTA_ACTIVADA (rojo, reservado
+// exclusivamente para severidad clínica — ver paletaColores.js) y llevan
+// una insignia "⚠️ Alerta" junto al nombre, para que el psicólogo la note
+// de un vistazo sin tener que abrir el informe de cada paciente.
 import { useNavigate } from 'react-router-dom';
 import {
   obtenerEtiquetaIdentidad,
   obtenerNombreMostrado,
   obtenerEstiloEtiquetaIdentidad,
 } from '../../../shared/utils/identidadUsuario';
+import { FILA_ALERTA_ACTIVADA } from '../../../shared/theme/paletaColores';
 
 export function TablaPacientes({ pacientes, hayFiltrosActivos = false }) {
   const navigate = useNavigate();
@@ -53,7 +61,9 @@ export function TablaPacientes({ pacientes, hayFiltrosActivos = false }) {
                   }}
                   role="button"
                   tabIndex={0}
-                  className="cursor-pointer transition-colors hover:bg-gray-50"
+                  className={`cursor-pointer transition-colors ${
+                    persona.tieneAlertaActiva ? FILA_ALERTA_ACTIVADA : 'hover:bg-gray-50'
+                  }`}
                 >
                   <td className="p-4 text-gray-800 font-medium">
                     <span
@@ -64,6 +74,11 @@ export function TablaPacientes({ pacientes, hayFiltrosActivos = false }) {
                       {etiquetaIdentidad}
                     </span>
                     <span className="align-middle">{obtenerNombreMostrado(persona)}</span>
+                    {persona.tieneAlertaActiva && (
+                      <span className="inline-block ml-2 px-2 py-0.5 bg-red-100 border border-red-300 text-red-800 rounded-full text-xs font-bold uppercase tracking-wide align-middle">
+                        ⚠️ Alerta
+                      </span>
+                    )}
                   </td>
                   <td className="p-4 text-gray-600">{persona.institucion?.nombre || '—'}</td>
                   <td className="p-4 text-right text-violet-400 font-bold text-sm">Ver informe →</td>
