@@ -41,13 +41,13 @@ const ITEMS_POR_DIMENSION = [
   {
     dimension: 'Relación Docente-Estudiante',
     items: [
-      { numero: 10, texto: 'Los profesores muestran interés personal por los/las estudiantes.' },
-      { numero: 11, texto: 'Los profesores parecen amigos más que una autoridad.' },
-      { numero: 12, texto: 'Los profesores hacen más de lo que deben para ayudar a los alumnos/as.' },
-      { numero: 13, texto: 'Los profesores no "avergüenzan" al alumno/a por no saber las respuestas.' },
-      { numero: 14, texto: 'Si en clase queremos hablar de un tema, los profesores buscan tiempo para hacerlo.' },
-      { numero: 15, texto: 'Los profesores quieren saber qué es lo que les interesa saber a los/las estudiantes.' },
-      { numero: 16, texto: 'Los profesores confían en los/las estudiantes.' },
+      { numero: 10, texto: 'Los/Las profesores/as muestran interés personal por los/las estudiantes.' },
+      { numero: 11, texto: 'Los/Las profesores/as parecen amigos/as más que una autoridad.' },
+      { numero: 12, texto: 'Los/Las profesores/as hacen más de lo que deben para ayudar a los alumnos/as.' },
+      { numero: 13, texto: 'Los/Las profesores/as no "avergüenzan" al alumno/a por no saber las respuestas.' },
+      { numero: 14, texto: 'Si en clase queremos hablar de un tema, los/las profesores/as buscan tiempo para hacerlo.' },
+      { numero: 15, texto: 'Los/Las profesores/as quieren saber qué es lo que les interesa saber a los/las estudiantes.' },
+      { numero: 16, texto: 'Los/Las profesores/as confían en los/las estudiantes.' },
     ],
   },
   {

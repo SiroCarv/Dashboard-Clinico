@@ -112,7 +112,7 @@ function Pregunta({ item, valor, onCambiar, tipoRespuesta, acento, marcarSiFalta
   );
 }
 
-export default function FormularioInstrumento({ idPaciente, tipoInstrumento, instrumento, acento }) {
+export default function FormularioInstrumento({ idPaciente, tipoInstrumento, instrumento, acento, onEstadoListo }) {
   const {
     cargando,
     yaEnviado,
@@ -134,6 +134,17 @@ export default function FormularioInstrumento({ idPaciente, tipoInstrumento, ins
   } = useFormularioInstrumento({ idPaciente, tipoInstrumento, instrumento });
 
   const inicioRef = useRef(null);
+
+  // Le avisa a Encuesta.jsx, en cuanto se sabe con certeza, si este
+  // instrumento ya fue enviado antes — lo usa para decidir si corresponde
+  // mostrar el aviso de "Tiempo estimado" (no tiene sentido mostrarlo
+  // para algo que el paciente ya completó). No se dispara mientras
+  // `cargando` sigue en true, para no reportar un yaEnviado=false
+  // provisorio que después cambie.
+  useEffect(() => {
+    if (!cargando) onEstadoListo?.({ yaEnviado });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cargando, yaEnviado]);
 
   // Al cambiar de página (Siguiente o Anterior), vuelve al principio del
   // formulario. Sin esto, si quedaba scrolleado hacia abajo en la página

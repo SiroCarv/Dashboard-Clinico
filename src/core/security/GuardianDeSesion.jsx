@@ -23,6 +23,15 @@
 // asíncrona ahí no es confiable, muchos navegadores cortan la petición a
 // mitad de camino. Revisar al ABRIR es 100% confiable porque no depende
 // de que nada termine de ejecutarse durante el cierre.
+//
+// Excepción para Inicio ("/"): es una pantalla pública sin nada sensible
+// que "flashear", así que no tiene sentido hacerla esperar a que termine
+// esta verificación — se muestra de inmediato y la limpieza sigue
+// corriendo en segundo plano igual. El resto de rutas (incluidas las
+// protegidas) sigue bloqueando: ahí sí importa el orden, porque si no se
+// bloquean, RutaProtegida podría leer una sesión todavía no invalidada y
+// mostrar por un instante una pantalla privada antes de que este
+// guardián alcance a cerrarla.
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../api/supabaseClient';
@@ -37,8 +46,13 @@ const CLAVE_PESTANA = 'pestana_activa';
 // apenas se abre el link.
 const RUTAS_EXENTAS = ['/restablecer-password'];
 
+// Rutas que se muestran de inmediato, sin esperar el resultado de la
+// verificación (ver comentario de arriba).
+const RUTAS_SIN_BLOQUEO = ['/'];
+
 export default function GuardianDeSesion({ children }) {
-  const [listo, setListo] = useState(false);
+  const sinBloqueo = RUTAS_SIN_BLOQUEO.includes(window.location.pathname);
+  const [listo, setListo] = useState(sinBloqueo);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -63,7 +77,10 @@ export default function GuardianDeSesion({ children }) {
             }
             await supabase.auth.signOut();
 
-            if (activo) navigate('/', { replace: true });
+            // Si ya estábamos mostrando "/" sin bloqueo, no hace falta
+            // navegar: ya estamos ahí. Para cualquier otra ruta, recién
+            // acá lo mandamos a Inicio.
+            if (activo && !sinBloqueo) navigate('/', { replace: true });
           }
         }
 

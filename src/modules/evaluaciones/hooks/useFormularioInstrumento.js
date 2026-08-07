@@ -4,6 +4,7 @@
 // este hook — ningún estado ni regla de negocio vive en el componente.
 import { useEffect, useMemo, useState } from 'react';
 import { evaluacionesInstrumentoService } from '../services/evaluacionesInstrumentoService';
+import { leerBorrador, guardarBorrador, borrarBorrador } from '../utils/borradorInstrumento';
 
 const PREGUNTAS_POR_PAGINA = 10;
 
@@ -40,7 +41,13 @@ export function useFormularioInstrumento({ idPaciente, tipoInstrumento, instrume
   const totalPaginas = Math.ceil(preguntas.length / PREGUNTAS_POR_PAGINA);
 
   const [pagina, setPagina] = useState(0);
-  const [respuestas, setRespuestas] = useState({});
+  // Arranca con lo que haya guardado en el borrador local, si existe —
+  // así se recupera el progreso si el paciente cerró la pestaña por
+  // accidente antes de enviar. El lazy initializer solo corre una vez,
+  // al montar, así que usa los valores de idPaciente/tipoInstrumento de
+  // ese primer render (estables mientras este hook viva: Encuesta.jsx
+  // fuerza un remount completo con key={tab.id} al cambiar de pestaña).
+  const [respuestas, setRespuestas] = useState(() => leerBorrador(idPaciente, tipoInstrumento) ?? {});
   const [cargando, setCargando] = useState(true);
   const [envioPrevio, setEnvioPrevio] = useState(null);
   const [enviando, setEnviando] = useState(false);
@@ -64,6 +71,10 @@ export function useFormularioInstrumento({ idPaciente, tipoInstrumento, instrume
         setCargando(true);
         const data = await evaluacionesInstrumentoService.obtenerEnvioPropio(idPaciente, tipoInstrumento);
         if (activo) setEnvioPrevio(data);
+        // Ya estaba enviado desde antes (por ejemplo, en otro dispositivo) —
+        // cualquier borrador local que haya quedado de un intento viejo ya
+        // no sirve de nada, así que no lo dejamos ocupando espacio.
+        if (data) borrarBorrador(idPaciente, tipoInstrumento);
       } catch (err) {
         console.error(`Error al verificar envío previo de ${tipoInstrumento}:`, err.message);
       } finally {
@@ -77,6 +88,14 @@ export function useFormularioInstrumento({ idPaciente, tipoInstrumento, instrume
       activo = false;
     };
   }, [idPaciente, tipoInstrumento]);
+
+  // Guarda el progreso local en cada respuesta nueva. Se detiene apenas
+  // el formulario queda enviado (o ya venía enviado de antes) para no
+  // volver a escribir un borrador que ya no tiene sentido guardar.
+  useEffect(() => {
+    if (!idPaciente || cargando || envioPrevio || enviado) return;
+    guardarBorrador(idPaciente, tipoInstrumento, respuestas);
+  }, [idPaciente, tipoInstrumento, respuestas, cargando, envioPrevio, enviado]);
 
   const preguntasDePagina = preguntas.slice(
     pagina * PREGUNTAS_POR_PAGINA,
@@ -142,10 +161,12 @@ export function useFormularioInstrumento({ idPaciente, tipoInstrumento, instrume
         respuestas: respuestasJson,
       });
       setEnviado(true);
+      borrarBorrador(idPaciente, tipoInstrumento);
     } catch (err) {
       if (err.message === 'YA_ENVIADO') {
         setError('Ya habías enviado este formulario anteriormente.');
         setEnvioPrevio({ fecha_registro: null });
+        borrarBorrador(idPaciente, tipoInstrumento);
       } else {
         console.error(`Error al enviar ${tipoInstrumento}:`, err.message);
         setError('No se pudo enviar el formulario. Intenta nuevamente.');

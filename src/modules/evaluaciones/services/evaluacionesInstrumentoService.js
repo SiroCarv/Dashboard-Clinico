@@ -70,7 +70,12 @@ export const evaluacionesInstrumentoService = {
   async obtenerInstrumentosDePaciente(idPaciente) {
     const { data, error } = await supabase
       .from(TABLA)
-      .select('id_evaluacion, tipo_instrumento, fecha_registro, respuestas_json, alerta_activada')
+      // resultado_json es el que trae puntaje+categoría de Clima de Aula
+      // (ver InformeConsolidadoPaciente.jsx / ResumenInstrumento) — antes
+      // no estaba en este select, así que el informe nunca podía mostrar
+      // el puntaje aunque el trigger sí lo hubiera calculado. Bug
+      // encontrado de paso y corregido.
+      .select('id_evaluacion, tipo_instrumento, fecha_registro, respuestas_json, resultado_json, alerta_activada')
       .eq('id_paciente', idPaciente)
       .order('fecha_registro', { ascending: false });
 

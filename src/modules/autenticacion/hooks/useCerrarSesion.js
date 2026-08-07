@@ -2,6 +2,10 @@
 // servidor (vía authService), limpieza local y redirección — en ese orden,
 // pase lo que pase.
 //
+// La limpieza local preserva a propósito los borradores de formularios en
+// curso (ver shared/utils/borradorLocal.js): cerrar sesión no debe hacer
+// perder respuestas que el paciente todavía no envió.
+//
 // Nota: Login.jsx, Registro.jsx, RegistroParticular.jsx y
 // RecuperarPassword.jsx siguen llamando a `supabase.auth` directamente en
 // vez de pasar por una capa de `service` — es una inconsistencia de
@@ -11,6 +15,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
+import { limpiarLocalStoragePreservandoBorradores } from '../../../shared/utils/borradorLocal';
 
 export function useCerrarSesion() {
   const [cargando, setCargando] = useState(false);
@@ -28,7 +33,7 @@ export function useCerrarSesion() {
       // localmente en el finally para no dejar el dispositivo abierto.
       console.error('No se pudo notificar el cierre de sesión al servidor:', err.message);
     } finally {
-      localStorage.clear();
+      limpiarLocalStoragePreservandoBorradores();
       sessionStorage.clear();
 
       // replace:true saca la ruta protegida del historial, así "Atrás"

@@ -5,9 +5,14 @@
 //
 // Capas de protección alrededor de <Routes>:
 //   - GuardianDeSesion: cierra sesiones "abandonadas" (pestaña cerrada
-//     sin logout) antes de que se renderice cualquier ruta.
-//   - RutaPublica: pantallas de acceso libre (Home, Login, Registro...);
-//     si ya hay sesión activa, redirige lejos de ellas.
+//     sin logout) antes de que se renderice cualquier ruta — excepto
+//     Inicio ("/"), que se muestra de inmediato mientras la verificación
+//     corre en segundo plano (no hay nada privado que "flashear" ahí).
+//   - RutaPublica: pantallas de acceso libre (Login, Registro...); si ya
+//     hay sesión activa, redirige lejos de ellas. Inicio ("/") queda
+//     fuera de esta capa a propósito: es la única pantalla que debe
+//     verse siempre de inmediato, incluso para alguien con sesión activa
+//     (ver GuardianDeSesion.jsx).
 //   - RutaProtegida: pantallas privadas; exige un `rolRequerido` exacto
 //     (paciente / psicologo / superadmin) o redirige.
 import { Routes, Route } from 'react-router-dom';
@@ -38,7 +43,7 @@ function App() {
   return (
     <GuardianDeSesion>
       <Routes>
-        <Route path="/" element={<RutaPublica><Home /></RutaPublica>} />
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<RutaPublica><Login /></RutaPublica>} />
 
         {/* SCRUM-33: pantalla de bienvenida + selector de perfil,

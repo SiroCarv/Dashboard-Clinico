@@ -10,7 +10,10 @@
 //   3. Antes de ver las preguntas de una pestaña por primera vez,
 //      aparece un aviso informativo (AvisoInstrumento) que hay que
 //      aceptar — se recuerda por pestaña durante la sesión
-//      (`avisosAceptados`), no queda guardado en el servidor.
+//      (`avisosAceptados`), no queda guardado en el servidor. Tampoco se
+//      muestra si el instrumento ya fue enviado antes: FormularioInstrumento
+//      avisa ese estado hacia acá vía `onEstadoListo` apenas lo confirma
+//      contra la base de datos (`enviosConocidos`).
 //   4. FormularioInstrumento hace el trabajo pesado real: paginación,
 //      validación de "todo respondido" y el envío en sí.
 import { useState } from 'react';
@@ -76,6 +79,9 @@ export default function Encuesta() {
 
   const [tabActiva, setTabActiva] = useState(TABS[0].id);
   const [avisosAceptados, setAvisosAceptados] = useState(() => new Set());
+  // { [tabId]: boolean } — undefined mientras no se sabe todavía si esa
+  // pestaña ya fue enviada antes (ver comentario de arriba).
+  const [enviosConocidos, setEnviosConocidos] = useState({});
 
   if (cargando) {
     return (
@@ -130,9 +136,14 @@ export default function Encuesta() {
 
   const tab = TABS.find((t) => t.id === tabActiva) ?? TABS[0];
   const avisoAceptado = avisosAceptados.has(tab.id);
+  const yaEnviadoConocido = enviosConocidos[tab.id]; // undefined | true | false
 
   const aceptarAviso = () => {
     setAvisosAceptados((prev) => new Set(prev).add(tab.id));
+  };
+
+  const notificarEstadoInstrumento = (tabId, { yaEnviado }) => {
+    setEnviosConocidos((prev) => (prev[tabId] === yaEnviado ? prev : { ...prev, [tabId]: yaEnviado }));
   };
 
   return (
@@ -146,7 +157,7 @@ export default function Encuesta() {
 
       <BarraSuperior titulo="Observatorio de Salud Mental" />
 
-      {!avisoAceptado && (
+      {!avisoAceptado && yaEnviadoConocido === false && (
         <AvisoInstrumento
           titulo={tab.instrumento.titulo}
           info={INFO_INSTRUMENTO[tab.id]}
@@ -184,6 +195,7 @@ export default function Encuesta() {
           tipoInstrumento={tab.tipoInstrumento}
           instrumento={tab.instrumento}
           acento={tab.acento}
+          onEstadoListo={(estado) => notificarEstadoInstrumento(tab.id, estado)}
         />
       </div>
     </div>
