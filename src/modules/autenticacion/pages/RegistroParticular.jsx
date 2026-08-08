@@ -8,19 +8,22 @@
 //     el inicio.
 //   - Pide teléfono (contacto ante una emergencia clínica, requisito del
 //     cliente) en vez de curso/paralelo/turno.
+//   - Pide elegir un psicólogo designado (obligatorio) de una lista
+//     pública de cuentas ya registradas — es lo que permite que ese
+//     psicólogo vea después los resultados de este Consultante (ver
+//     política "usuarios_select_psicologo_pacientes" en la migración
+//     011). Sin esto, el registro funcionaba pero el Consultante
+//     quedaba invisible para todo psicólogo (ver nota histórica que
+//     tenía este archivo, ya resuelta).
 //   - Inserta institucion_id = NULL en `usuarios` a propósito. Por eso
 //     esta cuenta NUNCA recibe codigo_estudiante: el trigger
 //     asignar_codigo_estudiante() solo actúa cuando institucion_id no es
 //     nulo.
-//
-// IMPORTANTE: hoy ningún psicólogo puede ver a estos usuarios en su
-// listado (ver nota de RLS en identidadUsuario.js) — el registro
-// funciona igual, pero el seguimiento clínico posterior está pendiente
-// de una decisión del cliente sobre qué psicólogo(s) los atienden.
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
+import { psicologosService } from '../../psicologos';
 
 const OPCIONES_GENERO = ['Masculino', 'Femenino', 'Prefiero no decir'];
 
@@ -29,6 +32,7 @@ export default function RegistroParticular() {
   const [email, setEmail] = useState('');
   const [telefono, setTelefono] = useState('');
   const [genero, setGenero] = useState('');
+  const [psicologoAsignadoId, setPsicologoAsignadoId] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -36,7 +40,33 @@ export default function RegistroParticular() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Lista de psicólogos para el selector. Se carga una sola vez al
+  // entrar al formulario, antes de que exista cualquier sesión — por
+  // eso viene de la vista pública psicologos_publico y no de `usuarios`.
+  const [psicologos, setPsicologos] = useState([]);
+  const [cargandoPsicologos, setCargandoPsicologos] = useState(true);
+  const [errorPsicologos, setErrorPsicologos] = useState('');
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let activo = true;
+    psicologosService
+      .listarPublico()
+      .then((data) => {
+        if (activo) setPsicologos(data);
+      })
+      .catch((err) => {
+        console.error('Error al cargar la lista de psicólogos:', err.message);
+        if (activo) setErrorPsicologos('No se pudo cargar la lista de psicólogos. Recarga la página.');
+      })
+      .finally(() => {
+        if (activo) setCargandoPsicologos(false);
+      });
+    return () => {
+      activo = false;
+    };
+  }, []);
 
   const handleRegistro = async (e) => {
     e.preventDefault();
@@ -44,10 +74,12 @@ export default function RegistroParticular() {
     setLoading(true);
     setError('');
 
-    // Nombre y teléfono: solo recortamos espacios en los extremos (no
-    // colapsamos espacios internos como con el correo, porque un nombre
-    // completo los necesita). Se piden para poder contactar al paciente
-    // ante una emergencia clínica (requisito del cliente).
+    // Nombre: solo recortamos espacios en los extremos (no colapsamos
+    // espacios internos, porque un nombre completo los necesita).
+    // Teléfono ya no puede traer nada más que dígitos —el input filtra
+    // cualquier otro carácter a medida que se escribe—, así que acá el
+    // trim() es solo un resguardo por si en algún momento se completa el
+    // valor desde otro lado (autocompletado, etc.) sin pasar por ese filtro.
     const cleanedNombre = nombre.trim();
     const cleanedTelefono = telefono.trim();
     const cleanedEmail = email.trim().replace(/\s+/g, '');
@@ -61,6 +93,12 @@ export default function RegistroParticular() {
 
     if (!genero) {
       setError('Por favor, selecciona tu género.');
+      setLoading(false);
+      return;
+    }
+
+    if (!psicologoAsignadoId) {
+      setError('Por favor, selecciona un psicólogo designado.');
       setLoading(false);
       return;
     }
@@ -102,6 +140,9 @@ export default function RegistroParticular() {
       // a propósito (columna nullable, confirmado contra el esquema real).
       // Por eso mismo NUNCA recibe codigo_estudiante: el trigger
       // asignar_codigo_estudiante() solo actúa si institucion_id no es nulo.
+      // psicologo_asignado_id sí va con valor: la política RLS del INSERT
+      // (migración 011) rechaza cualquier id que no sea una cuenta real
+      // con rol = 'psicologo', así que no hace falta revalidarlo acá.
       const { error: userError } = await supabase
         .from('usuarios')
         .insert([
@@ -113,6 +154,7 @@ export default function RegistroParticular() {
             nombre: cleanedNombre,
             telefono: cleanedTelefono,
             genero,
+            psicologo_asignado_id: psicologoAsignadoId,
           },
         ]);
 
@@ -127,6 +169,11 @@ export default function RegistroParticular() {
       setLoading(false);
     }
   };
+
+  // Sin psicólogos cargados (y ya sin error de carga) no tiene sentido
+  // dejar avanzar el registro: la selección es obligatoria y no hay nada
+  // para elegir. Se avisa en vez de mostrar un selector vacío roto.
+  const sinPsicologosDisponibles = !cargandoPsicologos && !errorPsicologos && psicologos.length === 0;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-violet-50 p-4 relative overflow-hidden">
@@ -164,6 +211,18 @@ export default function RegistroParticular() {
         {error && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-center text-sm font-semibold">
             {error}
+          </div>
+        )}
+
+        {errorPsicologos && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-center text-sm font-semibold">
+            {errorPsicologos}
+          </div>
+        )}
+
+        {sinPsicologosDisponibles && (
+          <div className="mb-4 p-3 bg-gray-100 border border-gray-300 text-gray-700 rounded text-center text-sm font-semibold">
+            Todavía no hay psicólogos registrados en la plataforma. Volvé a intentar más tarde.
           </div>
         )}
 
@@ -205,8 +264,9 @@ export default function RegistroParticular() {
             </label>
             <input
               type="tel"
+              inputMode="numeric"
               value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
+              onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ''))}
               required
               placeholder="Ej. 71234567"
               className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800"
@@ -231,6 +291,29 @@ export default function RegistroParticular() {
                 <option key={opcion} value={opcion}>{opcion}</option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-black mb-1">
+              Psicólogo Designado
+            </label>
+            <select
+              value={psicologoAsignadoId}
+              onChange={(e) => setPsicologoAsignadoId(e.target.value)}
+              required
+              disabled={cargandoPsicologos || sinPsicologosDisponibles}
+              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
+            >
+              <option value="">
+                {cargandoPsicologos ? 'Cargando psicólogos...' : 'Selecciona...'}
+              </option>
+              {psicologos.map((p) => (
+                <option key={p.id} value={p.id}>{p.nombre}</option>
+              ))}
+            </select>
+            <p className="text-gray-500 text-xs mt-1">
+              Este psicólogo será quien vea los resultados de tus pruebas.
+            </p>
           </div>
 
           <div>
@@ -296,9 +379,9 @@ export default function RegistroParticular() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || sinPsicologosDisponibles}
             className={`w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide flex justify-center items-center ${
-              loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-700 hover:bg-orange-800'
+              loading || sinPsicologosDisponibles ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-700 hover:bg-orange-800'
             }`}
           >
             {loading ? (
