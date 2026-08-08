@@ -6,5 +6,5 @@
 // instituciones) la necesitan, y la regla del proyecto prohíbe que un
 // módulo importe un asset directamente de otro — cualquier cosa
 // genuinamente compartida entre módulos va acá.
-import fondo from './fondo-plataforma.jpg';
+import fondo from './fondo-plataforma.webp';
 export const FONDO_PLATAFORMA = fondo;
