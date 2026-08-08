@@ -14,6 +14,7 @@ import {
   obtenerNombreMostrado,
   obtenerEstiloEtiquetaIdentidad,
 } from '../../../shared/utils/identidadUsuario';
+import { INSTRUMENTO_CLIMA_AULA, INSTRUMENTO_GSHS } from '../../evaluaciones';
 
 const ETIQUETA_INSTRUMENTO = {
   CLIMA_AULA: 'Cuestionario de Clima de Aula',
@@ -26,6 +27,29 @@ const ACENTO_INSTRUMENTO = {
 };
 
 const PUNTAJE_MAXIMO_CLIMA_AULA = 20;
+
+// `respuestas_json` solo guarda { modulo, numero, valor } por cada
+// respuesta — nunca el enunciado de la pregunta (ver el comentario sobre
+// el trigger de alerta en evaluaciones/data/gshsData.js: el cálculo
+// compara por texto exacto de módulo/número/valor, no busca el
+// enunciado). Para mostrar la pregunta real en el informe hay que
+// volver a buscarla en la definición del instrumento correspondiente,
+// cruzando por módulo + número.
+const INSTRUMENTOS_POR_TIPO = {
+  CLIMA_AULA: INSTRUMENTO_CLIMA_AULA,
+  GSHS: INSTRUMENTO_GSHS,
+};
+
+// Si no encuentra la pregunta (ej. el instrumento cambió de contenido
+// después de que este paciente respondió), cae de vuelta a "Pregunta N"
+// en lugar de romper el informe — nunca deja el valor de la respuesta
+// sin una etiqueta al lado.
+function obtenerTextoPregunta(tipoInstrumento, modulo, numero) {
+  const instrumento = INSTRUMENTOS_POR_TIPO[tipoInstrumento];
+  const seccion = instrumento?.secciones.find((s) => s.titulo === modulo);
+  const item = seccion?.items.find((i) => i.numero === numero);
+  return item?.texto ?? `Pregunta ${numero}`;
+}
 
 // Agrupa las respuestas planas (una fila por pregunta) en bloques
 // consecutivos por módulo, para mostrar el encabezado de tema solo
@@ -54,12 +78,16 @@ function formatearFechaNacimiento(fecha) {
   });
 }
 
+// wrap-break-word es lo que evita que un valor largo y sin espacios (un
+// correo, un código) se desborde encima de la columna de al lado — el
+// bug de "Correo se choca con Género" en mobile era por esto: faltaba
+// acá.
 function Dato({ etiqueta, valor }) {
   if (!valor) return null;
   return (
-    <div>
+    <div className="min-w-0">
       <p className="text-xs font-bold uppercase tracking-wide text-gray-500">{etiqueta}</p>
-      <p className="text-gray-800 font-semibold">{valor}</p>
+      <p className="text-gray-800 font-semibold wrap-break-word">{valor}</p>
     </div>
   );
 }
@@ -137,9 +165,21 @@ function TarjetaInstrumento({ registro }) {
               </p>
               <div className="divide-y divide-gray-100">
                 {grupo.items.map((item) => (
-                  <div key={`${grupo.modulo}-${item.numero}`} className="py-1.5 text-sm flex justify-between gap-4">
-                    <span className="text-gray-700">Pregunta {item.numero}</span>
-                    <span className="text-gray-800 font-semibold text-right">{item.valorMostrado}</span>
+                  // Pregunta y respuesta SIEMPRE apiladas (nunca lado a
+                  // lado): tanto el enunciado real como algunas opciones
+                  // de respuesta (sobre todo en GSHS) pueden ser textos
+                  // largos, y ponerlos en la misma fila es exactamente lo
+                  // que causó el bug de "Correo se choca con Género" en
+                  // el bloque de datos de arriba. Apilar evita que se
+                  // repita ese problema sin importar el largo del texto
+                  // ni el ancho de pantalla.
+                  <div key={`${grupo.modulo}-${item.numero}`} className="py-2 text-sm">
+                    <p className="text-gray-700 wrap-break-word">
+                      {obtenerTextoPregunta(registro.tipo_instrumento, grupo.modulo, item.numero)}
+                    </p>
+                    <p className="text-gray-900 font-semibold wrap-break-word mt-0.5">
+                      → {item.valorMostrado}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -152,6 +192,13 @@ function TarjetaInstrumento({ registro }) {
 }
 
 export default function InformeConsolidadoPaciente({ paciente, instrumentos, exportando, onExportar }) {
+  // Guarda defensiva: este componente asume que `paciente` viene resuelto
+  // (InformeConsolidado.jsx, la página, ya filtra loading/"no encontrado"
+  // antes de montarlo) — pero si por lo que sea llega sin esa prop, esto
+  // evita el TypeError de "Cannot read properties of undefined" en vez de
+  // dejar la pantalla en blanco.
+  if (!paciente) return null;
+
   const etiquetaIdentidad = obtenerEtiquetaIdentidad(paciente);
   const esParticipante = Boolean(paciente.institucion);
 
@@ -215,8 +262,11 @@ export default function InformeConsolidadoPaciente({ paciente, instrumentos, exp
           {/* Toda la información capturada al registrarse — cambia según
               haya sido un registro institucional (participante, con
               curso/paralelo/turno/código) o particular (consultante, con
-              teléfono). Cada campo se omite solo si está vacío. */}
-          <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-2 sm:grid-cols-3 gap-4">
+              teléfono). Cada campo se omite solo si está vacío.
+              grid-cols-1 en mobile (antes era grid-cols-2, que fue la
+              causa real del bug de "Correo se choca con Género": dos
+              columnas angostas no le dejaban espacio a un correo largo). */}
+          <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <Dato etiqueta="Correo" valor={paciente.email} />
             <Dato etiqueta="Teléfono" valor={paciente.telefono} />
             <Dato etiqueta="Género" valor={paciente.genero} />
