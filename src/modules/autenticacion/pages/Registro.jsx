@@ -24,6 +24,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
+import { esPasswordFiltrada } from '../services/passwordSecurityService';
 
 const OPCIONES_CURSO = [
   '1ro de Secundaria',
@@ -164,6 +165,15 @@ export default function Registro() {
 
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden. Por favor, verifica.');
+      setLoading(false);
+      return;
+    }
+
+    // Alternativa a la "Leaked Password Protection" nativa de Supabase
+    // (requiere plan Pro — ver Security Advisor). Corta el registro
+    // antes de llamar a Supabase si la contraseña aparece filtrada.
+    if (await esPasswordFiltrada(password)) {
+      setError('Esta contraseña aparece en bases de datos de contraseñas filtradas. Por seguridad, elige una diferente.');
       setLoading(false);
       return;
     }

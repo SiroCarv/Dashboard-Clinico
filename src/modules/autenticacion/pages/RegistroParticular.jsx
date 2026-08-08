@@ -24,6 +24,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 import { psicologosService } from '../../psicologos';
+import { esPasswordFiltrada } from '../services/passwordSecurityService';
 
 const OPCIONES_GENERO = ['Masculino', 'Femenino', 'Prefiero no decir'];
 
@@ -111,6 +112,15 @@ export default function RegistroParticular() {
 
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden. Por favor, verifica.');
+      setLoading(false);
+      return;
+    }
+
+    // Alternativa a la "Leaked Password Protection" nativa de Supabase
+    // (requiere plan Pro — ver Security Advisor). Corta el registro
+    // antes de llamar a Supabase si la contraseña aparece filtrada.
+    if (await esPasswordFiltrada(password)) {
+      setError('Esta contraseña aparece en bases de datos de contraseñas filtradas. Por seguridad, elige una diferente.');
       setLoading(false);
       return;
     }

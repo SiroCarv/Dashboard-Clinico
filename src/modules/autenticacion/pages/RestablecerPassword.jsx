@@ -15,6 +15,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
+import { esPasswordFiltrada } from '../services/passwordSecurityService';
 
 export default function RestablecerPassword() {
   const [password, setPassword] = useState('');
@@ -37,6 +38,15 @@ export default function RestablecerPassword() {
     e.preventDefault();
     if (password !== confirmarPassword) return;
     setLoading(true);
+
+    // Alternativa a la "Leaked Password Protection" nativa de Supabase
+    // (requiere plan Pro — ver Security Advisor). Corta la actualización
+    // antes de llamar a Supabase si la contraseña aparece filtrada.
+    if (await esPasswordFiltrada(password)) {
+      setErrorSubmit('Esta contraseña aparece en bases de datos de contraseñas filtradas. Por seguridad, elige una diferente.');
+      setLoading(false);
+      return;
+    }
 
     const { error } = await supabase.auth.updateUser({ password: password });
 
