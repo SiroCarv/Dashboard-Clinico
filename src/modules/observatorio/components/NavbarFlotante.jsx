@@ -3,7 +3,7 @@
 // Router — nunca importa componentes de otro módulo, respetando el
 // aislamiento entre dominios (DDD).
 import { Link } from 'react-router-dom';
-import logo from '../../../shared/assets/logo.svg';
+import logo from '../../../shared/assets/logo.webp';
 
 export default function NavbarFlotante() {
   return (

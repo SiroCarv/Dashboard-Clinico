@@ -19,7 +19,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 import { RUTA_POR_DEFECTO } from '../../../core/security/rutasPorDefecto';
-import logo from '../../../shared/assets/logo.svg';
+import logo from '../../../shared/assets/logo.webp';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
 export default function Login() {
