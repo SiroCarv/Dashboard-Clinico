@@ -95,23 +95,25 @@ export const ESTILOS_CATEGORIA_CLIMA_AULA = {
 export const FILA_ALERTA_ACTIVADA =
   'bg-red-50 border-l-4 border-red-500 hover:bg-red-100';
 
-// Relleno de barra (tono sólido 500, no el 50 pastel de arriba) para el
-// gráfico de Clima de Aula del panel de indicadores del psicólogo —
-// mismo criterio semántico que ESTILOS_CATEGORIA_CLIMA_AULA (verde =
-// bien, gris = neutro, amarillo/rojo = atención), pero un pastel bg-*-50
-// prácticamente no se ve como barra rellena.
-export const RELLENO_CATEGORIA_CLIMA_AULA = {
-  'Muy positivo': 'bg-green-500',
-  Positivo: 'bg-green-500',
-  'Medianamente favorable': 'bg-gray-400',
-  'Poco favorable': 'bg-yellow-500',
-  Negativo: 'bg-red-500',
+// Colores para el gráfico de barras verticales (fill, en el <rect> del
+// SVG) y la leyenda de la dona (bg, en el punto de color) del panel de
+// indicadores del psicólogo — mismo criterio semántico que
+// ESTILOS_CATEGORIA_CLIMA_AULA (verde = bien, gris = neutro, amarillo/
+// rojo = atención). Se guardan las dos formas explícitas (nunca
+// derivadas con un template string tipo `.replace('fill-','bg-')`) para
+// que el escaneo de Tailwind detecte ambas — ver la nota de arriba sobre
+// clases completas.
+export const COLOR_CATEGORIA_CLIMA_AULA = {
+  'Muy positivo': { fill: 'fill-green-500', bg: 'bg-green-500' },
+  Positivo: { fill: 'fill-green-500', bg: 'bg-green-500' },
+  'Medianamente favorable': { fill: 'fill-gray-400', bg: 'bg-gray-400' },
+  'Poco favorable': { fill: 'fill-yellow-500', bg: 'bg-yellow-500' },
+  Negativo: { fill: 'fill-red-500', bg: 'bg-red-500' },
 };
 
-// Mismo gráfico de barras, para el desglose de GSHS entre quienes
-// completaron el instrumento: gris para "sin alerta" (neutro), rojo
-// reservado para "con alerta activada" (severidad).
-export const RELLENO_ALERTA_GSHS = {
-  sinAlerta: 'bg-gray-400',
-  conAlerta: 'bg-red-500',
+// Mismo criterio para el desglose de GSHS: gris para "sin alerta"
+// (neutro), rojo reservado para "con alerta activada" (severidad).
+export const COLOR_ALERTA_GSHS = {
+  sinAlerta: { fill: 'fill-gray-400', bg: 'bg-gray-400' },
+  conAlerta: { fill: 'fill-red-500', bg: 'bg-red-500' },
 };

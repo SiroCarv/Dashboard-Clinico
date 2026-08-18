@@ -10,19 +10,21 @@
 // cumplen un perfil, acá; filas visibles en la tabla, allá), así que no
 // comparten estado a propósito.
 import { useMemo, useState } from 'react';
-import { RELLENO_CATEGORIA_CLIMA_AULA, RELLENO_ALERTA_GSHS } from '../../../shared/theme/paletaColores';
+import { COLOR_CATEGORIA_CLIMA_AULA, COLOR_ALERTA_GSHS } from '../../../shared/theme/paletaColores';
 
 const TODOS = 'todos';
 
 // Mismo orden que ya documenta climaAulaData.js (17-20 Muy positivo ...
-// 0-4 Negativo) — de mejor a peor, para que las barras del gráfico se
-// lean en ese sentido.
-const ORDEN_CATEGORIAS_CLIMA_AULA = [
-  'Muy positivo',
-  'Positivo',
-  'Medianamente favorable',
-  'Poco favorable',
-  'Negativo',
+// 0-4 Negativo) — de mejor a peor, para que el gráfico se lea en ese
+// sentido. `lineas` corta a mano las etiquetas largas para
+// GraficoBarrasVerticales (partir texto dentro de SVG no tiene una
+// solución genérica simple).
+const CATEGORIAS_CLIMA_AULA = [
+  { etiqueta: 'Muy positivo', lineas: ['Muy', 'positivo'] },
+  { etiqueta: 'Positivo', lineas: ['Positivo'] },
+  { etiqueta: 'Medianamente favorable', lineas: ['Medianamente', 'favorable'] },
+  { etiqueta: 'Poco favorable', lineas: ['Poco', 'favorable'] },
+  { etiqueta: 'Negativo', lineas: ['Negativo'] },
 ];
 
 // Mismos tramos de edad que la pregunta 1 del módulo demográfico del
@@ -173,9 +175,10 @@ export function useResumenFormularios(pacientes) {
 
   // Cuántas de las personas ya filtradas cayeron en cada categoría de
   // Clima de Aula — arma el arreglo con las 5 categorías siempre
-  // presentes (en 0 si nadie cayó ahí), listo para GraficoBarras.
+  // presentes (en 0 si nadie cayó ahí), listo para GraficoBarrasVerticales
+  // y GraficoDona.
   const graficoClimaAula = useMemo(() => {
-    const conteoPorCategoria = Object.fromEntries(ORDEN_CATEGORIAS_CLIMA_AULA.map((c) => [c, 0]));
+    const conteoPorCategoria = Object.fromEntries(CATEGORIAS_CLIMA_AULA.map((c) => [c.etiqueta, 0]));
 
     for (const paciente of pacientesFiltrados) {
       const evaluacionClima = (paciente.evaluaciones ?? []).find((e) => e.tipo_instrumento === 'CLIMA_AULA');
@@ -185,10 +188,12 @@ export function useResumenFormularios(pacientes) {
       }
     }
 
-    return ORDEN_CATEGORIAS_CLIMA_AULA.map((etiqueta) => ({
+    return CATEGORIAS_CLIMA_AULA.map(({ etiqueta, lineas }) => ({
       etiqueta,
+      etiquetaLineas: lineas,
       valor: conteoPorCategoria[etiqueta],
-      color: RELLENO_CATEGORIA_CLIMA_AULA[etiqueta],
+      fill: COLOR_CATEGORIA_CLIMA_AULA[etiqueta].fill,
+      bg: COLOR_CATEGORIA_CLIMA_AULA[etiqueta].bg,
     }));
   }, [pacientesFiltrados]);
 
@@ -208,8 +213,20 @@ export function useResumenFormularios(pacientes) {
     }
 
     return [
-      { etiqueta: 'Sin alerta', valor: sinAlerta, color: RELLENO_ALERTA_GSHS.sinAlerta },
-      { etiqueta: 'Con alerta activada', valor: conAlerta, color: RELLENO_ALERTA_GSHS.conAlerta },
+      {
+        etiqueta: 'Sin alerta',
+        etiquetaLineas: ['Sin alerta'],
+        valor: sinAlerta,
+        fill: COLOR_ALERTA_GSHS.sinAlerta.fill,
+        bg: COLOR_ALERTA_GSHS.sinAlerta.bg,
+      },
+      {
+        etiqueta: 'Con alerta activada',
+        etiquetaLineas: ['Con alerta', 'activada'],
+        valor: conAlerta,
+        fill: COLOR_ALERTA_GSHS.conAlerta.fill,
+        bg: COLOR_ALERTA_GSHS.conAlerta.bg,
+      },
     ];
   }, [pacientesFiltrados]);
 

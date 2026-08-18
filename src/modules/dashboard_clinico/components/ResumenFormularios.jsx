@@ -1,10 +1,26 @@
-// Los 2 gráficos del panel de indicadores del psicólogo (historias
-// "Conteo de formularios completados" + "Filtros de conteo por perfil"):
-// distribución de Clima de Aula por categoría, y proporción de alertas
-// del GSHS entre quienes ya lo completaron. No calcula nada acá — solo
-// arma la descripción accesible y delega el dibujo a GraficoBarras
-// (shared, no sabe nada de instrumentos clínicos).
-import { GraficoBarras } from '../../../shared/components/GraficoBarras';
+// Los indicadores del panel del psicólogo (historias "Conteo de
+// formularios completados" + "Filtros de conteo por perfil"): por cada
+// instrumento, un gráfico de barras verticales (cantidad absoluta) y uno
+// de dona (proporción del total) — a propósito los dos, no uno solo:
+// dan lecturas distintas de los mismos datos. No calcula nada acá, solo
+// arma la descripción accesible y delega el dibujo a los componentes
+// genéricos de shared/ (no saben nada de instrumentos clínicos).
+import { GraficoBarrasVerticales } from '../../../shared/components/GraficoBarrasVerticales';
+import { GraficoDona } from '../../../shared/components/GraficoDona';
+
+function SeccionInstrumento({ titulo, datos }) {
+  const descripcion = `${titulo}: ${datos.map((d) => `${d.etiqueta} ${d.valor}`).join(', ')}`;
+
+  return (
+    <div className="bg-white rounded-lg shadow-xl border-t-8 border-violet-400 p-6">
+      <p className="text-gray-700 font-bold mb-4">{titulo}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+        <GraficoBarrasVerticales datos={datos} descripcionAccesible={descripcion} />
+        <GraficoDona datos={datos} descripcionAccesible={descripcion} />
+      </div>
+    </div>
+  );
+}
 
 export function ResumenFormularios({ graficoClimaAula, graficoGshs, hayFiltrosActivos, hayPersonasFiltradas }) {
   if (hayFiltrosActivos && !hayPersonasFiltradas) {
@@ -20,26 +36,12 @@ export function ResumenFormularios({ graficoClimaAula, graficoGshs, hayFiltrosAc
   const totalGshs = graficoGshs.reduce((suma, item) => suma + item.valor, 0);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-      <div className="bg-white rounded-lg shadow-xl border-t-8 border-violet-400 p-6">
-        <p className="text-gray-700 font-bold mb-4">Clima de Aula — por categoría</p>
-        <GraficoBarras
-          datos={graficoClimaAula}
-          descripcionAccesible={`Distribución de Clima de Aula por categoría: ${graficoClimaAula
-            .map((d) => `${d.etiqueta} ${d.valor}`)
-            .join(', ')}`}
-        />
-      </div>
-
-      <div className="bg-white rounded-lg shadow-xl border-t-8 border-violet-400 p-6">
-        <p className="text-gray-700 font-bold mb-4">
-          GSHS — {totalGshs} {totalGshs === 1 ? 'persona completó' : 'personas completaron'}
-        </p>
-        <GraficoBarras
-          datos={graficoGshs}
-          descripcionAccesible={`GSHS: ${graficoGshs.map((d) => `${d.etiqueta} ${d.valor}`).join(', ')}`}
-        />
-      </div>
+    <div className="space-y-4 mb-6">
+      <SeccionInstrumento titulo="Clima de Aula — por categoría" datos={graficoClimaAula} />
+      <SeccionInstrumento
+        titulo={`GSHS — ${totalGshs} ${totalGshs === 1 ? 'persona completó' : 'personas completaron'}`}
+        datos={graficoGshs}
+      />
     </div>
   );
 }
