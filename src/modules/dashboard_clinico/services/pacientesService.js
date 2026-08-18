@@ -7,27 +7,40 @@ import { supabase } from '../../../core/api/supabaseClient';
 
 export const pacientesService = {
   /**
-   * Listado para la tabla del Dashboard. Usa la política RLS
-   * "usuarios_select_psicologo_pacientes": solo devuelve pacientes de las
-   * instituciones asignadas al psicólogo autenticado (o ninguno, si el
-   * psicólogo fuerza el acceso a otra). Importante: un Consultante
-   * particular (institucion_id = NULL) nunca aparece acá — ver la nota de
-   * RLS en shared/utils/identidadUsuario.js.
+   * Listado para la tabla del Dashboard y para el panel de indicadores
+   * ("Conteo de formularios completados" / "Filtros de conteo por
+   * perfil"). Usa la política RLS "usuarios_select": solo devuelve
+   * pacientes de las instituciones asignadas al psicólogo autenticado, o
+   * asignados directamente a él (Consultante particular vía
+   * `psicologo_asignado_id`) — o ninguno, si el psicólogo fuerza el
+   * acceso a otro. Un Consultante particular (institucion_id = NULL)
+   * nunca trae `institucion` — ver la nota de RLS en
+   * shared/utils/identidadUsuario.js.
    *
-   * También trae, embebido vía la relación con `evaluaciones_instrumento`,
-   * si el paciente tiene alguna evaluación con `alerta_activada = true`
-   * (ej. riesgo suicida en el módulo de Salud Mental del GSHS). Se reduce
-   * acá mismo a un único booleano `tieneAlertaActiva` para que
-   * TablaPacientes.jsx pueda resaltar la fila sin conocer la forma de la
-   * tabla de evaluaciones. El embed respeta la misma política RLS
-   * "instrumento_select_psicologo" de esa tabla, así que nunca expone
-   * alertas de pacientes fuera de las instituciones del psicólogo.
+   * Además de lo que ya usaba la tabla, ahora también trae `genero`,
+   * `turno` y `fecha_nacimiento` (filtros del panel de indicadores) y,
+   * por cada evaluación enviada, `tipo_instrumento`, `fecha_registro` y
+   * `resultado_json` (antes solo se traía `alerta_activada`).
+   * `resultado_json` es el mismo objeto `{ puntaje_total, categoria }`
+   * que ya usa InformeConsolidadoPaciente.jsx para Clima de Aula — acá
+   * se usa para armar el gráfico de distribución por categoría (para
+   * GSHS siempre viene null, no genera categoría — ver nota en
+   * evaluaciones/data/gshsData.js). Se devuelven dos formas del mismo
+   * dato para no romper a quien ya consumía esto:
+   *  - `evaluaciones`: el arreglo completo, para que
+   *    useResumenFormularios arme los gráficos y filtre por instrumento/
+   *    fecha de envío.
+   *  - `tieneAlertaActiva`: el mismo booleano reducido de siempre, para
+   *    que TablaPacientes.jsx siga funcionando sin cambios.
+   * El embed respeta la misma política RLS "instrumento_select" de esa
+   * tabla, así que nunca expone datos de pacientes fuera de las
+   * instituciones (o asignación directa) del psicólogo.
    */
   async obtenerPacientesPropios() {
     const { data, error } = await supabase
       .from('usuarios')
       .select(
-        'id, nombre, email, curso, paralelo, institucion:instituciones(nombre), evaluaciones_instrumento(alerta_activada)'
+        'id, nombre, email, genero, turno, fecha_nacimiento, curso, paralelo, institucion:instituciones(nombre), evaluaciones_instrumento(tipo_instrumento, fecha_registro, alerta_activada, resultado_json)'
       )
       .eq('rol', 'paciente')
       .order('nombre', { ascending: true });
@@ -36,6 +49,7 @@ export const pacientesService = {
 
     return (data ?? []).map(({ evaluaciones_instrumento, ...paciente }) => ({
       ...paciente,
+      evaluaciones: evaluaciones_instrumento ?? [],
       tieneAlertaActiva: (evaluaciones_instrumento ?? []).some((e) => e.alerta_activada),
     }));
   },

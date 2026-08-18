@@ -1,16 +1,25 @@
-// Panel principal del psicólogo: listado de sus pacientes con búsqueda
-// por nombre/correo, filtro por institución y exportación a Excel.
+// Panel principal del psicólogo: panel de indicadores (cuántas personas
+// completaron cada formulario, con filtros por perfil) + listado de
+// pacientes con búsqueda por nombre/correo, filtro por institución y
+// exportación a Excel.
 //
 // El Dashboard dejó de tener 2 pestañas (Clima de Aula/GSHS + "Historial
 // anterior PHQ-9"). La pantalla de historial PHQ-9 y su ruta de detalle
-// se retiraron por completo — decisión explícita del cliente. La única
-// vista ahora es este listado de pacientes; buscar/filtrar/exportar se
+// se retiraron por completo — decisión explícita del cliente. La vista
+// principal es el listado de pacientes; buscar/filtrar/exportar se
 // aplican sobre ese listado, no sobre evaluaciones puntuales (eso vive en
-// InformeConsolidado.jsx, al hacer clic en una fila).
+// InformeConsolidado.jsx, al hacer clic en una fila). El panel de
+// indicadores de arriba usa su propio filtro independiente
+// (useResumenFormularios) — a propósito no comparte estado con el
+// buscador/filtro de la tabla de abajo: cuentan cosas distintas
+// (personas que cumplen un perfil, vs. filas visibles en la tabla).
 import { useMemo, useState } from 'react';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
 import { useListaPacientes } from '../hooks/useListaPacientes';
+import { useResumenFormularios } from '../hooks/useResumenFormularios';
 import { TablaPacientes } from '../components/TablaPacientes';
+import { ResumenFormularios } from '../components/ResumenFormularios';
+import { FiltrosResumen } from '../components/FiltrosResumen';
 import { exportarPacientesAExcel } from '../utils/exportarPacientesExcel';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
@@ -19,6 +28,7 @@ const FILTRO_INSTITUCION_TODAS = 'todas';
 
 export default function Dashboard() {
   const { pacientes, loading, error } = useListaPacientes();
+  const resumen = useResumenFormularios(pacientes);
   const [busqueda, setBusqueda] = useState('');
   const [filtroInstitucion, setFiltroInstitucion] = useState(FILTRO_INSTITUCION_TODAS);
   const [exportando, setExportando] = useState(false);
@@ -92,6 +102,30 @@ export default function Dashboard() {
           <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-center shadow-sm">
             {error}
           </div>
+        )}
+
+        {!loading && !error && (
+          <>
+            <FiltrosResumen
+              filtros={resumen.filtros}
+              actualizarFiltro={resumen.actualizarFiltro}
+              limpiarFiltros={resumen.limpiarFiltros}
+              hayFiltrosActivos={resumen.hayFiltrosActivos}
+              instituciones={resumen.instituciones}
+              generos={resumen.generos}
+              cursos={resumen.cursos}
+              paralelos={resumen.paralelos}
+              turnos={resumen.turnos}
+              mostrarFiltrosEscolares={resumen.mostrarFiltrosEscolares}
+              tramosEdad={resumen.tramosEdad}
+            />
+            <ResumenFormularios
+              graficoClimaAula={resumen.graficoClimaAula}
+              graficoGshs={resumen.graficoGshs}
+              hayFiltrosActivos={resumen.hayFiltrosActivos}
+              hayPersonasFiltradas={resumen.hayPersonasFiltradas}
+            />
+          </>
         )}
 
         {!loading && pacientes.length > 0 && (

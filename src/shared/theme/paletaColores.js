@@ -94,3 +94,24 @@ export const ESTILOS_CATEGORIA_CLIMA_AULA = {
 // (ej. GSHS con alerta_activada = true por riesgo suicida).
 export const FILA_ALERTA_ACTIVADA =
   'bg-red-50 border-l-4 border-red-500 hover:bg-red-100';
+
+// Relleno de barra (tono sólido 500, no el 50 pastel de arriba) para el
+// gráfico de Clima de Aula del panel de indicadores del psicólogo —
+// mismo criterio semántico que ESTILOS_CATEGORIA_CLIMA_AULA (verde =
+// bien, gris = neutro, amarillo/rojo = atención), pero un pastel bg-*-50
+// prácticamente no se ve como barra rellena.
+export const RELLENO_CATEGORIA_CLIMA_AULA = {
+  'Muy positivo': 'bg-green-500',
+  Positivo: 'bg-green-500',
+  'Medianamente favorable': 'bg-gray-400',
+  'Poco favorable': 'bg-yellow-500',
+  Negativo: 'bg-red-500',
+};
+
+// Mismo gráfico de barras, para el desglose de GSHS entre quienes
+// completaron el instrumento: gris para "sin alerta" (neutro), rojo
+// reservado para "con alerta activada" (severidad).
+export const RELLENO_ALERTA_GSHS = {
+  sinAlerta: 'bg-gray-400',
+  conAlerta: 'bg-red-500',
+};
