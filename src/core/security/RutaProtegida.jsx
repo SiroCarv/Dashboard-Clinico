@@ -10,6 +10,14 @@
 //      es desconocido) — nunca deja pasar a una pantalla ajena.
 //   4. Si coincide, renderiza `children` normalmente.
 //
+// Caso particular — sesión huérfana: si el id de la sesión local no tiene
+// fila en `usuarios` (cuenta borrada, o un registro que nunca terminó de
+// completarse), Supabase devuelve "PGRST116" (0 filas para `.single()`).
+// Ahí cerramos esa sesión con signOut() en vez de dejarla reintentando (y
+// fallando) la misma consulta en cada carga de página; el resultado final
+// es el mismo de siempre — sin rol conocido, se redirige a "/" — pero sin
+// arrastrar la sesión inválida a la siguiente pantalla.
+//
 // El chequeo de rol vive acá y no en el backend porque el backend YA lo
 // exige de verdad vía RLS (auth.uid() + rol) — esto es solo la capa de
 // experiencia de usuario, para no dejar ver ni por un instante una
@@ -41,6 +49,16 @@ export default function RutaProtegida({ children, rolRequerido }) {
         .single();
 
       if (error) {
+        if (error.code === 'PGRST116') {
+          // Sesión huérfana: el id de la sesión local no tiene fila en
+          // `usuarios`. Cerramos sesión acá mismo en vez de dejarla
+          // reintentando en cada carga de página. rolUsuario queda en
+          // null, así que el chequeo de abajo igual redirige a "/".
+          console.warn('Sesión sin usuario asociado, cerrando sesión local.');
+          await supabase.auth.signOut();
+          setCargando(false);
+          return;
+        }
         console.error('Error al verificar rol:', error.message);
       }
 

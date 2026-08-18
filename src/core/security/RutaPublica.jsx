@@ -11,6 +11,13 @@
 // redirección a ciegas: eso evita un loop de redirects contra esta misma
 // ruta, y el peor caso posible es inofensivo (ver el login estando ya
 // logueado).
+//
+// Caso particular — sesión huérfana: si la sesión local corresponde a un
+// usuario que ya no existe en `usuarios` (cuenta borrada, o un registro
+// que nunca llegó a completarse), Supabase devuelve el error "PGRST116"
+// (0 filas para `.single()`). Ahí no tiene sentido "dejar pasar y
+// reintentar en cada carga": cerramos esa sesión fantasma con signOut()
+// para que no siga fallando la misma consulta una y otra vez.
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { supabase } from '../api/supabaseClient';
@@ -39,6 +46,16 @@ export default function RutaPublica({ children }) {
         .single();
 
       if (error) {
+        if (error.code === 'PGRST116') {
+          // Sesión huérfana: el id de la sesión local no tiene fila en
+          // `usuarios`. Cerramos sesión acá mismo en vez de dejarla
+          // reintentando en cada carga de página.
+          console.warn('Sesión sin usuario asociado, cerrando sesión local.');
+          await supabase.auth.signOut();
+          setHaySesion(false);
+          setCargando(false);
+          return;
+        }
         console.error('Error al verificar rol:', error.message);
       }
 
