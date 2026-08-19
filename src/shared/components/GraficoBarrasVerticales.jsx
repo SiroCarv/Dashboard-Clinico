@@ -49,7 +49,7 @@ export function GraficoBarrasVerticales({ datos, descripcionAccesible, alto = 19
                 x={x + anchoBarra / 2}
                 y={altoUtil + 13 + indiceLinea * 10}
                 textAnchor="middle"
-                className="fill-gray-600 text-[9px]"
+                className="fill-black font-semibold text-[9px]"
               >
                 {linea}
               </text>

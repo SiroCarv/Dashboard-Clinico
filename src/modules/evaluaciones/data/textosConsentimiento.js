@@ -187,7 +187,7 @@ export const CONSENTIMIENTO_PROPIO_MAYOR = {
     },
   ],
   checklist: [
-    'He leído y comprendido este documento.',
+    'He leído y comprendí este documento.',
     'Comprendo que mi participación es voluntaria y puedo retirarme en cualquier momento.',
     'Comprendo la excepción a la confidencialidad en caso de riesgo para mi salud o seguridad.',
   ],

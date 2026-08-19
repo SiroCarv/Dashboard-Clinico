@@ -193,6 +193,7 @@ export function useResumenFormularios(pacientes) {
       etiquetaLineas: lineas,
       valor: conteoPorCategoria[etiqueta],
       fill: COLOR_CATEGORIA_CLIMA_AULA[etiqueta].fill,
+      stroke: COLOR_CATEGORIA_CLIMA_AULA[etiqueta].stroke,
       bg: COLOR_CATEGORIA_CLIMA_AULA[etiqueta].bg,
     }));
   }, [pacientesFiltrados]);
@@ -218,6 +219,7 @@ export function useResumenFormularios(pacientes) {
         etiquetaLineas: ['Sin alerta'],
         valor: sinAlerta,
         fill: COLOR_ALERTA_GSHS.sinAlerta.fill,
+        stroke: COLOR_ALERTA_GSHS.sinAlerta.stroke,
         bg: COLOR_ALERTA_GSHS.sinAlerta.bg,
       },
       {
@@ -225,6 +227,7 @@ export function useResumenFormularios(pacientes) {
         etiquetaLineas: ['Con alerta', 'activada'],
         valor: conAlerta,
         fill: COLOR_ALERTA_GSHS.conAlerta.fill,
+        stroke: COLOR_ALERTA_GSHS.conAlerta.stroke,
         bg: COLOR_ALERTA_GSHS.conAlerta.bg,
       },
     ];

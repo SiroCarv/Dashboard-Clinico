@@ -96,24 +96,33 @@ export const FILA_ALERTA_ACTIVADA =
   'bg-red-50 border-l-4 border-red-500 hover:bg-red-100';
 
 // Colores para el gráfico de barras verticales (fill, en el <rect> del
-// SVG) y la leyenda de la dona (bg, en el punto de color) del panel de
-// indicadores del psicólogo — mismo criterio semántico que
-// ESTILOS_CATEGORIA_CLIMA_AULA (verde = bien, gris = neutro, amarillo/
-// rojo = atención). Se guardan las dos formas explícitas (nunca
-// derivadas con un template string tipo `.replace('fill-','bg-')`) para
-// que el escaneo de Tailwind detecte ambas — ver la nota de arriba sobre
-// clases completas.
+// SVG), el anillo de la dona (stroke, en el <circle> del SVG) y la
+// leyenda de la dona (bg, en el punto de color) del panel de indicadores
+// del psicólogo — mismo criterio semántico que ESTILOS_CATEGORIA_CLIMA_AULA
+// (verde = bien, gris = neutro, amarillo/rojo = atención). Se guardan las
+// tres formas explícitas (nunca derivadas con un template string tipo
+// `.replace('fill-','stroke-')`) para que el escaneo de Tailwind detecte
+// las tres — ver la nota de arriba sobre clases completas.
+//
+// `fill` y `stroke` NO son intercambiables aunque compartan color: `fill`
+// pinta el interior de una forma, `stroke` pinta su trazo/contorno. La
+// dona dibuja cada categoría como un <circle> con `fill="none"` y usa
+// stroke-dasharray/dashoffset para mostrar solo el arco correspondiente
+// — por eso necesita `stroke`, no `fill`. Usar `fill` ahí (como se hacía
+// antes) pinta el CÍRCULO COMPLETO relleno de ese color, tapando todo lo
+// dibujado antes y ocultando el resto de las categorías — bug real
+// encontrado y corregido en el Sprint 5 (ver GraficoDona.jsx).
 export const COLOR_CATEGORIA_CLIMA_AULA = {
-  'Muy positivo': { fill: 'fill-green-500', bg: 'bg-green-500' },
-  Positivo: { fill: 'fill-green-500', bg: 'bg-green-500' },
-  'Medianamente favorable': { fill: 'fill-gray-400', bg: 'bg-gray-400' },
-  'Poco favorable': { fill: 'fill-yellow-500', bg: 'bg-yellow-500' },
-  Negativo: { fill: 'fill-red-500', bg: 'bg-red-500' },
+  'Muy positivo': { fill: 'fill-green-500', stroke: 'stroke-green-500', bg: 'bg-green-500' },
+  Positivo: { fill: 'fill-green-500', stroke: 'stroke-green-500', bg: 'bg-green-500' },
+  'Medianamente favorable': { fill: 'fill-gray-400', stroke: 'stroke-gray-400', bg: 'bg-gray-400' },
+  'Poco favorable': { fill: 'fill-yellow-500', stroke: 'stroke-yellow-500', bg: 'bg-yellow-500' },
+  Negativo: { fill: 'fill-red-500', stroke: 'stroke-red-500', bg: 'bg-red-500' },
 };
 
 // Mismo criterio para el desglose de GSHS: gris para "sin alerta"
 // (neutro), rojo reservado para "con alerta activada" (severidad).
 export const COLOR_ALERTA_GSHS = {
-  sinAlerta: { fill: 'fill-gray-400', bg: 'bg-gray-400' },
-  conAlerta: { fill: 'fill-red-500', bg: 'bg-red-500' },
+  sinAlerta: { fill: 'fill-gray-400', stroke: 'stroke-gray-400', bg: 'bg-gray-400' },
+  conAlerta: { fill: 'fill-red-500', stroke: 'stroke-red-500', bg: 'bg-red-500' },
 };
