@@ -5,12 +5,11 @@
 // (supabase/functions/crear-psicologo, editar-psicologo,
 // eliminar-psicologo) en vez de hablarle directo a la tabla `usuarios`.
 //
-// listarPublico() es la excepción: es una lectura, no una escritura, así
-// que no necesita service_role ni Edge Function — consulta directo la
-// vista `psicologos_publico` (id + nombre únicamente, de lectura pública
-// a propósito) que usa el selector de "psicólogo designado" en el
-// registro de Consultantes (RegistroParticular.jsx), antes de que esa
-// persona tenga sesión.
+// Este servicio ya no expone ninguna lectura pública/anónima: la única
+// que existió (listarPublico, sobre la vista `psicologos_publico`) era
+// exclusiva del selector de "psicólogo designado" del registro de
+// Consultantes, retirado del sistema en SCRUM-48. La vista quedó
+// pendiente de eliminación en Supabase (ver SQL entregado aparte).
 import { supabase } from '../../../core/api/supabaseClient';
 
 /**
@@ -53,22 +52,5 @@ export const psicologosService = {
 
   async eliminar(id) {
     return invocarFuncion('eliminar-psicologo', { id });
-  },
-
-  /**
-   * Lista pública (id + nombre) de todas las cuentas de psicólogo, para
-   * el selector de "psicólogo designado" del registro de Consultantes.
-   * Lee de la vista `psicologos_publico`, no de `usuarios` directo — esa
-   * vista es la única superficie de lectura anónima permitida sobre
-   * cuentas de psicólogo (ver migración 011).
-   */
-  async listarPublico() {
-    const { data, error } = await supabase
-      .from('psicologos_publico')
-      .select('id, nombre')
-      .order('nombre', { ascending: true });
-
-    if (error) throw error;
-    return data ?? [];
   },
 };

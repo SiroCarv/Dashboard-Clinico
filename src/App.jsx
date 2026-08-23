@@ -21,7 +21,6 @@ import Login from './modules/autenticacion/pages/Login';
 import Bienvenida from './modules/autenticacion/pages/Bienvenida';
 import Registro from './modules/autenticacion/pages/Registro';
 import RegistroDocente from './modules/autenticacion/pages/RegistroDocente';
-import RegistroParticular from './modules/autenticacion/pages/RegistroParticular';
 import RecuperarPassword from './modules/autenticacion/pages/RecuperarPassword';
 import RestablecerPassword from './modules/autenticacion/pages/RestablecerPassword';
 
@@ -55,10 +54,6 @@ function App() {
         <Route path="/registro/:codigo" element={<RutaPublica><Registro /></RutaPublica>} />
         {/* Dejamos la ruta normal por si alguien entra sin código, para mostrarle un mensaje de error */}
         <Route path="/registro" element={<RutaPublica><Registro /></RutaPublica>} />
-
-        {/* Registro para personas sin institución (SCRUM-29): componente propio,
-            no reutiliza Registro.jsx para no alterar el flujo institucional ya aprobado. */}
-        <Route path="/registro-particular" element={<RutaPublica><RegistroParticular /></RutaPublica>} />
 
         {/* Registro de docentes (SCRUM-47): mismo patrón de código de
             institución que Registro.jsx, sin campos de estudiante. */}

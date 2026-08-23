@@ -6,8 +6,8 @@
 // curso (ver shared/utils/borradorLocal.js): cerrar sesión no debe hacer
 // perder respuestas que el paciente todavía no envió.
 //
-// Nota: Login.jsx, Registro.jsx, RegistroParticular.jsx y
-// RecuperarPassword.jsx siguen llamando a `supabase.auth` directamente en
+// Nota: Login.jsx, Registro.jsx y RecuperarPassword.jsx siguen
+// llamando a `supabase.auth` directamente en
 // vez de pasar por una capa de `service` — es una inconsistencia de
 // patrón conocida (el módulo creció de forma incremental), documentada
 // pero no corregida por no ser parte del alcance de ninguna historia

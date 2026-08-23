@@ -1,7 +1,5 @@
-// Registro de ESTUDIANTES (con institución). Para consultantes
-// particulares ver RegistroParticular.jsx — son dos componentes
-// separados a propósito, para no meter lógica condicional de
-// "¿tiene institución o no?" en un único formulario gigante.
+// Registro de ESTUDIANTES (con institución). El registro de Consultantes
+// particulares (sin institución) fue retirado del sistema — ver SCRUM-48.
 //
 // Entrada al formulario, dos formas:
 //   - /registro/:codigo o /registro?codigo=... -> viene de un enlace que
@@ -144,8 +142,8 @@ export default function Registro() {
       return;
     }
 
-    // Respaldo en JS del required nativo de los 4 selects nuevos
-    // (mismo patrón de doble validación que ya usa RegistroParticular).
+    // Respaldo en JS del required nativo de los 4 selects nuevos,
+    // por si el navegador no lo aplica antes del submit.
     if (!curso || !paralelo || !turno || !genero) {
       setError('Por favor, completa curso, paralelo, turno y género.');
       return;
@@ -505,12 +503,6 @@ export default function Registro() {
             ¿Ya tienes una cuenta?{' '}
             <Link to="/login" className="text-orange-700 hover:text-orange-800 font-bold transition-colors">
               Inicia sesión aquí
-            </Link>
-          </p>
-          <p className="text-sm text-gray-600">
-            ¿Eres Consultante (no perteneces a un colegio)?{' '}
-            <Link to="/registro-particular" className="text-orange-700 hover:text-orange-800 font-bold transition-colors">
-              Regístrate aquí
             </Link>
           </p>
         </div>
