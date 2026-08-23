@@ -10,24 +10,27 @@
 // auth.uid() = id_paciente (protege el autoenvío de estudiantes), y un
 // docente nunca cumple esa condición al registrar en nombre de otro. La
 // función hace sus propias validaciones del lado del servidor (misma
-// institución, psicólogo válido, consentimiento completo) — el cliente
-// nunca decide solo si el caso puede registrarse.
+// institución, psicólogo válido) — el cliente nunca decide solo si el
+// caso puede registrarse.
 //
-// Requiere la migración "0007_registro_caso_docente.sql".
+// Nota: el registro del docente NO exige consentimiento previo del
+// alumno (confirmado con el cliente) — el consentimiento lo gestiona
+// el psicólogo después, por separado, contactando al padre/tutor.
+//
+// Requiere la migración "0007_registro_caso_docente.sql" +
+// "0008_docente_consentimiento_no_bloqueante.sql".
 import { supabase } from '../../../core/api/supabaseClient';
 
 const MENSAJES_ERROR = {
   ROL_INVALIDO: 'Tu cuenta no tiene permiso para registrar casos.',
   ALUMNO_FUERA_DE_INSTITUCION: 'Ese alumno no pertenece a tu institución.',
   PSICOLOGO_FUERA_DE_INSTITUCION: 'Ese psicólogo no pertenece a tu institución.',
-  CONSENTIMIENTO_INCOMPLETO:
-    'Este alumno todavía no tiene su consentimiento informado completo. Contacta a Psicología antes de registrar el caso.',
   YA_EXISTE_CASO:
     'Ya existe un registro (propio o de otro docente) para este alumno. Si crees que es un error, contacta a Psicología.',
 };
 
 // Traduce el código crudo que devuelve la función SQL (ej. "P0001:
-// CONSENTIMIENTO_INCOMPLETO") al mensaje que puede mostrarse tal cual en
+// ALUMNO_FUERA_DE_INSTITUCION") al mensaje que puede mostrarse tal cual en
 // pantalla, sin exponer nombres de funciones ni códigos de Postgres.
 function traducirError(error) {
   const codigo = Object.keys(MENSAJES_ERROR).find((clave) => error.message?.includes(clave));

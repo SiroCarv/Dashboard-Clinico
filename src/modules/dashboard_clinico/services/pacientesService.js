@@ -3,6 +3,15 @@
 // Ambos métodos dependen enteramente de las políticas RLS del lado del
 // servidor para decidir qué filas son visibles — este archivo nunca
 // filtra "manualmente" por institución en el cliente.
+//
+// IMPORTANTE — embed explícito por nombre de columna:
+// `evaluaciones_instrumento` tiene 3 llaves foráneas hacia `usuarios`
+// (id_paciente, registrado_por_docente_id, psicologo_revisor_id,
+// agregadas en SCRUM-51). Con una sola FK, PostgREST podía adivinar la
+// relación sola; con 3, hay que decirle cuál usar
+// (`evaluaciones_instrumento!id_paciente`) o rechaza la consulta entera
+// con un error de relación ambigua (PGRST201) — bug real detectado y
+// corregido en esta sesión: rompía el listado completo del Dashboard.
 import { supabase } from '../../../core/api/supabaseClient';
 
 export const pacientesService = {
@@ -34,13 +43,15 @@ export const pacientesService = {
    *    que TablaPacientes.jsx siga funcionando sin cambios.
    * El embed respeta la misma política RLS "instrumento_select" de esa
    * tabla, así que nunca expone datos de pacientes fuera de las
-   * instituciones (o asignación directa) del psicólogo.
+   * instituciones (o asignación directa) del psicólogo. El sufijo
+   * `!id_paciente` solo desambigua CUÁL relación usar — no cambia qué
+   * filas son visibles, eso lo sigue decidiendo la RLS.
    */
   async obtenerPacientesPropios() {
     const { data, error } = await supabase
       .from('usuarios')
       .select(
-        'id, nombre, email, genero, turno, fecha_nacimiento, curso, paralelo, institucion:instituciones(nombre), evaluaciones_instrumento(tipo_instrumento, fecha_registro, alerta_activada, resultado_json)'
+        'id, nombre, email, genero, turno, fecha_nacimiento, curso, paralelo, institucion:instituciones(nombre), evaluaciones_instrumento!id_paciente(tipo_instrumento, fecha_registro, alerta_activada, resultado_json)'
       )
       .eq('rol', 'paciente')
       .order('nombre', { ascending: true });
