@@ -1,7 +1,13 @@
-// Acceso a la tabla puente `psicologo_institucion` (relación
-// muchos-a-muchos) y al listado de cuentas con rol 'psicologo' — usado
-// por AsignacionPsicologos.jsx para armar la matriz de "qué psicólogo
-// está asignado a qué institución".
+// Acceso a la tabla `psicologo_institucion` y al listado de cuentas con
+// rol 'psicologo' — usado por AsignacionPsicologos.jsx para saber a qué
+// institución (una sola) está vinculado cada psicólogo.
+//
+// Desde la migración 006 la tabla tiene una restricción UNIQUE(psicologo_id)
+// en la base: un psicólogo ya no puede tener más de una fila. Por eso
+// asignar() no hace un INSERT directo (fallaría por la restricción si el
+// psicólogo ya tenía institución) — primero borra cualquier asignación
+// previa y recién después inserta la nueva, como un reemplazo atómico
+// desde la perspectiva del frontend.
 //
 // Este servicio NO crea/edita/elimina cuentas de psicólogo (eso vive en
 // el módulo `psicologos`, vía Edge Functions con service_role) — solo
@@ -21,6 +27,8 @@ export const psicologoInstitucionService = {
     return data;
   },
 
+  // Devuelve como máximo 1 fila por psicólogo (garantizado por la
+  // restricción de la base, no por esta consulta).
   async obtenerAsignaciones() {
     const { data, error } = await supabase
       .from('psicologo_institucion')
@@ -30,20 +38,30 @@ export const psicologoInstitucionService = {
     return data;
   },
 
+  // Reemplaza la institución del psicólogo por institucionId. Si no tenía
+  // ninguna, el DELETE simplemente no borra nada y sigue con el INSERT.
   async asignar(psicologoId, institucionId) {
-    const { error } = await supabase
+    const { error: errorBorrado } = await supabase
+      .from('psicologo_institucion')
+      .delete()
+      .eq('psicologo_id', psicologoId);
+
+    if (errorBorrado) throw errorBorrado;
+
+    const { error: errorInsercion } = await supabase
       .from('psicologo_institucion')
       .insert([{ psicologo_id: psicologoId, institucion_id: institucionId }]);
 
-    if (error) throw error;
+    if (errorInsercion) throw errorInsercion;
   },
 
-  async remover(psicologoId, institucionId) {
+  // Deja al psicólogo sin ninguna institución asignada (ej. recién
+  // creado, o mientras se le reasigna).
+  async desasignar(psicologoId) {
     const { error } = await supabase
       .from('psicologo_institucion')
       .delete()
-      .eq('psicologo_id', psicologoId)
-      .eq('institucion_id', institucionId);
+      .eq('psicologo_id', psicologoId);
 
     if (error) throw error;
   },

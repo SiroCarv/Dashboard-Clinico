@@ -1,12 +1,14 @@
 // Pestaña "Psicólogos" del Panel Maestro: tabla de cuentas con rol
-// 'psicologo', un botón por institución para asignar/desasignar
-// (toggle), y las acciones de crear/editar/eliminar la cuenta en sí.
+// 'psicologo', un selector único de institución por fila (desde SCRUM
+// "Psicólogo en una sola institución" un psicólogo ya no puede estar en
+// más de una a la vez — restricción UNIQUE(psicologo_id) en la base), y
+// las acciones de crear/editar/eliminar la cuenta en sí.
 //
 // La creación/edición/eliminación real de la CUENTA (Supabase Auth +
 // fila en `usuarios`) pasa por `psicologosService`, que a su vez invoca
 // las Edge Functions con service_role — nunca se hace directo desde acá
 // con el cliente anónimo, porque eso invalidaría la sesión del
-// superadmin que está operando. La ASIGNACIÓN a instituciones sí es
+// superadmin que está operando. La ASIGNACIÓN a la institución sí es
 // directa contra `psicologo_institucion` vía `psicologoInstitucionService`
 // (no requiere privilegios especiales, solo RLS de superadmin).
 //
@@ -84,16 +86,18 @@ export const AsignacionPsicologos = ({ instituciones }) => {
     };
   }, []);
 
-  // toggleAsignacion(psicologoId, institucionId, estaAsignado): un solo
-  // botón por celda que asigna si no existe la relación, o remueve si ya
-  // existe.
-  const handleToggleAsignacion = async (psicologoId, institucionId, estaAsignado) => {
+  // Un solo selector por fila: institucionIdSeleccionado === '' significa
+  // "Sin institución asignada" (desasignar). Cualquier otro valor
+  // reemplaza la institución actual del psicólogo, sin importar si ya
+  // tenía una — psicologoInstitucionService.asignar() ya se encarga de
+  // borrar la anterior antes de insertar la nueva.
+  const handleCambiarInstitucion = async (psicologoId, institucionIdSeleccionado) => {
     try {
-      setProcesandoId(`${psicologoId}-${institucionId}`);
-      if (estaAsignado) {
-        await psicologoInstitucionService.remover(psicologoId, institucionId);
+      setProcesandoId(psicologoId);
+      if (institucionIdSeleccionado) {
+        await psicologoInstitucionService.asignar(psicologoId, institucionIdSeleccionado);
       } else {
-        await psicologoInstitucionService.asignar(psicologoId, institucionId);
+        await psicologoInstitucionService.desasignar(psicologoId);
       }
       await cargarDatos();
     } catch (error) {
@@ -175,7 +179,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
         <div>
           <h2 className="text-lg font-bold text-black">Personal Clínico Autorizado</h2>
-          <p className="text-xs text-gray-700 font-medium">Asigna profesionales de la salud mental a los entornos operativos del Observatorio.</p>
+          <p className="text-xs text-gray-700 font-medium">Vincula cada profesional de la salud mental a un único entorno operativo del Observatorio.</p>
         </div>
         <button
           onClick={() => handleOpenModal()}
@@ -225,7 +229,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
                   Fecha Alta
                 </th>
                 <th scope="col" className="px-6 py-3.5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                  Áreas e Instituciones Vinculadas
+                  Institución Asignada
                 </th>
                 <th scope="col" className="px-6 py-3.5 text-right text-xs font-bold text-gray-600 uppercase tracking-wider">
                   Acciones
@@ -272,35 +276,38 @@ export const AsignacionPsicologos = ({ instituciones }) => {
                       {formatearFecha(psico.created_at)}
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      <div className="flex flex-wrap gap-2">
-                        {instituciones.length === 0 ? (
-                          <span className="text-xs text-gray-400 italic">No existen instituciones base configuradas</span>
-                        ) : (
-                          instituciones.map((inst) => {
-                            const estaAsignado = asignaciones.some(
-                              a => a.psicologo_id === psico.id && a.institucion_id === inst.id
-                            );
-                            const isProcessing = procesandoId === `${psico.id}-${inst.id}`;
+                      {instituciones.length === 0 ? (
+                        <span className="text-xs text-gray-400 italic">No existen instituciones base configuradas</span>
+                      ) : (
+                        (() => {
+                          const asignacionActual = asignaciones.find((a) => a.psicologo_id === psico.id);
+                          const isProcessing = procesandoId === psico.id;
 
-                            return (
-                              <button
-                                key={inst.id}
-                                disabled={isProcessing}
-                                onClick={() => handleToggleAsignacion(psico.id, inst.id, estaAsignado)}
-                                className={`px-3 py-1.5 text-xs font-bold rounded-md border transition-colors shadow-sm ${
-                                  isProcessing ? 'opacity-40 cursor-not-allowed' : ''
-                                } ${
-                                  estaAsignado
-                                    ? 'bg-violet-400 text-white border-orange-800 hover:bg-orange-800'
-                                    : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50 hover:text-gray-800'
-                                }`}
-                              >
-                                {inst.nombre} {estaAsignado ? '✓' : '+'}
-                              </button>
-                            );
-                          })
-                        )}
-                      </div>
+                          return (
+                            <select
+                              value={asignacionActual?.institucion_id || ''}
+                              disabled={isProcessing}
+                              onChange={(e) => handleCambiarInstitucion(psico.id, e.target.value)}
+                              className={`w-full max-w-xs px-3 py-2 text-xs font-bold rounded-md border shadow-sm outline-none transition-colors focus:ring-2 focus:ring-violet-400 focus:border-violet-400 ${
+                                isProcessing ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
+                              } ${
+                                asignacionActual
+                                  ? 'bg-violet-400 text-white border-orange-800'
+                                  : 'bg-white text-gray-600 border-gray-300'
+                              }`}
+                            >
+                              <option value="" className="bg-white text-gray-600">
+                                Sin institución asignada
+                              </option>
+                              {instituciones.map((inst) => (
+                                <option key={inst.id} value={inst.id} className="bg-white text-gray-800">
+                                  {inst.nombre}
+                                </option>
+                              ))}
+                            </select>
+                          );
+                        })()
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                       <div className="flex justify-end gap-4">
@@ -340,7 +347,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
         titulo="¿Eliminar esta cuenta?"
         mensaje={
           psicologoAEliminar
-            ? `Se eliminará permanentemente la cuenta de ${psicologoAEliminar.email} y todas sus asignaciones a instituciones. Esta acción no se puede deshacer.`
+            ? `Se eliminará permanentemente la cuenta de ${psicologoAEliminar.email} y su vínculo con la institución asignada. Esta acción no se puede deshacer.`
             : ''
         }
         onConfirm={confirmarEliminarPsicologo}
