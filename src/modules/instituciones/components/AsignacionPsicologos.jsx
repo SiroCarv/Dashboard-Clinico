@@ -34,6 +34,13 @@ export const AsignacionPsicologos = ({ instituciones }) => {
   // Psicólogo pendiente de confirmación de borrado (reemplaza window.confirm)
   const [psicologoAEliminar, setPsicologoAEliminar] = useState(null);
 
+  // Cambio de institución pendiente de confirmar (SCRUM-49, criterio 3):
+  // reemplazar la institución de un psicólogo que ya tenía otra asignada
+  // exige aviso explícito antes de ejecutarlo. Asignar por primera vez o
+  // quitar la institución (dejarlo "Sin institución asignada") no pasa
+  // por acá, se ejecuta directo.
+  const [cambioPendiente, setCambioPendiente] = useState(null);
+
   // Solo hace las llamadas a Supabase, sin tocar ningún estado. La comparte
   // cargarDatos() (para los handlers) y el efecto de montaje de abajo, cada
   // uno con su propio manejo de estado alrededor.
@@ -86,11 +93,9 @@ export const AsignacionPsicologos = ({ instituciones }) => {
     };
   }, []);
 
-  // Un solo selector por fila: institucionIdSeleccionado === '' significa
-  // "Sin institución asignada" (desasignar). Cualquier otro valor
-  // reemplaza la institución actual del psicólogo, sin importar si ya
-  // tenía una — psicologoInstitucionService.asignar() ya se encarga de
-  // borrar la anterior antes de insertar la nueva.
+  // Ejecuta el reemplazo/desasignación real. Nunca se llama directo desde
+  // el <select> — pasa siempre por handleSeleccionInstitucion, que decide
+  // si hace falta confirmación previa.
   const handleCambiarInstitucion = async (psicologoId, institucionIdSeleccionado) => {
     try {
       setProcesandoId(psicologoId);
@@ -106,6 +111,34 @@ export const AsignacionPsicologos = ({ instituciones }) => {
     } finally {
       setProcesandoId(null);
     }
+  };
+
+  // Decide si el cambio elegido en el <select> necesita confirmación
+  // antes de ejecutarse. Solo la necesita el caso que pide SCRUM-49: el
+  // psicólogo ya tenía una institución distinta a la elegida. Asignar por
+  // primera vez o dejarlo sin institución se ejecuta directo.
+  const handleSeleccionInstitucion = (psicologo, institucionIdSeleccionado) => {
+    const asignacionActual = asignaciones.find((a) => a.psicologo_id === psicologo.id);
+    const yaTeniaOtraInstitucion =
+      asignacionActual && institucionIdSeleccionado && institucionIdSeleccionado !== asignacionActual.institucion_id;
+
+    if (!yaTeniaOtraInstitucion) {
+      handleCambiarInstitucion(psicologo.id, institucionIdSeleccionado);
+      return;
+    }
+
+    setCambioPendiente({
+      psicologoId: psicologo.id,
+      institucionIdNueva: institucionIdSeleccionado,
+      nombrePsicologo: psicologo.nombre || psicologo.email,
+      nombreInstitucionActual: instituciones.find((i) => i.id === asignacionActual.institucion_id)?.nombre || '—',
+      nombreInstitucionNueva: instituciones.find((i) => i.id === institucionIdSeleccionado)?.nombre || '—',
+    });
+  };
+
+  const confirmarCambioInstitucion = async () => {
+    await handleCambiarInstitucion(cambioPendiente.psicologoId, cambioPendiente.institucionIdNueva);
+    setCambioPendiente(null);
   };
 
   const handleOpenModal = (psicologo = null) => {
@@ -287,7 +320,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
                             <select
                               value={asignacionActual?.institucion_id || ''}
                               disabled={isProcessing}
-                              onChange={(e) => handleCambiarInstitucion(psico.id, e.target.value)}
+                              onChange={(e) => handleSeleccionInstitucion(psico, e.target.value)}
                               className={`w-full max-w-xs px-3 py-2 text-xs font-bold rounded-md border shadow-sm outline-none transition-colors focus:ring-2 focus:ring-violet-400 focus:border-violet-400 ${
                                 isProcessing ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
                               } ${
@@ -339,6 +372,21 @@ export const AsignacionPsicologos = ({ instituciones }) => {
         onClose={handleCloseModal}
         onSave={handleSave}
         psicologoEditado={psicologoEnEdicion}
+      />
+
+      {/* Confirmación de reemplazo de institución (SCRUM-49, criterio 3) */}
+      <ModalConfirmacion
+        isOpen={!!cambioPendiente}
+        titulo="¿Reemplazar institución asignada?"
+        mensaje={
+          cambioPendiente
+            ? `${cambioPendiente.nombrePsicologo} ya está vinculado a "${cambioPendiente.nombreInstitucionActual}". Al confirmar, pasará a "${cambioPendiente.nombreInstitucionNueva}" y perderá el acceso a los pacientes de la institución anterior.`
+            : ''
+        }
+        textoConfirmar="Reemplazar"
+        textoCargando="Reemplazando..."
+        onConfirm={confirmarCambioInstitucion}
+        onCancel={() => setCambioPendiente(null)}
       />
 
       {/* Confirmación de borrado de psicólogo */}

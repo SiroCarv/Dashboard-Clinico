@@ -12,7 +12,7 @@
 //   - RutaPublica: pantallas de acceso libre (Login, Registro...); si ya
 //     hay sesión activa, redirige lejos de ellas.
 //   - RutaProtegida: pantallas privadas; exige un `rolRequerido` exacto
-//     (paciente / psicologo / superadmin) o redirige.
+//     (paciente / psicologo / superadmin / docente) o redirige.
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 // --- MÓDULOS ---
@@ -31,6 +31,8 @@ import Dashboard from './modules/dashboard_clinico/pages/Dashboard';
 import InformeConsolidado from './modules/dashboard_clinico/pages/InformeConsolidado';
 // Instituciones
 import PanelMaestro from './modules/instituciones/pages/PanelMaestro';
+// Casos de Docente (SCRUM-51)
+import { RegistroCasoDocente } from './modules/casos_docente';
 // --- CORE ---
 import RutaProtegida from './core/security/RutaProtegida';
 import RutaPublica from './core/security/RutaPublica';
@@ -97,6 +99,18 @@ function App() {
           element={
             <RutaProtegida rolRequerido="superadmin">
               <PanelMaestro />
+            </RutaProtegida>
+          } 
+        />
+
+        {/* Registro de caso por Docente (SCRUM-51): el docente completa
+            el cuestionario a nombre de un alumno de su institución y
+            elige qué psicólogo lo revisará. */}
+        <Route 
+          path="/registro-caso" 
+          element={
+            <RutaProtegida rolRequerido="docente">
+              <RegistroCasoDocente />
             </RutaProtegida>
           } 
         />

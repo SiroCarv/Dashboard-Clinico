@@ -21,4 +21,5 @@ export const RUTA_POR_DEFECTO = {
   psicologo: '/dashboard',
   superadmin: '/panel-maestro',
   paciente: '/encuesta',
+  docente: '/registro-caso',
 };
