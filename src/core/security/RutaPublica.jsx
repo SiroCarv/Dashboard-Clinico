@@ -1,5 +1,5 @@
 // Guardián inverso a RutaProtegida: envuelve las pantallas PÚBLICAS
-// (Login, Registro, RecuperarPassword, Home) para que alguien que YA
+// (Login, Registro, RecuperarPassword) para que alguien que YA
 // tiene una sesión válida no se quede viéndolas — sea porque escribió la
 // URL a mano, volvió por un bookmark, o usó el botón "Atrás" del
 // navegador sin haber cerrado sesión antes.

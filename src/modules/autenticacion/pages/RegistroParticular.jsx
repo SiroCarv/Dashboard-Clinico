@@ -204,7 +204,7 @@ export default function RegistroParticular() {
             ← Atrás
           </Link>
           <Link
-            to="/"
+            to="/login"
             className="text-gray-500 hover:text-orange-700 transition-colors inline-flex items-center gap-1"
           >
             Volver al inicio

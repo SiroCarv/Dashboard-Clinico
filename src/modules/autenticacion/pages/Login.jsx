@@ -160,15 +160,6 @@ export default function Login() {
       )}
 
       <div className="relative z-10 max-w-md w-full bg-white p-8 border-t-8 border-violet-400 rounded-lg shadow-xl">
-        <div className="mb-4">
-          <Link
-            to="/"
-            className="text-sm font-bold text-gray-500 hover:text-orange-700 transition-colors inline-flex items-center gap-1"
-          >
-            ← Volver al inicio
-          </Link>
-        </div>
-
         <div className="text-center mb-8">
           <img 
             src={logo} 

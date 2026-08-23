@@ -1,9 +1,13 @@
-// Pantalla intermedia entre Login y los dos flujos de registro (SCRUM-33).
-// Antes había un único /registro; ahora primero se pregunta el tipo de
-// perfil, para que un Consultante particular no tenga que ver ni intentar
-// llenar los campos de curso/paralelo/turno que solo aplican a estudiantes.
-//   "Soy estudiante de colegio"  -> /registro (código de institución)
-//   "Soy Consultante"            -> /registro-particular
+// Pantalla intermedia entre Login y los dos flujos de registro (SCRUM-33,
+// actualizada en SCRUM-46). El rol Consultante particular fue retirado
+// del sistema y reemplazado por Docente — ver SCRUM-46/47/48.
+//   "Soy estudiante"  -> /registro (código de institución)
+//   "Soy docente"      -> /registro-docente (código de institución)
+//
+// OJO: "/registro-docente" todavía no está declarada en App.jsx — se
+// agrega recién en SCRUM-47, que construye esa pantalla. Hasta entonces
+// el botón navega a una ruta sin match (pantalla en blanco), a propósito,
+// porque las historias se están haciendo en orden.
 import { useNavigate, Link } from 'react-router-dom';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
@@ -24,7 +28,7 @@ export default function Bienvenida() {
 
         <div className="mb-4">
           <Link
-            to="/"
+            to="/login"
             className="text-sm font-bold text-gray-500 hover:text-orange-700 transition-colors inline-flex items-center gap-1"
           >
             ← Volver atrás
@@ -41,14 +45,14 @@ export default function Bienvenida() {
             onClick={() => navigate('/registro')}
             className="w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide bg-orange-700 hover:bg-orange-800"
           >
-            Soy estudiante de colegio
+            Soy estudiante
           </button>
           <button
             type="button"
-            onClick={() => navigate('/registro-particular')}
+            onClick={() => navigate('/registro-docente')}
             className="w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide bg-orange-700 hover:bg-orange-800"
           >
-            Soy Consultante
+            Soy docente
           </button>
         </div>
 

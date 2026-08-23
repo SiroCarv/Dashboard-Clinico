@@ -7,15 +7,13 @@
 //   - GuardianDeSesion: cierra sesiones "abandonadas" (pestaña cerrada
 //     sin logout) antes de que se renderice cualquier ruta — excepto
 //     Inicio ("/"), que se muestra de inmediato mientras la verificación
-//     corre en segundo plano (no hay nada privado que "flashear" ahí).
+//     corre en segundo plano (no hay nada que "flashear": es solo un
+//     redirect a /login, sin contenido propio — ver SCRUM-46).
 //   - RutaPublica: pantallas de acceso libre (Login, Registro...); si ya
-//     hay sesión activa, redirige lejos de ellas. Inicio ("/") queda
-//     fuera de esta capa a propósito: es la única pantalla que debe
-//     verse siempre de inmediato, incluso para alguien con sesión activa
-//     (ver GuardianDeSesion.jsx).
+//     hay sesión activa, redirige lejos de ellas.
 //   - RutaProtegida: pantallas privadas; exige un `rolRequerido` exacto
 //     (paciente / psicologo / superadmin) o redirige.
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 // --- MÓDULOS ---
 // Autenticación
@@ -25,7 +23,6 @@ import Registro from './modules/autenticacion/pages/Registro';
 import RegistroParticular from './modules/autenticacion/pages/RegistroParticular';
 import RecuperarPassword from './modules/autenticacion/pages/RecuperarPassword';
 import RestablecerPassword from './modules/autenticacion/pages/RestablecerPassword';
-import { Home } from './modules/observatorio';
 
 // Evaluaciones
 import Encuesta from './modules/evaluaciones/pages/Encuesta';
@@ -43,7 +40,10 @@ function App() {
   return (
     <GuardianDeSesion>
       <Routes>
-        <Route path="/" element={<Home />} />
+        {/* SCRUM-46: "/" ya no tiene una landing propia (se retiró toda
+            la sección de imágenes/observatorio) — ahora entra directo
+            a Login, que queda como pantalla principal. */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<RutaPublica><Login /></RutaPublica>} />
 
         {/* SCRUM-33: pantalla de bienvenida + selector de perfil,
