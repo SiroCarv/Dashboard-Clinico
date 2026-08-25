@@ -30,11 +30,16 @@
 //      autenticarse con la contraseña vieja.
 //   3. Recién ahí se manda a /login para que entre con su contraseña
 //      nueva.
+// La contraseña se verifica en vivo (mismo patrón de debounce que el
+// código de institución en Registro.jsx) contra bases de datos de
+// contraseñas filtradas — ver useVerificacionPasswordFiltrada,
+// compartido con Registro.jsx y RegistroDocente.jsx.
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 import { esPasswordFiltrada } from '../services/passwordSecurityService';
+import { useVerificacionPasswordFiltrada } from '../hooks/useVerificacionPasswordFiltrada';
 
 export default function RestablecerPassword() {
   const [password, setPassword] = useState('');
@@ -53,14 +58,22 @@ export default function RestablecerPassword() {
 
   const contrasenasNoCoinciden = confirmarPassword.length > 0 && password !== confirmarPassword;
 
+  const { verificandoPassword, passwordFiltrada, passwordConfirmadaSinFiltrar } =
+    useVerificacionPasswordFiltrada(password);
+
   const manejarActualizacion = async (e) => {
     e.preventDefault();
     if (password !== confirmarPassword) return;
     setLoading(true);
 
-    // Alternativa a la "Leaked Password Protection" nativa de Supabase
-    // (requiere plan Pro — ver Security Advisor). Corta la actualización
-    // antes de llamar a Supabase si la contraseña aparece filtrada.
+    // Red de seguridad final: el chequeo en vivo
+    // (useVerificacionPasswordFiltrada, mientras la persona escribía) ya
+    // debería haber mantenido el botón deshabilitado si la contraseña
+    // estaba filtrada. Se repite acá por si el envío ocurre antes de que
+    // esa verificación termine (autocompletado del navegador, Enter muy
+    // rápido, etc.). Sigue siendo la alternativa a la "Leaked Password
+    // Protection" nativa de Supabase (requiere plan Pro — ver Security
+    // Advisor).
     if (await esPasswordFiltrada(password)) {
       setErrorSubmit('Esta contraseña aparece en bases de datos de contraseñas filtradas. Por seguridad, elige una diferente.');
       setLoading(false);
@@ -145,7 +158,9 @@ export default function RestablecerPassword() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mínimo 6 caracteres"
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 pr-12"
+                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 pr-12 ${
+                  passwordConfirmadaSinFiltrar ? 'border-green-500 bg-green-50' : 'border-gray-300'
+                }`}
               />
               <button
                 type="button"
@@ -159,6 +174,20 @@ export default function RestablecerPassword() {
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 )}
               </button>
+            </div>
+            <div className="h-5 mt-1 text-xs">
+              {verificandoPassword ? (
+                <span className="text-gray-500 flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  Verificando contraseña...
+                </span>
+              ) : passwordFiltrada ? (
+                <span className="text-red-500 font-semibold">❌ Esta contraseña está filtrada. Elige otra.</span>
+              ) : passwordConfirmadaSinFiltrar ? (
+                <span className="text-green-600 font-semibold">✓ No aparece en bases de datos filtradas</span>
+              ) : (
+                <span className="text-gray-400">Evita contraseñas muy comunes o ya usadas en otros sitios.</span>
+              )}
             </div>
           </div>
           
@@ -200,9 +229,9 @@ export default function RestablecerPassword() {
           
           <button
             type="submit"
-            disabled={loading || contrasenasNoCoinciden || password.length === 0}
+            disabled={loading || contrasenasNoCoinciden || password.length === 0 || verificandoPassword || passwordFiltrada}
             className={`w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide flex justify-center items-center ${
-              (loading || contrasenasNoCoinciden || password.length === 0) 
+              (loading || contrasenasNoCoinciden || password.length === 0 || verificandoPassword || passwordFiltrada) 
                 ? 'bg-gray-400 cursor-not-allowed' 
                 : 'bg-orange-700 hover:bg-orange-800'
             }`}

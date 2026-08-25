@@ -15,11 +15,17 @@
 // historia futura. Login.jsx ya contempla ese caso mostrando "Tu cuenta
 // no tiene un rol válido asignado" en vez de fallar en silencio, así
 // que no es un bug de esta entrega.
+//
+// La contraseña se verifica en vivo (mismo patrón de debounce que el
+// código de institución) contra bases de datos de contraseñas
+// filtradas — ver useVerificacionPasswordFiltrada, compartido con
+// Registro.jsx y RestablecerPassword.jsx.
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 import { esPasswordFiltrada } from '../services/passwordSecurityService';
+import { useVerificacionPasswordFiltrada } from '../hooks/useVerificacionPasswordFiltrada';
 
 export default function RegistroDocente() {
   const [codigoIngresado, setCodigoIngresado] = useState('');
@@ -36,6 +42,9 @@ export default function RegistroDocente() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+
+  const { verificandoPassword, passwordFiltrada, passwordConfirmadaSinFiltrar } =
+    useVerificacionPasswordFiltrada(password);
 
   // Verificación en vivo del código de institución: espera 500ms desde
   // la última tecla, igual que Registro.jsx (sin el caso especial de
@@ -109,9 +118,14 @@ export default function RegistroDocente() {
       return;
     }
 
-    // Alternativa a la "Leaked Password Protection" nativa de Supabase
-    // (requiere plan Pro — ver Security Advisor). Corta el registro
-    // antes de llamar a Supabase si la contraseña aparece filtrada.
+    // Red de seguridad final: el chequeo en vivo
+    // (useVerificacionPasswordFiltrada, mientras la persona escribía) ya
+    // debería haber mantenido el botón deshabilitado si la contraseña
+    // estaba filtrada. Se repite acá por si el envío ocurre antes de que
+    // esa verificación termine (autocompletado del navegador, Enter muy
+    // rápido, etc.). Sigue siendo la alternativa a la "Leaked Password
+    // Protection" nativa de Supabase (requiere plan Pro — ver Security
+    // Advisor).
     if (await esPasswordFiltrada(password)) {
       setError('Esta contraseña aparece en bases de datos de contraseñas filtradas. Por seguridad, elige una diferente.');
       setLoading(false);
@@ -268,7 +282,9 @@ export default function RegistroDocente() {
                 required
                 disabled={!institucion}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 pr-12 disabled:bg-gray-100"
+                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 pr-12 disabled:bg-gray-100 ${
+                  passwordConfirmadaSinFiltrar ? 'border-green-500 bg-green-50' : 'border-gray-300'
+                }`}
               />
               <button
                 type="button"
@@ -283,6 +299,20 @@ export default function RegistroDocente() {
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
                 )}
               </button>
+            </div>
+            <div className="h-5 mt-1 text-xs">
+              {verificandoPassword ? (
+                <span className="text-gray-500 flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  Verificando contraseña...
+                </span>
+              ) : passwordFiltrada ? (
+                <span className="text-red-500 font-semibold">❌ Esta contraseña está filtrada. Elige otra.</span>
+              ) : passwordConfirmadaSinFiltrar ? (
+                <span className="text-green-600 font-semibold">✓ No aparece en bases de datos filtradas</span>
+              ) : (
+                <span className="text-gray-400">Evita contraseñas muy comunes o ya usadas en otros sitios.</span>
+              )}
             </div>
           </div>
 
@@ -323,9 +353,11 @@ export default function RegistroDocente() {
 
           <button
             type="submit"
-            disabled={loading || !institucion}
+            disabled={loading || !institucion || verificandoPassword || passwordFiltrada}
             className={`w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide flex justify-center items-center ${
-              loading || !institucion ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-700 hover:bg-orange-800'
+              loading || !institucion || verificandoPassword || passwordFiltrada
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-orange-700 hover:bg-orange-800'
             }`}
           >
             {loading ? (
