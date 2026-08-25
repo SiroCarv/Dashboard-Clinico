@@ -6,11 +6,30 @@
 // `auth.updateUser({ password })` pero sin ser una sesión real de
 // aplicación.
 //
-// Por eso, después de guardar la nueva contraseña, se hace
-// `auth.signOut()` explícito: si no se cerrara esa sesión oculta, la
-// persona quedaría "logueada a medias" y GuardianDeSesion o RutaPublica
-// podrían comportarse de forma inesperada en la siguiente navegación.
-// Recién ahí se manda a /login para que entre con su contraseña nueva.
+// Historia "Cierre de sesiones antiguas al cambiar contraseña": una vez
+// guardada la nueva contraseña, hay que dejar afuera cualquier otro
+// dispositivo donde la cuenta siguiera con sesión abierta. El orden de
+// los siguientes pasos importa:
+//
+//   1. `cerrar_sesion_unica()` — libera el candado de "sesión única"
+//      (historia SCRUM-41) de ESTA cuenta. Se hace ANTES de cerrar la
+//      sesión oculta porque la función necesita `auth.uid()` para saber
+//      a quién liberar (mismo orden que en `authService.cerrarSesion`).
+//      Si no se hiciera esto, la persona podría quedar bloqueada al
+//      intentar loguearse con su contraseña nueva, viendo el mensaje
+//      "Esta cuenta ya tiene una sesión activa" si algún otro
+//      dispositivo había dejado el candado puesto hace menos de 12 horas.
+//   2. `auth.signOut({ scope: 'global' })` — se deja el scope explícito
+//      a propósito (en vez de confiar en el default de la librería) para
+//      que quede documentado que esto es lo que realmente cierra la
+//      cuenta en TODOS los dispositivos donde estuviera abierta, no solo
+//      en esta pestaña oculta. Ojo: los tokens de acceso que esos otros
+//      dispositivos ya tengan en memoria siguen siendo válidos hasta que
+//      expiren por su cuenta (Supabase no permite invalidarlos al
+//      instante) — pero ya no van a poder renovar la sesión ni volver a
+//      autenticarse con la contraseña vieja.
+//   3. Recién ahí se manda a /login para que entre con su contraseña
+//      nueva.
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
@@ -54,9 +73,23 @@ export default function RestablecerPassword() {
       setErrorSubmit('Error al actualizar. El enlace podría haber caducado.');
       setLoading(false);
     } else {
-      // Cerramos la sesión "oculta" que abre Supabase con el enlace del
-      // correo, para no dejar a la persona logueada a medias.
-      await supabase.auth.signOut();
+      // Libera el candado de "sesión única" de esta cuenta ANTES de
+      // cerrar la sesión oculta (mientras `auth.uid()` todavía resuelve
+      // quién es). Si esto llegara a fallar, no cortamos el flujo: es
+      // preferible que la persona pueda entrar con su contraseña nueva
+      // y, en el peor caso, tenga que esperar el timeout de 12 horas de
+      // la sesión única, a que quede trabada en mitad del
+      // restablecimiento por el error de un paso secundario.
+      try {
+        await supabase.rpc('cerrar_sesion_unica');
+      } catch (err) {
+        console.error('No se pudo liberar la sesión única al restablecer la contraseña:', err.message);
+      }
+
+      // scope: 'global' explícito (ver comentario de cabecera): cierra
+      // esta sesión oculta Y revoca la cuenta en cualquier otro
+      // dispositivo donde siguiera abierta.
+      await supabase.auth.signOut({ scope: 'global' });
       
       navigate('/login', { 
         state: { mensajeRegistro: '¡Contraseña actualizada exitosamente! Ya puedes iniciar sesión.' } 
