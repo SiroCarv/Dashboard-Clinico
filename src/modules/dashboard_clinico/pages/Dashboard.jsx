@@ -1,6 +1,7 @@
 // Panel principal del psicólogo: panel de indicadores (cuántas personas
 // completaron cada formulario, con filtros por perfil) + listado de
-// pacientes con búsqueda por nombre/correo, filtro por institución y
+// pacientes con búsqueda por nombre/correo, filtro por institución,
+// filtro por tipo de persona (Estudiante/Docente — SCRUM-53) y
 // exportación a Excel.
 //
 // El Dashboard dejó de tener 2 pestañas (Clima de Aula/GSHS + "Historial
@@ -26,11 +27,20 @@ import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
 const FILTRO_INSTITUCION_TODAS = 'todas';
 
+// Opciones del filtro "tipo de persona" (SCRUM-53): distinguen quién
+// originó el registro (autoenvío del estudiante vs. caso registrado por
+// un docente en su nombre). Los valores coinciden exactamente con
+// `tipoPersona` tal como lo devuelve pacientesService.js.
+const FILTRO_TIPO_PERSONA_TODOS = 'todos';
+const FILTRO_TIPO_PERSONA_ESTUDIANTE = 'estudiante';
+const FILTRO_TIPO_PERSONA_DOCENTE = 'docente';
+
 export default function Dashboard() {
   const { pacientes, loading, error } = useListaPacientes();
   const resumen = useResumenFormularios(pacientes);
   const [busqueda, setBusqueda] = useState('');
   const [filtroInstitucion, setFiltroInstitucion] = useState(FILTRO_INSTITUCION_TODAS);
+  const [filtroTipoPersona, setFiltroTipoPersona] = useState(FILTRO_TIPO_PERSONA_TODOS);
   const [exportando, setExportando] = useState(false);
 
   // Instituciones únicas derivadas de los pacientes ya cargados: no se
@@ -54,16 +64,27 @@ export default function Dashboard() {
         p.nombre?.toLowerCase().includes(texto) ||
         p.email?.toLowerCase().includes(texto);
 
-      return coincideInstitucion && coincideBusqueda;
+      // Sin filtro: se ve todo, sin distinción (criterio de aceptación
+      // SCRUM-53). Con un filtro específico elegido: una persona sin
+      // ninguna evaluación (`tipoPersona === null`) no coincide con
+      // ninguna opción, así que queda fuera de ambos — no es "un
+      // registro de estudiante" ni "un registro hecho por un docente".
+      const coincideTipoPersona =
+        filtroTipoPersona === FILTRO_TIPO_PERSONA_TODOS || p.tipoPersona === filtroTipoPersona;
+
+      return coincideInstitucion && coincideBusqueda && coincideTipoPersona;
     });
-  }, [pacientes, busqueda, filtroInstitucion]);
+  }, [pacientes, busqueda, filtroInstitucion, filtroTipoPersona]);
 
   const hayFiltrosActivos =
-    busqueda.trim() !== '' || filtroInstitucion !== FILTRO_INSTITUCION_TODAS;
+    busqueda.trim() !== '' ||
+    filtroInstitucion !== FILTRO_INSTITUCION_TODAS ||
+    filtroTipoPersona !== FILTRO_TIPO_PERSONA_TODOS;
 
   const limpiarFiltros = () => {
     setBusqueda('');
     setFiltroInstitucion(FILTRO_INSTITUCION_TODAS);
+    setFiltroTipoPersona(FILTRO_TIPO_PERSONA_TODOS);
   };
 
   // Recibe `pacientesFiltrados` -no `pacientes`- a propósito: el archivo
@@ -152,6 +173,16 @@ export default function Dashboard() {
                 ))}
               </select>
             )}
+
+            <select
+              value={filtroTipoPersona}
+              onChange={(e) => setFiltroTipoPersona(e.target.value)}
+              className="px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
+            >
+              <option value={FILTRO_TIPO_PERSONA_TODOS}>Todos los tipos</option>
+              <option value={FILTRO_TIPO_PERSONA_ESTUDIANTE}>Estudiante</option>
+              <option value={FILTRO_TIPO_PERSONA_DOCENTE}>Docente</option>
+            </select>
 
             <button
               type="button"
