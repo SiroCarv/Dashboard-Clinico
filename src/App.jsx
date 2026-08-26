@@ -31,6 +31,7 @@ import Dashboard from './modules/dashboard_clinico/pages/Dashboard';
 import InformeConsolidado from './modules/dashboard_clinico/pages/InformeConsolidado';
 // Instituciones
 import PanelMaestro from './modules/instituciones/pages/PanelMaestro';
+import PanelConsolidadoSuperadmin from './modules/dashboard_clinico/pages/PanelConsolidadoSuperadmin';
 // Casos de Docente (SCRUM-51)
 import { RegistroCasoDocente } from './modules/casos_docente';
 // --- CORE ---
@@ -99,6 +100,20 @@ function App() {
           element={
             <RutaProtegida rolRequerido="superadmin">
               <PanelMaestro />
+            </RutaProtegida>
+          } 
+        />
+
+        {/* Panel Consolidado de Resultados (SCRUM-56): resultados de
+            evaluaciones de todas las instituciones y psicólogos, con
+            filtros. Vive en dashboard_clinico porque es la misma épica
+            "Monitoreo y Alertas" que ya cubre el Dashboard del
+            psicólogo, solo que sin restringir por institución. */}
+        <Route 
+          path="/panel-resultados" 
+          element={
+            <RutaProtegida rolRequerido="superadmin">
+              <PanelConsolidadoSuperadmin />
             </RutaProtegida>
           } 
         />

@@ -4,6 +4,7 @@
 // `instituciones` cargada acá arriba (AsignacionPsicologos la necesita
 // para poder asignar psicólogos a cada una).
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { institucionesService } from '../services/institucionesService';
 import { InstitucionList } from '../components/InstitucionList';
 import { InstitucionModal } from '../components/InstitucionModal';
@@ -133,7 +134,19 @@ export default function PanelMaestro() {
             <h1 className="text-3xl font-extrabold text-black">Panel Maestro</h1>
             <p className="text-gray-700 mt-2 font-semibold">Gestión administrativa de instituciones y códigos de acceso.</p>
           </div>
-          <BotonCerrarSesion />
+          <div className="flex items-center gap-3">
+            {/* Panel Consolidado de Resultados (SCRUM-56): pantalla
+                separada, no una pestaña más acá, porque lista
+                resultados de evaluaciones (otro tipo de dato) en vez de
+                instituciones/psicólogos. */}
+            <Link
+              to="/panel-resultados"
+              className={`border px-4 py-2.5 rounded-md font-bold text-sm shadow-sm transition-colors hover:bg-orange-100 ${COLOR_MARCA.naranja.suave}`}
+            >
+              Ver resultados
+            </Link>
+            <BotonCerrarSesion />
+          </div>
         </div>
 
         {/* Pestañas: acento único en naranja oscuro (COLOR_MARCA.naranja) —
