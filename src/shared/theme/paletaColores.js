@@ -7,11 +7,14 @@
 // Reglas de uso (acordadas con el cliente):
 // 1. La app usa 2 colores de marca activos: violeta claro (COLOR_MARCA.
 //    violetaSuave) y naranja oscuro (COLOR_MARCA.naranja) — franjas de
-//    tarjetas, botones primarios, links y acentos en general. tealAzulado
-//    y verdeMenta quedan reservados para diferenciar visualmente los
-//    instrumentos clínicos entre sí (Clima de Aula / GSHS) dentro de la
-//    Encuesta y el Informe Consolidado — no se usan como acento de marca
-//    general en el resto de la app.
+//    tarjetas, botones primarios, links y acentos en general. tealAzulado,
+//    verdeMenta, celeste, indigo y fucsia quedan reservados para
+//    diferenciar visualmente los instrumentos clínicos entre sí (Clima de
+//    Aula / GSHS / Estrés / Ansiedad / Depresión) dentro de la Encuesta y
+//    el Informe Consolidado — no se usan como acento de marca general en
+//    el resto de la app. Los 3 últimos se sumaron en SCRUM-54 (migración
+//    de formularios del Observatorio) y son tonos nuevos que no pisan
+//    ningún acento existente.
 // 2. Rojo y amarillo quedan reservados EXCLUSIVAMENTE para indicar
 //    severidad o riesgo clínico (diagnóstico, alertas). No deben usarse
 //    como acento de marca, botón genérico ni elemento puramente visual.
@@ -64,6 +67,34 @@ export const COLOR_MARCA = {
     botonPrimario: 'bg-violet-400 hover:bg-violet-500 text-white',
     suave: 'bg-violet-50 text-violet-700 border-violet-200',
     accent: 'accent-violet-400',
+  },
+  // Los siguientes 3 se agregaron en SCRUM-54 para las pestañas de Estrés,
+  // Ansiedad y Depresión migradas del Observatorio — mismo criterio que
+  // tealAzulado/verdeMenta: solo identifican instrumentos, nunca se usan
+  // como acento de marca general.
+  celeste: {
+    franja: 'border-sky-500',
+    tabActivo: 'border-sky-500 text-sky-600',
+    tituloSeccion: 'text-sky-600',
+    botonPrimario: 'bg-sky-500 hover:bg-sky-600 text-white',
+    suave: 'bg-sky-50 text-sky-700 border-sky-200',
+    accent: 'accent-sky-500',
+  },
+  indigo: {
+    franja: 'border-indigo-500',
+    tabActivo: 'border-indigo-500 text-indigo-600',
+    tituloSeccion: 'text-indigo-600',
+    botonPrimario: 'bg-indigo-500 hover:bg-indigo-600 text-white',
+    suave: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    accent: 'accent-indigo-500',
+  },
+  fucsia: {
+    franja: 'border-fuchsia-500',
+    tabActivo: 'border-fuchsia-500 text-fuchsia-600',
+    tituloSeccion: 'text-fuchsia-600',
+    botonPrimario: 'bg-fuchsia-500 hover:bg-fuchsia-600 text-white',
+    suave: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200',
+    accent: 'accent-fuchsia-500',
   },
 };
 

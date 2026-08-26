@@ -26,6 +26,9 @@ import ConsentimientoDenegado from '../components/consentimiento/ConsentimientoD
 import { useConsentimiento } from '../hooks/useConsentimiento';
 import { INSTRUMENTO_CLIMA_AULA } from '../data/climaAulaData';
 import { INSTRUMENTO_GSHS } from '../data/gshsData';
+import { INSTRUMENTO_ESTRES } from '../data/estresData';
+import { INSTRUMENTO_ANSIEDAD } from '../data/ansiedadData';
+import { INSTRUMENTO_DEPRESION } from '../data/depresionData';
 import { INFO_INSTRUMENTO } from '../data/infoInstrumentos';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
@@ -47,6 +50,28 @@ const TABS = [
     etiqueta: 'GSHS',
     instrumento: INSTRUMENTO_GSHS,
     acento: COLOR_MARCA.verdeMenta,
+  },
+  // Migrados desde el Observatorio de Salud Mental (SCRUM-54).
+  {
+    id: 'estres',
+    tipoInstrumento: 'ESTRES',
+    etiqueta: 'Estrés',
+    instrumento: INSTRUMENTO_ESTRES,
+    acento: COLOR_MARCA.celeste,
+  },
+  {
+    id: 'ansiedad',
+    tipoInstrumento: 'ANSIEDAD',
+    etiqueta: 'Ansiedad',
+    instrumento: INSTRUMENTO_ANSIEDAD,
+    acento: COLOR_MARCA.indigo,
+  },
+  {
+    id: 'depresion',
+    tipoInstrumento: 'DEPRESION',
+    etiqueta: 'Depresión',
+    instrumento: INSTRUMENTO_DEPRESION,
+    acento: COLOR_MARCA.fucsia,
   },
 ];
 

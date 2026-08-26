@@ -20,4 +20,26 @@ export const INFO_INSTRUMENTO = {
     deQueTrata:
       'Preguntas de opción múltiple organizadas en varios módulos cortos: datos generales, hábitos de salud y bienestar emocional, entre otros.',
   },
+  // Los 3 siguientes fueron migrados desde el Observatorio de Salud Mental
+  // (SCRUM-54). Tiempos estimados en base a la cantidad de ítems de cada
+  // uno, mismo criterio que clima_aula/gshs — pendientes de que el
+  // responsable clínico los confirme o ajuste.
+  estres: {
+    tiempoEstimado: '5 a 7 minutos',
+    objetivo:
+      'Conocer cómo has percibido tus niveles de estrés durante el último mes, para identificar a tiempo si necesitas apoyo.',
+    deQueTrata: '14 preguntas sobre tus sentimientos y pensamientos del último mes, respondidas según su frecuencia.',
+  },
+  ansiedad: {
+    tiempoEstimado: '5 a 8 minutos',
+    objetivo:
+      'Conocer cuánto te han molestado distintos síntomas de ansiedad durante la última semana.',
+    deQueTrata: '21 síntomas comunes de la ansiedad, cada uno calificado según cuánto te ha molestado.',
+  },
+  depresion: {
+    tiempoEstimado: '8 a 12 minutos',
+    objetivo:
+      'Conocer cómo te has sentido durante las últimas dos semanas, para identificar a tiempo si necesitas apoyo.',
+    deQueTrata: '21 grupos de frases; en cada uno eliges la que mejor describe cómo te has sentido.',
+  },
 };
