@@ -1,8 +1,8 @@
 // Panel principal del psicólogo: panel de indicadores (cuántas personas
 // completaron cada formulario, con filtros por perfil) + listado de
 // pacientes con búsqueda por nombre/correo, filtro por institución,
-// filtro por tipo de persona (Estudiante/Docente — SCRUM-53) y
-// exportación a Excel.
+// filtro por tipo de persona (Estudiante/Docente — SCRUM-53), filtro por
+// curso/paralelo/turno (SCRUM-59) y exportación a Excel.
 //
 // El Dashboard dejó de tener 2 pestañas (Clima de Aula/GSHS + "Historial
 // anterior PHQ-9"). La pantalla de historial PHQ-9 y su ruta de detalle
@@ -13,7 +13,22 @@
 // indicadores de arriba usa su propio filtro independiente
 // (useResumenFormularios) — a propósito no comparte estado con el
 // buscador/filtro de la tabla de abajo: cuentan cosas distintas
-// (personas que cumplen un perfil, vs. filas visibles en la tabla).
+// (personas que cumplen un perfil, vs. filas visibles en la tabla). Por
+// eso curso/paralelo/turno se repiten acá como filtro propio de la
+// tabla, en vez de reutilizar los que ya calcula useResumenFormularios.
+//
+// Curso/paralelo/turno (SCRUM-59): las 3 opciones son listas fijas, no
+// derivadas de `pacientes` como hace useResumenFormularios — el criterio
+// de aceptación pide que las 6 opciones de curso, las 10 de paralelo (A
+// a la J) y las 2 de turno estén siempre disponibles, aunque hoy no haya
+// ningún estudiante matriculado en, por ejemplo, el paralelo "H". Los
+// valores de curso/turno coinciden exactamente con las opciones reales
+// de registro (autenticacion/pages/Registro.jsx: OPCIONES_CURSO/
+// OPCIONES_TURNO); paralelo es una decisión explícita del cliente para
+// que el filtro cubra el rango completo A-J aunque el registro real solo
+// permita A-F por ahora. Se duplican acá en vez de importarse desde
+// `autenticacion` (ningún módulo puede importar de otro) — mismo
+// criterio de duplicación consciente que ya usa gshsData.js.
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
@@ -36,12 +51,29 @@ const FILTRO_TIPO_PERSONA_TODOS = 'todos';
 const FILTRO_TIPO_PERSONA_ESTUDIANTE = 'estudiante';
 const FILTRO_TIPO_PERSONA_DOCENTE = 'docente';
 
+// SCRUM-59 — listas fijas (ver nota de cabecera sobre por qué no se
+// derivan de `pacientes` ni se importan de `autenticacion`).
+const FILTRO_ESCOLAR_TODOS = 'todos';
+const OPCIONES_CURSO = [
+  '1ro de Secundaria',
+  '2do de Secundaria',
+  '3ro de Secundaria',
+  '4to de Secundaria',
+  '5to de Secundaria',
+  '6to de Secundaria',
+];
+const OPCIONES_PARALELO = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+const OPCIONES_TURNO = ['Mañana', 'Tarde'];
+
 export default function Dashboard() {
   const { pacientes, loading, error } = useListaPacientes();
   const resumen = useResumenFormularios(pacientes);
   const [busqueda, setBusqueda] = useState('');
   const [filtroInstitucion, setFiltroInstitucion] = useState(FILTRO_INSTITUCION_TODAS);
   const [filtroTipoPersona, setFiltroTipoPersona] = useState(FILTRO_TIPO_PERSONA_TODOS);
+  const [filtroCurso, setFiltroCurso] = useState(FILTRO_ESCOLAR_TODOS);
+  const [filtroParalelo, setFiltroParalelo] = useState(FILTRO_ESCOLAR_TODOS);
+  const [filtroTurno, setFiltroTurno] = useState(FILTRO_ESCOLAR_TODOS);
   const [exportando, setExportando] = useState(false);
 
   // Instituciones únicas derivadas de los pacientes ya cargados: no se
@@ -73,19 +105,49 @@ export default function Dashboard() {
       const coincideTipoPersona =
         filtroTipoPersona === FILTRO_TIPO_PERSONA_TODOS || p.tipoPersona === filtroTipoPersona;
 
-      return coincideInstitucion && coincideBusqueda && coincideTipoPersona;
+      // SCRUM-59 — un Consultante particular (sin institución) nunca
+      // tiene curso/paralelo/turno, así que si el psicólogo elige un
+      // valor específico acá, esas filas quedan fuera sin necesidad de
+      // ningún caso especial: p.curso/paralelo/turno son `null` y nunca
+      // coinciden con un valor elegido.
+      const coincideCurso = filtroCurso === FILTRO_ESCOLAR_TODOS || p.curso === filtroCurso;
+      const coincideParalelo = filtroParalelo === FILTRO_ESCOLAR_TODOS || p.paralelo === filtroParalelo;
+      const coincideTurno = filtroTurno === FILTRO_ESCOLAR_TODOS || p.turno === filtroTurno;
+
+      return (
+        coincideInstitucion &&
+        coincideBusqueda &&
+        coincideTipoPersona &&
+        coincideCurso &&
+        coincideParalelo &&
+        coincideTurno
+      );
     });
-  }, [pacientes, busqueda, filtroInstitucion, filtroTipoPersona]);
+  }, [
+    pacientes,
+    busqueda,
+    filtroInstitucion,
+    filtroTipoPersona,
+    filtroCurso,
+    filtroParalelo,
+    filtroTurno,
+  ]);
 
   const hayFiltrosActivos =
     busqueda.trim() !== '' ||
     filtroInstitucion !== FILTRO_INSTITUCION_TODAS ||
-    filtroTipoPersona !== FILTRO_TIPO_PERSONA_TODOS;
+    filtroTipoPersona !== FILTRO_TIPO_PERSONA_TODOS ||
+    filtroCurso !== FILTRO_ESCOLAR_TODOS ||
+    filtroParalelo !== FILTRO_ESCOLAR_TODOS ||
+    filtroTurno !== FILTRO_ESCOLAR_TODOS;
 
   const limpiarFiltros = () => {
     setBusqueda('');
     setFiltroInstitucion(FILTRO_INSTITUCION_TODAS);
     setFiltroTipoPersona(FILTRO_TIPO_PERSONA_TODOS);
+    setFiltroCurso(FILTRO_ESCOLAR_TODOS);
+    setFiltroParalelo(FILTRO_ESCOLAR_TODOS);
+    setFiltroTurno(FILTRO_ESCOLAR_TODOS);
   };
 
   // Recibe `pacientesFiltrados` -no `pacientes`- a propósito: el archivo
@@ -192,6 +254,45 @@ export default function Dashboard() {
               <option value={FILTRO_TIPO_PERSONA_TODOS}>Todos los tipos</option>
               <option value={FILTRO_TIPO_PERSONA_ESTUDIANTE}>Estudiante</option>
               <option value={FILTRO_TIPO_PERSONA_DOCENTE}>Docente</option>
+            </select>
+
+            <select
+              value={filtroCurso}
+              onChange={(e) => setFiltroCurso(e.target.value)}
+              className="px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
+            >
+              <option value={FILTRO_ESCOLAR_TODOS}>Todos los cursos</option>
+              {OPCIONES_CURSO.map((opcion) => (
+                <option key={opcion} value={opcion}>
+                  {opcion}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={filtroParalelo}
+              onChange={(e) => setFiltroParalelo(e.target.value)}
+              className="px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
+            >
+              <option value={FILTRO_ESCOLAR_TODOS}>Todos los paralelos</option>
+              {OPCIONES_PARALELO.map((opcion) => (
+                <option key={opcion} value={opcion}>
+                  {opcion}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={filtroTurno}
+              onChange={(e) => setFiltroTurno(e.target.value)}
+              className="px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
+            >
+              <option value={FILTRO_ESCOLAR_TODOS}>Todos los turnos</option>
+              {OPCIONES_TURNO.map((opcion) => (
+                <option key={opcion} value={opcion}>
+                  {opcion}
+                </option>
+              ))}
             </select>
 
             <button
