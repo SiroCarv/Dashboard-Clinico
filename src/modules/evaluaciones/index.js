@@ -2,7 +2,7 @@
 // dashboard_clinico para el Informe Consolidado) solo pueden importar lo
 // que se exporta acá — nunca una ruta interna como
 // '../../evaluaciones/services/evaluacionesInstrumentoService'.
-export { INSTRUMENTO_CLIMA_AULA } from './data/climaAulaData';
+export { INSTRUMENTO_CLIMA_AULA, NIVELES_CLIMA_AULA } from './data/climaAulaData';
 export { INSTRUMENTO_GSHS } from './data/gshsData';
 
 // Consumido también por dashboard_clinico (Informe Consolidado,

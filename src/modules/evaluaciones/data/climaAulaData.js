@@ -17,6 +17,15 @@
 //   Total posible: 20 puntos.
 //   Interpretación: 17-20 Muy positivo · 13-16 Positivo · 9-12 Medianamente
 //   favorable · 5-8 Poco favorable · 0-4 Negativo.
+//
+// NIVELES_CLIMA_AULA (SCRUM-58) es la versión consumible de esa misma
+// interpretación: antes vivía solo en este comentario, y la Leyenda de
+// resultados (dashboard_clinico/components/LeyendaClimaAula.jsx) necesita
+// los 5 rangos como datos, no como texto. Si el trigger cambia de rangos,
+// actualizar acá también — son la misma regla de negocio en dos lugares
+// (base de datos y frontend) porque el cálculo real nunca puede vivir en
+// el cliente, pero la leyenda sí necesita conocer los rangos para
+// dibujarlos.
 
 const ITEMS_POR_DIMENSION = [
   {
@@ -59,6 +68,16 @@ const ITEMS_POR_DIMENSION = [
       { numero: 20, texto: 'Frecuentemente los/las estudiantes presentan a sus compañeros/as algunos trabajos.' },
     ],
   },
+];
+
+// Orden de mayor a menor puntaje a propósito: es el orden en que se
+// dibuja la Leyenda de resultados (SCRUM-58), de "mejor" clima a "peor".
+export const NIVELES_CLIMA_AULA = [
+  { categoria: 'Muy positivo', puntajeMinimo: 17, puntajeMaximo: 20 },
+  { categoria: 'Positivo', puntajeMinimo: 13, puntajeMaximo: 16 },
+  { categoria: 'Medianamente favorable', puntajeMinimo: 9, puntajeMaximo: 12 },
+  { categoria: 'Poco favorable', puntajeMinimo: 5, puntajeMaximo: 8 },
+  { categoria: 'Negativo', puntajeMinimo: 0, puntajeMaximo: 4 },
 ];
 
 // dashboard_clinico no necesita conocer la estructura por dimensión, solo

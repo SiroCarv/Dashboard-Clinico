@@ -15,6 +15,7 @@ import {
   obtenerEstiloEtiquetaIdentidad,
 } from '../../../shared/utils/identidadUsuario';
 import { INSTRUMENTO_CLIMA_AULA, INSTRUMENTO_GSHS } from '../../evaluaciones';
+import LeyendaClimaAula from './LeyendaClimaAula';
 
 const ETIQUETA_INSTRUMENTO = {
   CLIMA_AULA: 'Cuestionario de Clima de Aula',
@@ -147,6 +148,10 @@ function TarjetaInstrumento({ registro }) {
           </button>
         </div>
       </div>
+
+      {registro.tipo_instrumento === 'CLIMA_AULA' && registro.resultado_json && (
+        <LeyendaClimaAula categoria={registro.resultado_json.categoria} />
+      )}
 
       {registro.tipo_instrumento === 'GSHS' && (
         <p className="px-5 pb-3 -mt-2 text-xs text-gray-600">
