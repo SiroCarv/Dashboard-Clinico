@@ -8,10 +8,15 @@
 // paciente. Por eso no es clickeable ni lleva a un informe: no hay
 // historia de "detalle de un resultado" en el alcance de SCRUM-56.
 //
-// GSHS — DECISIÓN DEL CLIENTE: nunca se lee ni se muestra
-// `resultado_json` para este instrumento (son indicadores de
-// prevalencia por módulo, prohibidos fuera de agregados). Solo se usa
-// `alerta_activada`, igual que en InformeConsolidadoPaciente.jsx.
+// GSHS — DECISIÓN DEL CLIENTE (actualizada en SCRUM-57): en ESTA tabla
+// (fila por resultado individual) nunca se lee ni se muestra
+// `resultado_json` para este instrumento — son indicadores de
+// prevalencia por módulo de un estudiante puntual, y la Licenciada solo
+// autorizó mostrarlos agregados entre muchos estudiantes, nunca fila por
+// fila. Acá se sigue usando solo `alerta_activada`, igual que en
+// InformeConsolidadoPaciente.jsx. El porcentaje agregado por módulo vive
+// en su propia sección (dashboard_clinico/pages/IndicadoresGSHS.jsx /
+// IndicadoresGSHSSuperadmin.jsx), no en esta tabla.
 //
 // Las filas con `alerta_activada = true` se resaltan con
 // FILA_ALERTA_ACTIVADA (rojo, reservado exclusivamente para severidad

@@ -23,15 +23,21 @@
 // cuentas reales sin `nombre` cargado todavía (verificado contra la
 // base real).
 //
-// GSHS — DECISIÓN DEL CLIENTE: este servicio SÍ trae `resultado_json`
-// para todos los tipos de instrumento (es más simple que excluirlo con
-// una consulta condicional), pero para GSHS ese campo contiene los ~53
-// indicadores de prevalencia por módulo — NUNCA debe mostrarse en
-// pantalla, ni siquiera al superadmin. Quien consuma este servicio debe
-// ignorar `resultado_json` cuando `tipo_instrumento === 'GSHS'` y usar
-// solo `alerta_activada` (mismo criterio que
+// GSHS — DECISIÓN DEL CLIENTE (actualizada en SCRUM-57): este servicio
+// SÍ trae `resultado_json` para todos los tipos de instrumento (es más
+// simple que excluirlo con una consulta condicional), pero para GSHS ese
+// campo contiene los ~53 indicadores de prevalencia por módulo de UN
+// estudiante puntual — la Licenciada autorizó mostrar esto agregado
+// entre muchos estudiantes (ver dashboard_clinico/pages/IndicadoresGSHS.jsx
+// y IndicadoresGSHSSuperadmin.jsx), pero la fila individual sigue sin
+// poder mostrarse, ni siquiera al superadmin. Quien consuma ESTE
+// servicio en particular (listado de resultados fila por fila) debe
+// seguir ignorando `resultado_json` cuando `tipo_instrumento === 'GSHS'`
+// y usar solo `alerta_activada` (mismo criterio que
 // InformeConsolidadoPaciente.jsx ya aplica) — ver
-// TablaResultadosGlobales.jsx.
+// TablaResultadosGlobales.jsx. El cálculo agregado por módulo NO usa
+// este servicio; tiene el suyo propio (gshsIndicadoresService.js), que
+// trae `resultado_json` sin ningún dato identificable del paciente.
 import { supabase } from '../../../core/api/supabaseClient';
 
 export const resultadosGlobalesService = {

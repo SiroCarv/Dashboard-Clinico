@@ -99,7 +99,16 @@ export default function PanelConsolidadoSuperadmin() {
               Resultados de evaluaciones de todas las instituciones y psicólogos.
             </p>
           </div>
-          <BotonCerrarSesion />
+          <div className="flex items-center gap-3">
+            {/* Resultados del GSHS por módulo, consolidado (SCRUM-57) */}
+            <Link
+              to="/panel-resultados/gshs"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-md font-semibold shadow-sm transition-colors bg-emerald-500 hover:bg-emerald-600 text-white"
+            >
+              Ver resultados del GSHS
+            </Link>
+            <BotonCerrarSesion />
+          </div>
         </div>
 
         {error && (

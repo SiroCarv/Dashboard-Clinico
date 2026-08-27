@@ -157,3 +157,19 @@ export const COLOR_ALERTA_GSHS = {
   sinAlerta: { fill: 'fill-gray-400', stroke: 'stroke-gray-400', bg: 'bg-gray-400' },
   conAlerta: { fill: 'fill-red-500', stroke: 'stroke-red-500', bg: 'bg-red-500' },
 };
+
+// Color único para las barras de "% de riesgo por módulo" del GSHS
+// (SCRUM-57, dashboard_clinico/components/GraficoModulosGSHS.jsx).
+// A propósito UN SOLO color parejo para los 11 módulos, sin franjas de
+// severidad (rojo/amarillo/verde por rango de porcentaje): los umbrales
+// de "% de riesgo alto" todavía no están validados clínicamente por la
+// Licenciada (ver comentario de la tabla gshs_indicadores_riesgo en
+// Supabase: "Pendiente de validación clínica formal"). Si en el futuro
+// se define esa validación, este es el lugar para reemplazar el color
+// único por un mapa de rangos, igual que ya existe en
+// ESTILOS_CATEGORIA_CLIMA_AULA.
+export const COLOR_MODULOS_GSHS = {
+  fill: 'fill-emerald-500',
+  stroke: 'stroke-emerald-500',
+  bg: 'bg-emerald-500',
+};

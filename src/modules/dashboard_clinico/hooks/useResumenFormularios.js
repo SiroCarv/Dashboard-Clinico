@@ -200,8 +200,12 @@ export function useResumenFormularios(pacientes) {
 
   // Cuántas de las personas ya filtradas que completaron el GSHS tienen
   // alerta activada o no. GSHS no genera categoría (ver nota en
-  // gshsData.js) — este es el único desglose que el sistema puede
-  // mostrar sin "diagnosticar" nada.
+  // gshsData.js) — este sigue siendo el único desglose de GSHS que
+  // muestra ESTE panel resumen. El desglose de "% de riesgo por módulo"
+  // (SCRUM-57, autorizado por la Licenciada como agregado entre varios
+  // estudiantes) vive en su propia sección dedicada
+  // (dashboard_clinico/pages/IndicadoresGSHS.jsx), no acá — este panel
+  // resumen no lo necesita duplicar.
   const graficoGshs = useMemo(() => {
     let sinAlerta = 0;
     let conAlerta = 0;
