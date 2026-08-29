@@ -20,12 +20,20 @@
 // código de institución) contra bases de datos de contraseñas
 // filtradas — ver useVerificacionPasswordFiltrada, compartido con
 // Registro.jsx y RestablecerPassword.jsx.
-import { useState, useEffect } from 'react';
+//
+// Requisitos de composición (mayúscula/minúscula/número/símbolo + 8
+// caracteres mínimo): política única para TODA la plataforma, ver
+// shared/utils/validarPasswordSegura.js. Es una validación distinta e
+// independiente del chequeo de contraseñas filtradas de arriba — ambas
+// deben pasar para poder enviar el formulario.
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 import { esPasswordFiltrada } from '../services/passwordSecurityService';
 import { useVerificacionPasswordFiltrada } from '../hooks/useVerificacionPasswordFiltrada';
+import { validarPasswordSegura, LONGITUD_MINIMA_PASSWORD } from '../../../shared/utils/validarPasswordSegura';
+import { ChecklistPasswordSegura } from '../../../shared/components/ChecklistPasswordSegura';
 
 export default function RegistroDocente() {
   const [codigoIngresado, setCodigoIngresado] = useState('');
@@ -45,6 +53,8 @@ export default function RegistroDocente() {
 
   const { verificandoPassword, passwordFiltrada, passwordConfirmadaSinFiltrar } =
     useVerificacionPasswordFiltrada(password);
+
+  const validacionPassword = useMemo(() => validarPasswordSegura(password), [password]);
 
   // Verificación en vivo del código de institución: espera 500ms desde
   // la última tecla, igual que Registro.jsx (sin el caso especial de
@@ -108,6 +118,14 @@ export default function RegistroDocente() {
 
     if (!emailRegex.test(cleanedEmail)) {
       setError('Por favor, ingresa un correo electrónico válido (ej. usuario@gmail.com).');
+      setLoading(false);
+      return;
+    }
+
+    if (!validarPasswordSegura(password).esValida) {
+      setError(
+        `La contraseña debe tener al menos ${LONGITUD_MINIMA_PASSWORD} caracteres e incluir mayúscula, minúscula, número y símbolo.`
+      );
       setLoading(false);
       return;
     }
@@ -238,7 +256,7 @@ export default function RegistroDocente() {
                 </span>
               ) : institucion ? (
                 <span className="text-green-600 font-semibold">✓ Institución encontrada</span>
-              ) : codigoIngresado.trim().length > 3 ? (
+              ) : codigoIngresado.trim().length > 0 ? (
                 <span className="text-red-500 font-semibold">❌ Código no encontrado</span>
               ) : (
                 <span className="text-gray-400">Pídelo a la administración de tu institución.</span>
@@ -280,6 +298,7 @@ export default function RegistroDocente() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                minLength={LONGITUD_MINIMA_PASSWORD}
                 disabled={!institucion}
                 placeholder="••••••••"
                 className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 pr-12 disabled:bg-gray-100 ${
@@ -300,6 +319,7 @@ export default function RegistroDocente() {
                 )}
               </button>
             </div>
+            {password.length > 0 && <ChecklistPasswordSegura requisitos={validacionPassword.requisitos} />}
             <div className="h-5 mt-1 text-xs">
               {verificandoPassword ? (
                 <span className="text-gray-500 flex items-center">
@@ -353,9 +373,11 @@ export default function RegistroDocente() {
 
           <button
             type="submit"
-            disabled={loading || !institucion || verificandoPassword || passwordFiltrada}
+            disabled={
+              loading || !institucion || verificandoPassword || passwordFiltrada || !validacionPassword.esValida
+            }
             className={`w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide flex justify-center items-center ${
-              loading || !institucion || verificandoPassword || passwordFiltrada
+              loading || !institucion || verificandoPassword || passwordFiltrada || !validacionPassword.esValida
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-orange-700 hover:bg-orange-800'
             }`}

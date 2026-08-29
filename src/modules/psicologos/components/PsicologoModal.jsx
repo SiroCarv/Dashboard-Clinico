@@ -7,7 +7,18 @@
 // que, mientras isOpen es false, el contenido ni siquiera se monte —
 // así cada apertura arranca con estado fresco desde psicologoEditado,
 // sin useEffect ni sincronización manual.
-import { useState } from 'react';
+//
+// Contraseña temporal: sigue la misma política de composición
+// (mayúscula/minúscula/número/símbolo + 8 caracteres mínimo) que
+// Registro.jsx y RegistroDocente.jsx — ver
+// shared/utils/validarPasswordSegura.js. Se valida en el cliente antes
+// de llamar a `onSave` (que dispara la Edge Function crear-psicologo);
+// esta pantalla no hace chequeo de contraseñas filtradas como las de
+// autoregistro, porque es una contraseña temporal que el propio
+// psicólogo reemplaza en su primer login.
+import { useState, useMemo } from 'react';
+import { validarPasswordSegura, LONGITUD_MINIMA_PASSWORD } from '../../../shared/utils/validarPasswordSegura';
+import { ChecklistPasswordSegura } from '../../../shared/components/ChecklistPasswordSegura';
 
 export const PsicologoModal = ({ isOpen, onClose, onSave, psicologoEditado }) => {
   if (!isOpen) return null;
@@ -29,9 +40,21 @@ function PsicologoModalContenido({ onClose, onSave, psicologoEditado }) {
   const [passwordTemporal, setPasswordTemporal] = useState('');
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const validacionPassword = useMemo(() => validarPasswordSegura(passwordTemporal), [passwordTemporal]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
+    if (!enEdicion && !validacionPassword.esValida) {
+      setError(
+        `La contraseña temporal debe tener al menos ${LONGITUD_MINIMA_PASSWORD} caracteres e incluir mayúscula, minúscula, número y símbolo.`
+      );
+      return;
+    }
+
     setLoading(true);
     await onSave({ nombre, correo, passwordTemporal });
     setLoading(false);
@@ -51,6 +74,12 @@ function PsicologoModalContenido({ onClose, onSave, psicologoEditado }) {
                 : 'Crea una cuenta de acceso para un profesional'}
             </p>
           </div>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-center text-sm font-semibold">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -84,11 +113,11 @@ function PsicologoModalContenido({ onClose, onSave, psicologoEditado }) {
                   <input
                     type={mostrarPassword ? 'text' : 'password'}
                     required
-                    minLength={6}
+                    minLength={LONGITUD_MINIMA_PASSWORD}
                     value={passwordTemporal}
                     onChange={(e) => setPasswordTemporal(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800 pr-12"
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder={`Mínimo ${LONGITUD_MINIMA_PASSWORD} caracteres`}
                   />
                   <button
                     type="button"
@@ -108,6 +137,9 @@ function PsicologoModalContenido({ onClose, onSave, psicologoEditado }) {
                     )}
                   </button>
                 </div>
+                {passwordTemporal.length > 0 && (
+                  <ChecklistPasswordSegura requisitos={validacionPassword.requisitos} />
+                )}
               </div>
             )}
 
@@ -121,9 +153,11 @@ function PsicologoModalContenido({ onClose, onSave, psicologoEditado }) {
               </button>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || (!enEdicion && !validacionPassword.esValida)}
                 className={`px-6 py-3 rounded-md font-bold uppercase tracking-wide shadow-md transition-colors duration-300 flex justify-center items-center ${
-                  loading ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-violet-400 hover:bg-orange-800 text-white'
+                  loading || (!enEdicion && !validacionPassword.esValida)
+                    ? 'bg-gray-400 cursor-not-allowed text-white'
+                    : 'bg-violet-400 hover:bg-orange-800 text-white'
                 }`}
               >
                 {loading ? (

@@ -34,12 +34,20 @@
 // código de institución en Registro.jsx) contra bases de datos de
 // contraseñas filtradas — ver useVerificacionPasswordFiltrada,
 // compartido con Registro.jsx y RegistroDocente.jsx.
-import { useState } from 'react';
+//
+// Requisitos de composición (mayúscula/minúscula/número/símbolo + 8
+// caracteres mínimo): misma política única de toda la plataforma, ver
+// shared/utils/validarPasswordSegura.js. Es una validación distinta e
+// independiente del chequeo de contraseñas filtradas de arriba — ambas
+// deben pasar para poder guardar la nueva contraseña.
+import { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 import { esPasswordFiltrada } from '../services/passwordSecurityService';
 import { useVerificacionPasswordFiltrada } from '../hooks/useVerificacionPasswordFiltrada';
+import { validarPasswordSegura, LONGITUD_MINIMA_PASSWORD } from '../../../shared/utils/validarPasswordSegura';
+import { ChecklistPasswordSegura } from '../../../shared/components/ChecklistPasswordSegura';
 
 export default function RestablecerPassword() {
   const [password, setPassword] = useState('');
@@ -61,9 +69,19 @@ export default function RestablecerPassword() {
   const { verificandoPassword, passwordFiltrada, passwordConfirmadaSinFiltrar } =
     useVerificacionPasswordFiltrada(password);
 
+  const validacionPassword = useMemo(() => validarPasswordSegura(password), [password]);
+
   const manejarActualizacion = async (e) => {
     e.preventDefault();
     if (password !== confirmarPassword) return;
+
+    if (!validacionPassword.esValida) {
+      setErrorSubmit(
+        `La contraseña debe tener al menos ${LONGITUD_MINIMA_PASSWORD} caracteres e incluir mayúscula, minúscula, número y símbolo.`
+      );
+      return;
+    }
+
     setLoading(true);
 
     // Red de seguridad final: el chequeo en vivo
@@ -154,10 +172,10 @@ export default function RestablecerPassword() {
               <input
                 type={mostrarPassword ? "text" : "password"}
                 required
-                minLength="6"
+                minLength={LONGITUD_MINIMA_PASSWORD}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
+                placeholder={`Mínimo ${LONGITUD_MINIMA_PASSWORD} caracteres`}
                 className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 pr-12 ${
                   passwordConfirmadaSinFiltrar ? 'border-green-500 bg-green-50' : 'border-gray-300'
                 }`}
@@ -175,6 +193,7 @@ export default function RestablecerPassword() {
                 )}
               </button>
             </div>
+            {password.length > 0 && <ChecklistPasswordSegura requisitos={validacionPassword.requisitos} />}
             <div className="h-5 mt-1 text-xs">
               {verificandoPassword ? (
                 <span className="text-gray-500 flex items-center">
@@ -229,9 +248,21 @@ export default function RestablecerPassword() {
           
           <button
             type="submit"
-            disabled={loading || contrasenasNoCoinciden || password.length === 0 || verificandoPassword || passwordFiltrada}
+            disabled={
+              loading ||
+              contrasenasNoCoinciden ||
+              password.length === 0 ||
+              verificandoPassword ||
+              passwordFiltrada ||
+              !validacionPassword.esValida
+            }
             className={`w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide flex justify-center items-center ${
-              (loading || contrasenasNoCoinciden || password.length === 0 || verificandoPassword || passwordFiltrada) 
+              (loading ||
+                contrasenasNoCoinciden ||
+                password.length === 0 ||
+                verificandoPassword ||
+                passwordFiltrada ||
+                !validacionPassword.esValida)
                 ? 'bg-gray-400 cursor-not-allowed' 
                 : 'bg-orange-700 hover:bg-orange-800'
             }`}

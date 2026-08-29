@@ -19,17 +19,26 @@
 // hacer submit, obligando a rehacer el formulario entero ante cada
 // intento rechazado.
 //
+// Requisitos de composición (mayúscula/minúscula/número/símbolo + 8
+// caracteres mínimo): política única para TODA la plataforma, ver
+// shared/utils/validarPasswordSegura.js. Es una validación distinta e
+// independiente del chequeo de contraseñas filtradas de arriba — una
+// contraseña puede cumplir la composición y aun así estar filtrada, o
+// viceversa; ambas deben pasar para poder enviar el formulario.
+//
 // Al enviar: crea el usuario en Supabase Auth y, en el mismo flujo,
 // inserta su fila en `usuarios` con institucion_id ya resuelto.
 // codigo_estudiante NUNCA se manda desde acá: lo asigna el trigger
 // `asignar_codigo_estudiante()` en el servidor (ver migración SCRUM-33),
 // para que el cliente no pueda inventarse ni repetir un código.
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, Link, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 import { esPasswordFiltrada } from '../services/passwordSecurityService';
 import { useVerificacionPasswordFiltrada } from '../hooks/useVerificacionPasswordFiltrada';
+import { validarPasswordSegura, LONGITUD_MINIMA_PASSWORD } from '../../../shared/utils/validarPasswordSegura';
+import { ChecklistPasswordSegura } from '../../../shared/components/ChecklistPasswordSegura';
 
 const OPCIONES_CURSO = [
   '1ro de Secundaria',
@@ -80,6 +89,8 @@ export default function Registro() {
 
   const { verificandoPassword, passwordFiltrada, passwordConfirmadaSinFiltrar } =
     useVerificacionPasswordFiltrada(password);
+
+  const validacionPassword = useMemo(() => validarPasswordSegura(password), [password]);
 
   // Verificación en vivo del código de institución: espera 500ms desde la
   // última tecla (para no pegarle a Supabase en cada carácter) salvo la
@@ -167,6 +178,14 @@ export default function Registro() {
 
     if (!emailRegex.test(cleanedEmail)) {
       setError('Por favor, ingresa un correo electrónico válido (ej. usuario@gmail.com).');
+      setLoading(false);
+      return;
+    }
+
+    if (!validarPasswordSegura(password).esValida) {
+      setError(
+        `La contraseña debe tener al menos ${LONGITUD_MINIMA_PASSWORD} caracteres e incluir mayúscula, minúscula, número y símbolo.`
+      );
       setLoading(false);
       return;
     }
@@ -290,13 +309,12 @@ export default function Registro() {
         )}
 
         {/* Código inválido: o bien vino de un enlace roto (URL), o el
-            usuario ya escribió a mano un código que no corresponde a
-            ninguna institución (mismo umbral de "ya se puede dar por mal
-            escrito" que usa el indicador gris/rojo bajo el campo: más de
-            3 caracteres). A propósito ya NO se muestra solo porque el
+            usuario ya escribió algo (basta 1 carácter) que, una vez
+            verificado contra Supabase, no corresponde a ninguna
+            institución. A propósito ya NO se muestra solo porque el
             campo esté vacío al entrar sin enlace — mostrarlo antes de que
             la persona escriba algo generaba una alarma sin necesidad. */}
-        {!institucion && !buscandoCodigo && (esCodigoDeEnlace || codigoIngresado.trim().length > 3) && (
+        {!institucion && !buscandoCodigo && (esCodigoDeEnlace || codigoIngresado.trim().length > 0) && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-center shadow-sm">
             <p className="font-bold">
               ⚠️ {esCodigoDeEnlace ? 'Enlace de registro inválido' : 'Código no encontrado'}
@@ -332,7 +350,7 @@ export default function Registro() {
                 </span>
               ) : institucion ? (
                 <span className="text-green-600 font-semibold">✓ Institución encontrada</span>
-              ) : !esCodigoDeEnlace && codigoIngresado.trim().length > 3 ? (
+              ) : !esCodigoDeEnlace && codigoIngresado.trim().length > 0 ? (
                 <span className="text-red-500 font-semibold">❌ Código no encontrado</span>
               ) : (
                 <span className="text-gray-400">Pídelo a tu psicólogo si no tienes un enlace directo.</span>
@@ -448,6 +466,7 @@ export default function Registro() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                minLength={LONGITUD_MINIMA_PASSWORD}
                 disabled={!institucion}
                 placeholder="••••••••"
                 className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 pr-12 disabled:bg-gray-100 ${
@@ -468,6 +487,7 @@ export default function Registro() {
                 )}
               </button>
             </div>
+            {password.length > 0 && <ChecklistPasswordSegura requisitos={validacionPassword.requisitos} />}
             <div className="h-5 mt-1 text-xs">
               {verificandoPassword ? (
                 <span className="text-gray-500 flex items-center">
@@ -521,9 +541,11 @@ export default function Registro() {
 
           <button
             type="submit"
-            disabled={loading || !institucion || verificandoPassword || passwordFiltrada}
+            disabled={
+              loading || !institucion || verificandoPassword || passwordFiltrada || !validacionPassword.esValida
+            }
             className={`w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide flex justify-center items-center ${
-              loading || !institucion || verificandoPassword || passwordFiltrada
+              loading || !institucion || verificandoPassword || passwordFiltrada || !validacionPassword.esValida
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-orange-700 hover:bg-orange-800'
             }`}
