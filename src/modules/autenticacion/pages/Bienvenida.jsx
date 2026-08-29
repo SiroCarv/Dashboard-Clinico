@@ -3,11 +3,6 @@
 // del sistema y reemplazado por Docente — ver SCRUM-46/47/48.
 //   "Soy estudiante"  -> /registro (código de institución)
 //   "Soy docente"      -> /registro-docente (código de institución)
-//
-// OJO: "/registro-docente" todavía no está declarada en App.jsx — se
-// agrega recién en SCRUM-47, que construye esa pantalla. Hasta entonces
-// el botón navega a una ruta sin match (pantalla en blanco), a propósito,
-// porque las historias se están haciendo en orden.
 import { useNavigate, Link } from 'react-router-dom';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
