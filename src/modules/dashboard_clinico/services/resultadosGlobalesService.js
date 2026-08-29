@@ -18,6 +18,16 @@
 // de desambiguación (`!psicologo_asignado_id`) para no chocar con
 // `PGRST201`.
 //
+// SCRUM-60 — Detalle de casos registrados por docente: se agrega
+// `registrado_por_docente_id` en crudo (para que el panel decida
+// "Estudiante" vs "Docente" sin adivinar, mismo criterio que ya usa
+// pacientesService.js para armar `tipoPersona` en SCRUM-53) y un embed
+// nuevo, hermano de `paciente`, `docente:usuarios!registrado_por_docente_id(nombre)`
+// — es una FK directa de esta tabla hacia `usuarios`, no anidada dentro
+// del paciente, así que necesita su propio alias y su propio sufijo de
+// desambiguación. Si el resultado fue autoenviado por el estudiante,
+// `registrado_por_docente_id` es NULL y `docente` llega como `null`.
+//
 // `email` se trae junto a `nombre` únicamente como respaldo para
 // `obtenerNombreMostrado()` (shared/utils/identidadUsuario.js): hay
 // cuentas reales sin `nombre` cargado todavía (verificado contra la
@@ -44,13 +54,16 @@ export const resultadosGlobalesService = {
   /**
    * Trae TODOS los resultados de evaluaciones visibles para el
    * superadministrador (todas las instituciones y psicólogos), del más
-   * reciente al más antiguo.
+   * reciente al más antiguo. Cada fila incluye `registrado_por_docente_id`
+   * y, cuando corresponde, `docente.nombre` (SCRUM-60), para que
+   * PanelConsolidadoSuperadmin.jsx pueda distinguir y filtrar entre
+   * autoenvío del estudiante y registro hecho por un docente.
    */
   async obtenerResultadosGlobales() {
     const { data, error } = await supabase
       .from('evaluaciones_instrumento')
       .select(
-        'id_evaluacion, tipo_instrumento, fecha_registro, resultado_json, alerta_activada, paciente:usuarios!id_paciente(nombre, email, institucion:instituciones(nombre), psicologo_asignado:usuarios!psicologo_asignado_id(nombre))'
+        'id_evaluacion, tipo_instrumento, fecha_registro, resultado_json, alerta_activada, registrado_por_docente_id, paciente:usuarios!id_paciente(nombre, email, institucion:instituciones(nombre), psicologo_asignado:usuarios!psicologo_asignado_id(nombre)), docente:usuarios!registrado_por_docente_id(nombre)'
       )
       .order('fecha_registro', { ascending: false });
 

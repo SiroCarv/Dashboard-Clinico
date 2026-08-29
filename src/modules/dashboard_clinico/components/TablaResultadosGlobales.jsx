@@ -2,6 +2,14 @@
 // fila por resultado de evaluación, con paciente, institución,
 // psicólogo asignado, instrumento y un resumen del resultado.
 //
+// SCRUM-60 — Detalle de casos registrados por docente: se agrega la
+// columna "Registrado por", que distingue el autoenvío del propio
+// estudiante de un caso que un docente registró en su nombre (mismo
+// dato que ya usa Dashboard.jsx para su filtro "Estudiante/Docente" de
+// SCRUM-53, acá mostrado en vez de solo filtrado). Cuando fue un
+// docente, se muestra su nombre — la Licenciada pidió ver esto
+// "detalladamente", no solo como una bandera sí/no.
+//
 // A diferencia de TablaPacientes.jsx (una fila por persona), acá cada
 // fila es un resultado puntual — el criterio de aceptación pide
 // identificar institución y psicólogo "por cada resultado", no por
@@ -104,6 +112,30 @@ function ResumenResultado({ resultado }) {
   );
 }
 
+// Badge de origen del registro (SCRUM-60). Gris neutro para el
+// autoenvío (es el caso por defecto, no necesita destacarse) y
+// violetaSuave — uno de los 2 acentos de marca general de la app, no
+// uno de los reservados a instrumentos clínicos — para el caso
+// registrado por un docente, ya que es la excepción que la Licenciada
+// pidió poder distinguir de un vistazo.
+function OrigenRegistro({ resultado }) {
+  if (!resultado.registrado_por_docente_id) {
+    return (
+      <span className="px-2.5 py-1 bg-gray-100 border border-gray-300 text-gray-600 rounded-full text-xs font-semibold">
+        Autoenvío
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className={`px-2.5 py-1 border rounded-full text-xs font-semibold ${COLOR_MARCA.violetaSuave.suave}`}
+    >
+      Docente: {resultado.docente?.nombre || 'nombre no disponible'}
+    </span>
+  );
+}
+
 export function TablaResultadosGlobales({ resultados, hayFiltrosActivos = false }) {
   if (resultados.length === 0) {
     return (
@@ -127,6 +159,7 @@ export function TablaResultadosGlobales({ resultados, hayFiltrosActivos = false 
               <th className="p-4 font-bold border-b border-gray-200">Participante / Consultante</th>
               <th className="p-4 font-bold border-b border-gray-200">Institución</th>
               <th className="p-4 font-bold border-b border-gray-200">Psicólogo asignado</th>
+              <th className="p-4 font-bold border-b border-gray-200">Registrado por</th>
               <th className="p-4 font-bold border-b border-gray-200">Instrumento</th>
               <th className="p-4 font-bold border-b border-gray-200">Resultado</th>
             </tr>
@@ -159,6 +192,9 @@ export function TablaResultadosGlobales({ resultados, hayFiltrosActivos = false 
                   </td>
                   <td className="p-4 text-gray-600">{paciente?.institucion?.nombre || '—'}</td>
                   <td className="p-4 text-gray-600">{paciente?.psicologo_asignado?.nombre || '—'}</td>
+                  <td className="p-4">
+                    <OrigenRegistro resultado={resultado} />
+                  </td>
                   <td className="p-4">
                     <span className={`px-2.5 py-1 border rounded-full text-xs font-semibold ${acento.suave}`}>
                       {ETIQUETA_INSTRUMENTO[resultado.tipo_instrumento] ?? resultado.tipo_instrumento}
