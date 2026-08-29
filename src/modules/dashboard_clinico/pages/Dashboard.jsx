@@ -29,6 +29,13 @@
 // permita A-F por ahora. Se duplican acá en vez de importarse desde
 // `autenticacion` (ningún módulo puede importar de otro) — mismo
 // criterio de duplicación consciente que ya usa gshsData.js.
+//
+// Barra de búsqueda/filtro de la tabla (línea ~225): usa `flex-wrap` a
+// partir de `sm:` para que los campos que no entren en el ancho
+// disponible pasen a una segunda línea. Sin eso, en anchos intermedios
+// los 6 elementos (buscador + 4 selects + botón) se desbordaban y
+// quedaban recortados por el `overflow-hidden` del contenedor raíz de
+// la página, en vez de mostrarse en una fila adicional.
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
@@ -222,7 +229,7 @@ export default function Dashboard() {
         )}
 
         {!loading && pacientes.length > 0 && (
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm mb-6">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm mb-6">
             <input
               type="text"
               value={busqueda}

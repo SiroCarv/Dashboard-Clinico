@@ -289,14 +289,22 @@ export default function Registro() {
           </div>
         )}
 
-        {/* Enlace inválido: sin código en la URL, o el código del enlace no existe */}
-        {!institucion && !buscandoCodigo && (codigoIngresado.trim() === '' || esCodigoDeEnlace) && (
+        {/* Código inválido: o bien vino de un enlace roto (URL), o el
+            usuario ya escribió a mano un código que no corresponde a
+            ninguna institución (mismo umbral de "ya se puede dar por mal
+            escrito" que usa el indicador gris/rojo bajo el campo: más de
+            3 caracteres). A propósito ya NO se muestra solo porque el
+            campo esté vacío al entrar sin enlace — mostrarlo antes de que
+            la persona escriba algo generaba una alarma sin necesidad. */}
+        {!institucion && !buscandoCodigo && (esCodigoDeEnlace || codigoIngresado.trim().length > 3) && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-center shadow-sm">
-            <p className="font-bold">⚠️ Enlace de registro inválido</p>
+            <p className="font-bold">
+              ⚠️ {esCodigoDeEnlace ? 'Enlace de registro inválido' : 'Código no encontrado'}
+            </p>
             <p className="text-sm mt-1">
-              {codigoIngresado.trim() === ''
-                ? 'Solicita a tu institución el enlace correcto, o escribe tu código de acceso abajo.'
-                : 'El código de este enlace no es válido. Verifica con tu institución o corrígelo abajo.'}
+              {esCodigoDeEnlace
+                ? 'El código de este enlace no es válido. Verifica con tu institución o corrígelo abajo.'
+                : 'El código que escribiste no corresponde a ninguna institución registrada. Verifica que esté bien escrito.'}
             </p>
           </div>
         )}
