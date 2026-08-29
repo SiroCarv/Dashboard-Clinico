@@ -211,6 +211,21 @@ export default function RegistroDocente() {
           </div>
         )}
 
+        {/* Código no encontrado: el usuario ya escribió algo (basta 1
+            carácter) que, una vez verificado contra Supabase, no
+            corresponde a ninguna institución. A diferencia de
+            Registro.jsx, acá no existe el caso de "enlace precargado"
+            (esta pantalla no soporta /registro-docente/:codigo), así que
+            solo hay un mensaje posible. */}
+        {!institucion && !buscandoCodigo && codigoIngresado.trim().length > 0 && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-center shadow-sm">
+            <p className="font-bold">⚠️ Código no encontrado</p>
+            <p className="text-sm mt-1">
+              El código que escribiste no corresponde a ninguna institución registrada. Verifica que esté bien escrito.
+            </p>
+          </div>
+        )}
+
         <form onSubmit={handleRegistro} className="space-y-6">
 
           <div>
