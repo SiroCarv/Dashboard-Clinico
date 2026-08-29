@@ -16,22 +16,17 @@
 // no tiene un rol válido asignado" en vez de fallar en silencio, así
 // que no es un bug de esta entrega.
 //
-// La contraseña se verifica en vivo (mismo patrón de debounce que el
-// código de institución) contra bases de datos de contraseñas
-// filtradas — ver useVerificacionPasswordFiltrada, compartido con
-// Registro.jsx y RestablecerPassword.jsx.
-//
 // Requisitos de composición (mayúscula/minúscula/número/símbolo + 8
 // caracteres mínimo): política única para TODA la plataforma, ver
-// shared/utils/validarPasswordSegura.js. Es una validación distinta e
-// independiente del chequeo de contraseñas filtradas de arriba — ambas
-// deben pasar para poder enviar el formulario.
+// shared/utils/validarPasswordSegura.js. Es la única validación de
+// contraseña de esta pantalla — el chequeo contra bases de datos de
+// contraseñas filtradas (HaveIBeenPwned) que existía antes se retiró
+// por decisión del cliente, al considerar suficiente esta política de
+// composición + longitud mínima.
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
-import { esPasswordFiltrada } from '../services/passwordSecurityService';
-import { useVerificacionPasswordFiltrada } from '../hooks/useVerificacionPasswordFiltrada';
 import { validarPasswordSegura, LONGITUD_MINIMA_PASSWORD } from '../../../shared/utils/validarPasswordSegura';
 import { ChecklistPasswordSegura } from '../../../shared/components/ChecklistPasswordSegura';
 
@@ -50,9 +45,6 @@ export default function RegistroDocente() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-
-  const { verificandoPassword, passwordFiltrada, passwordConfirmadaSinFiltrar } =
-    useVerificacionPasswordFiltrada(password);
 
   const validacionPassword = useMemo(() => validarPasswordSegura(password), [password]);
 
@@ -132,20 +124,6 @@ export default function RegistroDocente() {
 
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden. Por favor, verifica.');
-      setLoading(false);
-      return;
-    }
-
-    // Red de seguridad final: el chequeo en vivo
-    // (useVerificacionPasswordFiltrada, mientras la persona escribía) ya
-    // debería haber mantenido el botón deshabilitado si la contraseña
-    // estaba filtrada. Se repite acá por si el envío ocurre antes de que
-    // esa verificación termine (autocompletado del navegador, Enter muy
-    // rápido, etc.). Sigue siendo la alternativa a la "Leaked Password
-    // Protection" nativa de Supabase (requiere plan Pro — ver Security
-    // Advisor).
-    if (await esPasswordFiltrada(password)) {
-      setError('Esta contraseña aparece en bases de datos de contraseñas filtradas. Por seguridad, elige una diferente.');
       setLoading(false);
       return;
     }
@@ -302,7 +280,7 @@ export default function RegistroDocente() {
                 disabled={!institucion}
                 placeholder="••••••••"
                 className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 pr-12 disabled:bg-gray-100 ${
-                  passwordConfirmadaSinFiltrar ? 'border-green-500 bg-green-50' : 'border-gray-300'
+                  validacionPassword.esValida ? 'border-green-500 bg-green-50' : 'border-gray-300'
                 }`}
               />
               <button
@@ -320,20 +298,6 @@ export default function RegistroDocente() {
               </button>
             </div>
             {password.length > 0 && <ChecklistPasswordSegura requisitos={validacionPassword.requisitos} />}
-            <div className="h-5 mt-1 text-xs">
-              {verificandoPassword ? (
-                <span className="text-gray-500 flex items-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                  Verificando contraseña...
-                </span>
-              ) : passwordFiltrada ? (
-                <span className="text-red-500 font-semibold">❌ Esta contraseña está filtrada. Elige otra.</span>
-              ) : passwordConfirmadaSinFiltrar ? (
-                <span className="text-green-600 font-semibold">✓ No aparece en bases de datos filtradas</span>
-              ) : (
-                <span className="text-gray-400">Evita contraseñas muy comunes o ya usadas en otros sitios.</span>
-              )}
-            </div>
           </div>
 
           <div>
@@ -373,11 +337,9 @@ export default function RegistroDocente() {
 
           <button
             type="submit"
-            disabled={
-              loading || !institucion || verificandoPassword || passwordFiltrada || !validacionPassword.esValida
-            }
+            disabled={loading || !institucion || !validacionPassword.esValida}
             className={`w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide flex justify-center items-center ${
-              loading || !institucion || verificandoPassword || passwordFiltrada || !validacionPassword.esValida
+              loading || !institucion || !validacionPassword.esValida
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-orange-700 hover:bg-orange-800'
             }`}

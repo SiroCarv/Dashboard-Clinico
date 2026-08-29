@@ -30,22 +30,18 @@
 //      autenticarse con la contraseña vieja.
 //   3. Recién ahí se manda a /login para que entre con su contraseña
 //      nueva.
-// La contraseña se verifica en vivo (mismo patrón de debounce que el
-// código de institución en Registro.jsx) contra bases de datos de
-// contraseñas filtradas — ver useVerificacionPasswordFiltrada,
-// compartido con Registro.jsx y RegistroDocente.jsx.
 //
 // Requisitos de composición (mayúscula/minúscula/número/símbolo + 8
-// caracteres mínimo): misma política única de toda la plataforma, ver
-// shared/utils/validarPasswordSegura.js. Es una validación distinta e
-// independiente del chequeo de contraseñas filtradas de arriba — ambas
-// deben pasar para poder guardar la nueva contraseña.
+// caracteres mínimo): política única de toda la plataforma, ver
+// shared/utils/validarPasswordSegura.js. Es la única validación de
+// contraseña de esta pantalla — el chequeo contra bases de datos de
+// contraseñas filtradas (HaveIBeenPwned) que existía antes se retiró
+// por decisión del cliente, al considerar suficiente esta política de
+// composición + longitud mínima.
 import { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
-import { esPasswordFiltrada } from '../services/passwordSecurityService';
-import { useVerificacionPasswordFiltrada } from '../hooks/useVerificacionPasswordFiltrada';
 import { validarPasswordSegura, LONGITUD_MINIMA_PASSWORD } from '../../../shared/utils/validarPasswordSegura';
 import { ChecklistPasswordSegura } from '../../../shared/components/ChecklistPasswordSegura';
 
@@ -66,9 +62,6 @@ export default function RestablecerPassword() {
 
   const contrasenasNoCoinciden = confirmarPassword.length > 0 && password !== confirmarPassword;
 
-  const { verificandoPassword, passwordFiltrada, passwordConfirmadaSinFiltrar } =
-    useVerificacionPasswordFiltrada(password);
-
   const validacionPassword = useMemo(() => validarPasswordSegura(password), [password]);
 
   const manejarActualizacion = async (e) => {
@@ -83,20 +76,6 @@ export default function RestablecerPassword() {
     }
 
     setLoading(true);
-
-    // Red de seguridad final: el chequeo en vivo
-    // (useVerificacionPasswordFiltrada, mientras la persona escribía) ya
-    // debería haber mantenido el botón deshabilitado si la contraseña
-    // estaba filtrada. Se repite acá por si el envío ocurre antes de que
-    // esa verificación termine (autocompletado del navegador, Enter muy
-    // rápido, etc.). Sigue siendo la alternativa a la "Leaked Password
-    // Protection" nativa de Supabase (requiere plan Pro — ver Security
-    // Advisor).
-    if (await esPasswordFiltrada(password)) {
-      setErrorSubmit('Esta contraseña aparece en bases de datos de contraseñas filtradas. Por seguridad, elige una diferente.');
-      setLoading(false);
-      return;
-    }
 
     const { error } = await supabase.auth.updateUser({ password: password });
 
@@ -177,7 +156,7 @@ export default function RestablecerPassword() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={`Mínimo ${LONGITUD_MINIMA_PASSWORD} caracteres`}
                 className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 pr-12 ${
-                  passwordConfirmadaSinFiltrar ? 'border-green-500 bg-green-50' : 'border-gray-300'
+                  validacionPassword.esValida ? 'border-green-500 bg-green-50' : 'border-gray-300'
                 }`}
               />
               <button
@@ -194,20 +173,6 @@ export default function RestablecerPassword() {
               </button>
             </div>
             {password.length > 0 && <ChecklistPasswordSegura requisitos={validacionPassword.requisitos} />}
-            <div className="h-5 mt-1 text-xs">
-              {verificandoPassword ? (
-                <span className="text-gray-500 flex items-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                  Verificando contraseña...
-                </span>
-              ) : passwordFiltrada ? (
-                <span className="text-red-500 font-semibold">❌ Esta contraseña está filtrada. Elige otra.</span>
-              ) : passwordConfirmadaSinFiltrar ? (
-                <span className="text-green-600 font-semibold">✓ No aparece en bases de datos filtradas</span>
-              ) : (
-                <span className="text-gray-400">Evita contraseñas muy comunes o ya usadas en otros sitios.</span>
-              )}
-            </div>
           </div>
           
           {/* Input Confirmar Contraseña */}
@@ -249,20 +214,10 @@ export default function RestablecerPassword() {
           <button
             type="submit"
             disabled={
-              loading ||
-              contrasenasNoCoinciden ||
-              password.length === 0 ||
-              verificandoPassword ||
-              passwordFiltrada ||
-              !validacionPassword.esValida
+              loading || contrasenasNoCoinciden || password.length === 0 || !validacionPassword.esValida
             }
             className={`w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide flex justify-center items-center ${
-              (loading ||
-                contrasenasNoCoinciden ||
-                password.length === 0 ||
-                verificandoPassword ||
-                passwordFiltrada ||
-                !validacionPassword.esValida)
+              (loading || contrasenasNoCoinciden || password.length === 0 || !validacionPassword.esValida)
                 ? 'bg-gray-400 cursor-not-allowed' 
                 : 'bg-orange-700 hover:bg-orange-800'
             }`}
