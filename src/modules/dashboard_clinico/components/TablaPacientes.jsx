@@ -2,15 +2,13 @@
 // link al Informe Consolidado. La fila entera es clickeable (rol="button"
 // + onKeyDown) para navegar, no solo el texto "Ver informe →".
 //
-// La etiqueta junto al nombre (Estudiante/Docente) es `tipoPersona`
-// (SCRUM-53: quién originó el registro, no el rol de la cuenta — todas
-// las filas de esta tabla son cuentas de rol "estudiante", ver
-// pacientesService.js). Reemplaza la vieja etiqueta Participante/
-// Consultante (retirada, ver shared/utils/identidadUsuario.js): esa
-// distinguía si tenía institución, algo que ya no puede pasar con datos
-// nuevos desde que se retiró el registro particular (SCRUM-46/47/48).
-// Si `tipoPersona` es `null` (todavía no completó ningún formulario), no
-// se muestra ninguna etiqueta — no hay nada que distinguir aún.
+// Etiqueta Estudiante/Docente (retirada de acá a pedido del cliente): la
+// tabla ya no muestra ninguna insignia de `tipoPersona` junto al nombre.
+// El dato sigue calculándose en pacientesService.js, pero ya no se
+// muestra en ninguna parte del Dashboard del psicólogo (también se
+// retiró de la exportación a Excel, ver exportarPacientesExcel.js) —
+// queda sin consumidor visual, a la espera de que se decida si vale la
+// pena seguir calculándolo.
 //
 // Las filas con tieneAlertaActiva=true (alguna evaluación con
 // alerta_activada, ej. riesgo suicida en el módulo de Salud Mental del
@@ -20,7 +18,6 @@
 // de un vistazo sin tener que abrir el informe de cada paciente.
 import { useNavigate } from 'react-router-dom';
 import { obtenerNombreMostrado } from '../../../shared/utils/identidadUsuario';
-import { ETIQUETA_TIPO_PERSONA, obtenerEstiloTipoPersona } from '../utils/etiquetaTipoPersona';
 import { FILA_ALERTA_ACTIVADA } from '../../../shared/theme/paletaColores';
 
 export function TablaPacientes({ pacientes, hayFiltrosActivos = false }) {
@@ -69,15 +66,6 @@ export function TablaPacientes({ pacientes, hayFiltrosActivos = false }) {
                 }`}
               >
                 <td className="p-4 text-gray-800 font-medium">
-                  {persona.tipoPersona && (
-                    <span
-                      className={`inline-block px-2 py-0.5 mr-2 border rounded-full text-xs font-semibold align-middle ${obtenerEstiloTipoPersona(
-                        persona.tipoPersona
-                      )}`}
-                    >
-                      {ETIQUETA_TIPO_PERSONA[persona.tipoPersona]}
-                    </span>
-                  )}
                   <span className="align-middle">{obtenerNombreMostrado(persona)}</span>
                   {persona.tieneAlertaActiva && (
                     <span className="inline-block ml-2 px-2 py-0.5 bg-red-100 border border-red-300 text-red-800 rounded-full text-xs font-bold uppercase tracking-wide align-middle">

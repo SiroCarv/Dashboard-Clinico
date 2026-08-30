@@ -50,14 +50,16 @@
 //
 // Tipo de persona (corrección posterior): se retiró también este filtro
 // de acá y de useResumenFormularios.js, a pedido del cliente. La
-// etiqueta Estudiante/Docente sigue mostrándose junto al nombre en
-// TablaPacientes.jsx (viene de `tipoPersona`, calculado en
-// pacientesService.js) — solo se quitó el control de filtro, no la
-// etiqueta.
+// etiqueta Estudiante/Docente que antes se mostraba junto al nombre en
+// TablaPacientes.jsx también se retiró, y después también la columna
+// "Tipo" de exportarPacientesExcel.js (ambas correcciones posteriores a
+// esta, a pedido del cliente). `tipoPersona` sigue calculándose en
+// pacientesService.js, pero hoy no tiene ningún consumidor visual.
 import { useMemo, useState } from 'react';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
 import { useListaPacientes } from '../hooks/useListaPacientes';
 import { useResumenFormularios } from '../hooks/useResumenFormularios';
+import { useIndicadoresGSHS } from '../hooks/useIndicadoresGSHS';
 import { TablaPacientes } from '../components/TablaPacientes';
 import { ResumenFormularios } from '../components/ResumenFormularios';
 import { FiltrosResumen } from '../components/FiltrosResumen';
@@ -74,6 +76,13 @@ const PESTANA_ESTUDIANTES = 'estudiantes';
 export default function Dashboard() {
   const { pacientes, loading, error } = useListaPacientes();
   const resumen = useResumenFormularios(pacientes);
+  const {
+    modulos: modulosGshs,
+    resumenAlerta: resumenAlertaGshs,
+    totalEvaluaciones: totalEvaluacionesGshs,
+    loading: loadingGshs,
+    error: errorGshs,
+  } = useIndicadoresGSHS();
   const [pestanaActiva, setPestanaActiva] = useState(PESTANA_GRAFICAS);
   const [busqueda, setBusqueda] = useState('');
   const [filtroCurso, setFiltroCurso] = useState(FILTRO_ESCOLAR_TODOS);
@@ -207,6 +216,11 @@ export default function Dashboard() {
                   graficoDepresion={resumen.graficoDepresion}
                   hayFiltrosActivos={resumen.hayFiltrosActivos}
                   hayPersonasFiltradas={resumen.hayPersonasFiltradas}
+                  modulosGshs={modulosGshs}
+                  resumenAlertaGshs={resumenAlertaGshs}
+                  totalEvaluacionesGshs={totalEvaluacionesGshs}
+                  loadingGshs={loadingGshs}
+                  errorGshs={errorGshs}
                 />
               </>
             )}

@@ -36,9 +36,12 @@
 //
 // Tipo de persona (corrección posterior): se retiró también este filtro
 // de acá y de Dashboard.jsx, a pedido del cliente. `tipoPersona` sigue
-// calculándose en pacientesService.js y mostrándose como etiqueta junto
-// al nombre en TablaPacientes.jsx — solo se quitó el control de filtro,
-// no el dato ni la etiqueta.
+// calculándose en pacientesService.js, pero ya no se muestra en ningún
+// lado del Dashboard del psicólogo: se retiró la insignia de
+// TablaPacientes.jsx y, después, la columna "Tipo" de
+// exportarPacientesExcel.js — ambas corrección posteriores a esta, a
+// pedido del cliente. El dato queda calculado pero sin ningún consumidor
+// visual por ahora.
 import { useMemo, useState } from 'react';
 import {
   COLOR_CATEGORIA_CLIMA_AULA,
@@ -251,11 +254,11 @@ export function useResumenFormularios(pacientes) {
     }));
   }, [pacientesFiltrados]);
 
-  // GSHS ya no tiene un gráfico propio en este panel resumen (retirado:
-  // duplicaba el mismo resumen con/sin alerta que ya muestra
-  // IndicadoresGSHS.jsx). La pestaña de GSHS en ResumenFormularios.jsx
-  // ahora es un acceso directo a esa pantalla dedicada, no un gráfico —
-  // por eso este hook ya no calcula nada para GSHS.
+  // GSHS no tiene gráfico acá: no calcula categoría (ver nota en
+  // gshsData.js), así que no encaja en `contarPorCategoria`. Su
+  // contenido para la pestaña de GSHS en ResumenFormularios.jsx viene de
+  // un hook totalmente distinto (useIndicadoresGSHS, llamado en
+  // Dashboard.jsx y pasado como props), no de este hook.
   const graficoEstres = useMemo(
     () => contarPorCategoria(pacientesFiltrados, 'ESTRES', CATEGORIAS_ESTRES, COLOR_CATEGORIA_ESTRES),
     [pacientesFiltrados]
