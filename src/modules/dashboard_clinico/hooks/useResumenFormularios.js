@@ -9,6 +9,16 @@
 // Dashboard.jsx para la tabla: cuentan cosas distintas (personas que
 // cumplen un perfil, acá; filas visibles en la tabla, allá), así que no
 // comparten estado a propósito.
+//
+// tipoPersona (corrección de terminología Paciente → Estudiante): antes
+// distinguía Participante/Consultante según tuviera institución. Se
+// retiró (ver identidadUsuario.js) y se reemplazó por el mismo criterio
+// que ya usaba Dashboard.jsx para su propio filtro (SCRUM-53):
+// `paciente.tipoPersona` ('estudiante' | 'docente' | null), calculado
+// por pacientesService.js según quién originó cada evaluación. Como ya
+// no existe la categoría "sin institución", curso/paralelo/turno dejaron
+// de ocultarse condicionalmente — siempre tienen sentido para cualquiera
+// que aparezca en este listado.
 import { useMemo, useState } from 'react';
 import { COLOR_CATEGORIA_CLIMA_AULA, COLOR_ALERTA_GSHS } from '../../../shared/theme/paletaColores';
 
@@ -44,14 +54,14 @@ const TRAMOS_EDAD = [
 ];
 
 const FILTROS_INICIALES = {
-  tipoPersona: TODOS, // 'todos' | 'participante' | 'consultante'
+  tipoPersona: TODOS, // 'todos' | 'estudiante' | 'docente' — mismos valores que ya usa Dashboard.jsx (SCRUM-53) para su propio filtro
   institucion: TODOS,
   sexo: TODOS,
   tramoEdad: TODOS,
   curso: TODOS,
   paralelo: TODOS,
   turno: TODOS,
-  instrumento: TODOS, // 'todos' | 'CLIMA_AULA' | 'GSHS' | 'ambos'
+  instrumento: TODOS, // 'todos' | 'CLIMA_AULA' | 'GSHS' | 'ESTRES' | 'ANSIEDAD' | 'DEPRESION' | 'ambos'
   fechaDesde: '',
   fechaHasta: '',
 };
@@ -81,21 +91,7 @@ export function useResumenFormularios(pacientes) {
   const [filtros, setFiltros] = useState(FILTROS_INICIALES);
 
   const actualizarFiltro = (campo, valor) => {
-    setFiltros((anteriores) => {
-      const siguientes = { ...anteriores, [campo]: valor };
-
-      // Los filtros escolares dejan de mostrarse cuando se elige
-      // "Consultante" (ver mostrarFiltrosEscolares abajo) — se resetean
-      // acá para que no sigan filtrando "en silencio" mientras están
-      // ocultos.
-      if (campo === 'tipoPersona' && valor === 'consultante') {
-        siguientes.curso = TODOS;
-        siguientes.paralelo = TODOS;
-        siguientes.turno = TODOS;
-      }
-
-      return siguientes;
-    });
+    setFiltros((anteriores) => ({ ...anteriores, [campo]: valor }));
   };
 
   const limpiarFiltros = () => setFiltros(FILTROS_INICIALES);
@@ -117,18 +113,9 @@ export function useResumenFormularios(pacientes) {
   const paralelos = useMemo(() => valoresUnicos(pacientes, 'paralelo'), [pacientes]);
   const turnos = useMemo(() => valoresUnicos(pacientes, 'turno'), [pacientes]);
 
-  // Curso/paralelo/turno solo tienen sentido para Participantes de
-  // institución — un Consultante particular nunca tiene estos datos.
-  // FiltrosResumen.jsx usa esto para no mostrar esos 3 selects cuando el
-  // tipo de persona elegido es "Consultante".
-  const mostrarFiltrosEscolares = filtros.tipoPersona !== 'consultante';
-
   const pacientesFiltrados = useMemo(() => {
     return pacientes.filter((paciente) => {
-      const esParticipante = Boolean(paciente.institucion?.nombre);
-
-      if (filtros.tipoPersona === 'participante' && !esParticipante) return false;
-      if (filtros.tipoPersona === 'consultante' && esParticipante) return false;
+      if (filtros.tipoPersona !== TODOS && paciente.tipoPersona !== filtros.tipoPersona) return false;
 
       if (filtros.institucion !== TODOS && paciente.institucion?.nombre !== filtros.institucion) {
         return false;
@@ -247,7 +234,6 @@ export function useResumenFormularios(pacientes) {
     cursos,
     paralelos,
     turnos,
-    mostrarFiltrosEscolares,
     tramosEdad: TRAMOS_EDAD.map((t) => t.etiqueta),
     graficoClimaAula,
     graficoGshs,

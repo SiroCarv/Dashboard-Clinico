@@ -3,14 +3,21 @@
 // institución por RLS (un psicólogo solo puede estar vinculado a una
 // institución — SCRUM-49), así que esta pantalla no necesita ningún
 // filtro propio.
+//
+// Barras + dona (corrección posterior a SCRUM-57): se agrega el resumen
+// de "con alerta / sin alerta" en el mismo formato que ya usa
+// ResumenFormularios.jsx (SeccionGraficoInstrumento) — el gráfico por
+// módulo (GraficoModulosGSHS, barras horizontales) se mantiene igual,
+// esto se suma, no lo reemplaza.
 import { Link } from 'react-router-dom';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
 import { useIndicadoresGSHS } from '../hooks/useIndicadoresGSHS';
 import { GraficoModulosGSHS } from '../components/GraficoModulosGSHS';
+import { SeccionGraficoInstrumento } from '../components/SeccionGraficoInstrumento';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
 export default function IndicadoresGSHS() {
-  const { modulos, totalEvaluaciones, loading, error } = useIndicadoresGSHS();
+  const { modulos, resumenAlerta, totalEvaluaciones, loading, error } = useIndicadoresGSHS();
 
   return (
     <div className="min-h-screen bg-gray-100 relative overflow-hidden">
@@ -59,7 +66,13 @@ export default function IndicadoresGSHS() {
             <span className="text-gray-700 font-semibold">Cargando resultados del GSHS...</span>
           </div>
         ) : (
-          <GraficoModulosGSHS modulos={modulos} totalEvaluaciones={totalEvaluaciones} />
+          <div className="space-y-4">
+            <SeccionGraficoInstrumento
+              titulo={`GSHS — ${totalEvaluaciones} ${totalEvaluaciones === 1 ? 'evaluación considerada' : 'evaluaciones consideradas'}`}
+              datos={resumenAlerta}
+            />
+            <GraficoModulosGSHS modulos={modulos} totalEvaluaciones={totalEvaluaciones} />
+          </div>
         )}
       </div>
     </div>

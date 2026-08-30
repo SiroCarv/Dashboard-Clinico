@@ -11,12 +11,21 @@
 // que RLS ya devuelve exactamente "los estudiantes de su institución"
 // sin necesidad de filtrar nada acá.
 //
+// Institución (corrección posterior a SCRUM-57): las opciones de este
+// filtro YA NO se derivan de las evaluaciones GSHS ya cargadas — eso
+// dejaba afuera a cualquier institución sin evaluaciones de GSHS
+// todavía. Ahora vienen del catálogo completo (useInstitucionesCatalogo,
+// mismo que usa PanelConsolidadoSuperadmin.jsx), consultado directo al
+// módulo `instituciones` a través de su API pública.
+//
 // PRIVACIDAD: este hook nunca expone `resultado_json` tal cual llega del
 // servicio — solo lo usa dentro de calcularPorcentajesPorModulo para
 // sumar conteos agregados. Ningún componente que consuma este hook
 // recibe el detalle fila por fila.
 import { useEffect, useMemo, useState } from 'react';
 import { gshsIndicadoresService } from '../services/gshsIndicadoresService';
+import { useInstitucionesCatalogo } from './useInstitucionesCatalogo';
+import { COLOR_ALERTA_GSHS } from '../../../shared/theme/paletaColores';
 
 const FILTRO_INSTITUCION_TODAS = 'todas';
 
@@ -66,6 +75,7 @@ export function useIndicadoresGSHS() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filtroInstitucion, setFiltroInstitucion] = useState(FILTRO_INSTITUCION_TODAS);
+  const { instituciones } = useInstitucionesCatalogo();
 
   useEffect(() => {
     let activo = true;
@@ -96,14 +106,6 @@ export function useIndicadoresGSHS() {
     };
   }, []);
 
-  // Instituciones derivadas de las evaluaciones ya cargadas — mismo
-  // criterio que Dashboard.jsx/PanelConsolidadoSuperadmin.jsx (sin
-  // llamada nueva a Supabase ni import cruzado al módulo instituciones).
-  const instituciones = useMemo(() => {
-    const nombres = evaluaciones.map((e) => e.paciente?.institucion?.nombre).filter(Boolean);
-    return Array.from(new Set(nombres)).sort((a, b) => a.localeCompare(b));
-  }, [evaluaciones]);
-
   const evaluacionesFiltradas = useMemo(() => {
     if (filtroInstitucion === FILTRO_INSTITUCION_TODAS) return evaluaciones;
     return evaluaciones.filter((e) => e.paciente?.institucion?.nombre === filtroInstitucion);
@@ -114,8 +116,44 @@ export function useIndicadoresGSHS() {
     [evaluacionesFiltradas, catalogo]
   );
 
+  // Barras + dona de "con alerta / sin alerta" (corrección posterior a
+  // SCRUM-57): mismo criterio de 2 categorías que ya usaba
+  // useResumenFormularios.js para su propio resumen de GSHS — acá suma
+  // sobre TODAS las evaluaciones del alcance vigente (institución propia
+  // para el psicólogo, todas o la elegida para el superadministrador),
+  // no solo sobre pacientes visibles en un listado.
+  const resumenAlerta = useMemo(() => {
+    let conAlerta = 0;
+    let sinAlerta = 0;
+
+    for (const evaluacion of evaluacionesFiltradas) {
+      if (evaluacion.alerta_activada) conAlerta += 1;
+      else sinAlerta += 1;
+    }
+
+    return [
+      {
+        etiqueta: 'Sin alerta',
+        etiquetaLineas: ['Sin alerta'],
+        valor: sinAlerta,
+        fill: COLOR_ALERTA_GSHS.sinAlerta.fill,
+        stroke: COLOR_ALERTA_GSHS.sinAlerta.stroke,
+        bg: COLOR_ALERTA_GSHS.sinAlerta.bg,
+      },
+      {
+        etiqueta: 'Con alerta activada',
+        etiquetaLineas: ['Con alerta', 'activada'],
+        valor: conAlerta,
+        fill: COLOR_ALERTA_GSHS.conAlerta.fill,
+        stroke: COLOR_ALERTA_GSHS.conAlerta.stroke,
+        bg: COLOR_ALERTA_GSHS.conAlerta.bg,
+      },
+    ];
+  }, [evaluacionesFiltradas]);
+
   return {
     modulos,
+    resumenAlerta,
     totalEvaluaciones: evaluacionesFiltradas.length,
     loading,
     error,

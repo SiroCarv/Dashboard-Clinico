@@ -9,11 +9,7 @@
 // existe.
 import { useState } from 'react';
 import { COLOR_MARCA, ESTILOS_CATEGORIA_CLIMA_AULA } from '../../../shared/theme/paletaColores';
-import {
-  obtenerEtiquetaIdentidad,
-  obtenerNombreMostrado,
-  obtenerEstiloEtiquetaIdentidad,
-} from '../../../shared/utils/identidadUsuario';
+import { obtenerNombreMostrado } from '../../../shared/utils/identidadUsuario';
 import { INSTRUMENTO_CLIMA_AULA, INSTRUMENTO_GSHS } from '../../evaluaciones';
 import LeyendaClimaAula from './LeyendaClimaAula';
 
@@ -204,8 +200,11 @@ export default function InformeConsolidadoPaciente({ paciente, instrumentos, exp
   // dejar la pantalla en blanco.
   if (!paciente) return null;
 
-  const etiquetaIdentidad = obtenerEtiquetaIdentidad(paciente);
-  const esParticipante = Boolean(paciente.institucion);
+  // Todas las personas de este informe tienen cuenta de rol Estudiante
+  // (pacientesService.js solo trae `rol = 'paciente'`) — la etiqueta ya
+  // no distingue Participante/Consultante (retirado, ver
+  // shared/utils/identidadUsuario.js), es simplemente el rol vigente.
+  const tieneInstitucion = Boolean(paciente.institucion);
 
   return (
     <div>
@@ -221,18 +220,14 @@ export default function InformeConsolidadoPaciente({ paciente, instrumentos, exp
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span
-                  className={`inline-block px-2 py-0.5 border rounded-full text-xs font-semibold ${obtenerEstiloEtiquetaIdentidad(
-                    etiquetaIdentidad
-                  )}`}
+                  className={`inline-block px-2 py-0.5 border rounded-full text-xs font-semibold ${COLOR_MARCA.tealAzulado.suave}`}
                 >
-                  {etiquetaIdentidad}
+                  Estudiante
                 </span>
               </div>
               <h3 className="text-xl font-extrabold text-black">{obtenerNombreMostrado(paciente)}</h3>
               <p className="text-gray-700 text-sm mt-1 font-medium">
-                {esParticipante
-                  ? paciente.institucion.nombre
-                  : 'Consultante particular (sin institución)'}
+                {tieneInstitucion ? paciente.institucion.nombre : 'Sin institución registrada'}
                 {paciente.curso ? ` · ${paciente.curso}${paciente.paralelo ? ` "${paciente.paralelo}"` : ''}` : ''}
               </p>
             </div>
@@ -265,9 +260,9 @@ export default function InformeConsolidadoPaciente({ paciente, instrumentos, exp
           </div>
 
           {/* Toda la información capturada al registrarse — cambia según
-              haya sido un registro institucional (participante, con
-              curso/paralelo/turno/código) o particular (consultante, con
-              teléfono). Cada campo se omite solo si está vacío.
+              haya institución registrada (con curso/paralelo/turno/
+              código) o no (registro histórico, con teléfono). Cada campo
+              se omite solo si está vacío.
               grid-cols-1 en mobile (antes era grid-cols-2, que fue la
               causa real del bug de "Correo se choca con Género": dos
               columnas angostas no le dejaban espacio a un correo largo). */}

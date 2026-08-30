@@ -5,11 +5,19 @@
 // (supabase/functions/crear-psicologo, editar-psicologo,
 // eliminar-psicologo) en vez de hablarle directo a la tabla `usuarios`.
 //
-// Este servicio ya no expone ninguna lectura pública/anónima: la única
-// que existió (listarPublico, sobre la vista `psicologos_publico`) era
-// exclusiva del selector de "psicólogo designado" del registro de
-// Consultantes, retirado del sistema en SCRUM-48. La vista quedó
-// pendiente de eliminación en Supabase (ver SQL entregado aparte).
+// Lectura: la única lectura pública/anónima que existió (listarPublico,
+// sobre la vista `psicologos_publico`) era exclusiva del selector de
+// "psicólogo designado" del registro de Consultantes, retirado del
+// sistema en SCRUM-48. La vista quedó pendiente de eliminación en
+// Supabase (ver SQL entregado aparte). `listarTodos()` de acá abajo es
+// una lectura distinta y nueva: no es pública ni anónima, depende
+// enteramente de la política RLS "usuarios_select" de la tabla
+// `usuarios` (que ya incluye `is_superadmin()`), así que solo devuelve
+// filas para quien inicia sesión como superadministrador — cualquier
+// otro rol recibe una lista vacía, sin necesidad de comprobarlo acá.
+// Se usa para poblar el catálogo completo de psicólogos en el Panel
+// Consolidado (dashboard_clinico), sin depender de qué psicólogos ya
+// tienen resultados asignados.
 import { supabase } from '../../../core/api/supabaseClient';
 
 /**
@@ -52,5 +60,23 @@ export const psicologosService = {
 
   async eliminar(id) {
     return invocarFuncion('eliminar-psicologo', { id });
+  },
+
+  /**
+   * Catálogo completo de psicólogos registrados en la plataforma, sin
+   * importar si ya tienen resultados o instituciones asignadas. Pensado
+   * para poblar selects de filtro (Panel Consolidado del
+   * superadministrador) — no para pantallas de gestión, que ya usan
+   * AsignacionPsicologos.jsx dentro del módulo `instituciones`.
+   */
+  async listarTodos() {
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('id, nombre, email')
+      .eq('rol', 'psicologo')
+      .order('nombre', { ascending: true });
+
+    if (error) throw error;
+    return data ?? [];
   },
 };

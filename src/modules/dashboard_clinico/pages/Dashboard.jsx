@@ -112,11 +112,12 @@ export default function Dashboard() {
       const coincideTipoPersona =
         filtroTipoPersona === FILTRO_TIPO_PERSONA_TODOS || p.tipoPersona === filtroTipoPersona;
 
-      // SCRUM-59 — un Consultante particular (sin institución) nunca
-      // tiene curso/paralelo/turno, así que si el psicólogo elige un
-      // valor específico acá, esas filas quedan fuera sin necesidad de
-      // ningún caso especial: p.curso/paralelo/turno son `null` y nunca
-      // coinciden con un valor elegido.
+      // Un registro histórico sin institución (previo al retiro del
+      // registro particular, SCRUM-46/47/48) nunca tiene curso/paralelo/
+      // turno, así que si el psicólogo elige un valor específico acá,
+      // esas filas quedan fuera sin necesidad de ningún caso especial:
+      // p.curso/paralelo/turno son `null` y nunca coinciden con un valor
+      // elegido.
       const coincideCurso = filtroCurso === FILTRO_ESCOLAR_TODOS || p.curso === filtroCurso;
       const coincideParalelo = filtroParalelo === FILTRO_ESCOLAR_TODOS || p.paralelo === filtroParalelo;
       const coincideTurno = filtroTurno === FILTRO_ESCOLAR_TODOS || p.turno === filtroTurno;
@@ -186,7 +187,7 @@ export default function Dashboard() {
           <div>
             <h2 className="text-2xl font-extrabold text-black">Dashboard Clínico</h2>
             <p className="text-gray-700 mt-1 font-semibold">
-              Seguimiento consolidado del estado clínico de tus participantes y consultantes.
+              Seguimiento consolidado del estado clínico de tus estudiantes.
             </p>
           </div>
           {/* Resultados del GSHS por módulo (SCRUM-57) */}
@@ -216,7 +217,6 @@ export default function Dashboard() {
               cursos={resumen.cursos}
               paralelos={resumen.paralelos}
               turnos={resumen.turnos}
-              mostrarFiltrosEscolares={resumen.mostrarFiltrosEscolares}
               tramosEdad={resumen.tramosEdad}
             />
             <ResumenFormularios
@@ -384,7 +384,7 @@ export default function Dashboard() {
         {loading ? (
           <div className="flex flex-col justify-center items-center py-20 gap-3">
             <svg className="animate-spin h-10 w-10 text-violet-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            <span className="text-gray-700 font-semibold">Cargando participantes y consultantes...</span>
+            <span className="text-gray-700 font-semibold">Cargando estudiantes...</span>
           </div>
         ) : (
           <TablaPacientes pacientes={pacientesFiltrados} hayFiltrosActivos={hayFiltrosActivos} />

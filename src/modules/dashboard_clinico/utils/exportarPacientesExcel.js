@@ -5,13 +5,11 @@
 //
 // Se mantiene separado de shared/utils/exportarExcel.js a propósito: ese
 // archivo es genérico y no debe conocer nada del dominio clínico
-// ("participante", "consultante", "institución") — acá sí se traducen
-// los nombres técnicos de columna a encabezados legibles en español.
+// ("estudiante", "docente", "institución") — acá sí se traducen los
+// nombres técnicos de columna a encabezados legibles en español.
 import { exportarAExcel } from '../../../shared/utils/exportarExcel';
-import {
-  obtenerNombreMostrado,
-  obtenerEtiquetaIdentidad,
-} from '../../../shared/utils/identidadUsuario';
+import { obtenerNombreMostrado } from '../../../shared/utils/identidadUsuario';
+import { ETIQUETA_TIPO_PERSONA } from './etiquetaTipoPersona';
 
 /**
  * Arma el nombre `listado_pacientes_AAAA-MM-DD.xlsx` usando la fecha
@@ -40,7 +38,7 @@ function generarNombreArchivo() {
 export async function exportarPacientesAExcel(pacientes) {
   const filas = pacientes.map((p) => ({
     Nombre: obtenerNombreMostrado(p),
-    Tipo: obtenerEtiquetaIdentidad(p),
+    Tipo: p.tipoPersona ? ETIQUETA_TIPO_PERSONA[p.tipoPersona] : 'Sin formularios completados',
     Correo: p.email || '—',
     Institución: p.institucion?.nombre || '—',
     Curso: p.curso || '—',

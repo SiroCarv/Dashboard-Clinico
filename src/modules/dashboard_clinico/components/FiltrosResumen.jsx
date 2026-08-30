@@ -25,7 +25,6 @@ export function FiltrosResumen({
   cursos,
   paralelos,
   turnos,
-  mostrarFiltrosEscolares,
   tramosEdad,
 }) {
   return (
@@ -38,8 +37,8 @@ export function FiltrosResumen({
             className={ESTILO_CAMPO}
           >
             <option value="todos">Todos</option>
-            <option value="participante">Participante</option>
-            <option value="consultante">Consultante</option>
+            <option value="estudiante">Estudiante</option>
+            <option value="docente">Docente</option>
           </select>
         </Campo>
 
@@ -90,57 +89,53 @@ export function FiltrosResumen({
           </select>
         </Campo>
 
-        {mostrarFiltrosEscolares && (
-          <>
-            <Campo etiqueta="Curso">
-              <select
-                value={filtros.curso}
-                onChange={(e) => actualizarFiltro('curso', e.target.value)}
-                className={ESTILO_CAMPO}
-                disabled={cursos.length === 0}
-              >
-                <option value="todos">Todos</option>
-                {cursos.map((valor) => (
-                  <option key={valor} value={valor}>
-                    {valor}
-                  </option>
-                ))}
-              </select>
-            </Campo>
+        <Campo etiqueta="Curso">
+          <select
+            value={filtros.curso}
+            onChange={(e) => actualizarFiltro('curso', e.target.value)}
+            className={ESTILO_CAMPO}
+            disabled={cursos.length === 0}
+          >
+            <option value="todos">Todos</option>
+            {cursos.map((valor) => (
+              <option key={valor} value={valor}>
+                {valor}
+              </option>
+            ))}
+          </select>
+        </Campo>
 
-            <Campo etiqueta="Paralelo">
-              <select
-                value={filtros.paralelo}
-                onChange={(e) => actualizarFiltro('paralelo', e.target.value)}
-                className={ESTILO_CAMPO}
-                disabled={paralelos.length === 0}
-              >
-                <option value="todos">Todos</option>
-                {paralelos.map((valor) => (
-                  <option key={valor} value={valor}>
-                    {valor}
-                  </option>
-                ))}
-              </select>
-            </Campo>
+        <Campo etiqueta="Paralelo">
+          <select
+            value={filtros.paralelo}
+            onChange={(e) => actualizarFiltro('paralelo', e.target.value)}
+            className={ESTILO_CAMPO}
+            disabled={paralelos.length === 0}
+          >
+            <option value="todos">Todos</option>
+            {paralelos.map((valor) => (
+              <option key={valor} value={valor}>
+                {valor}
+              </option>
+            ))}
+          </select>
+        </Campo>
 
-            <Campo etiqueta="Turno">
-              <select
-                value={filtros.turno}
-                onChange={(e) => actualizarFiltro('turno', e.target.value)}
-                className={ESTILO_CAMPO}
-                disabled={turnos.length === 0}
-              >
-                <option value="todos">Todos</option>
-                {turnos.map((valor) => (
-                  <option key={valor} value={valor}>
-                    {valor}
-                  </option>
-                ))}
-              </select>
-            </Campo>
-          </>
-        )}
+        <Campo etiqueta="Turno">
+          <select
+            value={filtros.turno}
+            onChange={(e) => actualizarFiltro('turno', e.target.value)}
+            className={ESTILO_CAMPO}
+            disabled={turnos.length === 0}
+          >
+            <option value="todos">Todos</option>
+            {turnos.map((valor) => (
+              <option key={valor} value={valor}>
+                {valor}
+              </option>
+            ))}
+          </select>
+        </Campo>
 
         <Campo etiqueta="Formulario">
           <select
@@ -151,7 +146,10 @@ export function FiltrosResumen({
             <option value="todos">Todos</option>
             <option value="CLIMA_AULA">Clima de Aula</option>
             <option value="GSHS">GSHS</option>
-            <option value="ambos">Ambos</option>
+            <option value="ESTRES">Estrés</option>
+            <option value="ANSIEDAD">Ansiedad</option>
+            <option value="DEPRESION">Depresión</option>
+            <option value="ambos">Ambos (Clima de Aula y GSHS)</option>
           </select>
         </Campo>
 

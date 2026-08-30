@@ -1,70 +1,19 @@
-// Historia "Nueva Terminología de Usuarios" (SCRUM-32): la palabra
-// "Paciente" ya no debe aparecer en ninguna pantalla. En su lugar se
-// distingue entre dos identidades, según si la persona pertenece a una
-// institución (colegio) o no:
+// Utilidad compartida para mostrar el nombre de un estudiante en
+// distintas pantallas (tabla del dashboard, informe consolidado,
+// exportación a Excel, panel consolidado del superadmin). Vive en
+// `shared/` porque más de un módulo la necesita y la regla del proyecto
+// prohíbe que un módulo importe directamente de otro.
 //
-//   - Participante: tiene institución (viene del registro de
-//     estudiantes, `usuarios.institucion_id` no es NULL — visible acá
-//     como `institucion` presente en el objeto ya cargado).
-//   - Consultante: no tiene institución (viene del registro particular /
-//     clínica universitaria), `institucion` llega null/undefined.
-//
-// No se toca ninguna consulta, tabla, columna ni rol de base de datos:
-// esto es lógica puramente de presentación. `usuarios.rol` sigue
-// guardando el valor 'paciente' — eso es un identificador interno, no
-// texto en pantalla.
-//
-// Vive en `shared/` (no dentro de `dashboard_clinico`) porque más de un
-// módulo la necesita (tabla del dashboard, informe consolidado y la
-// exportación a Excel) y la regla del proyecto prohíbe que un módulo
-// importe directamente de otro.
-//
-// IMPORTANTE — RLS: hoy ningún psicólogo puede ver a un Consultante en
-// su listado. La política `usuarios_select_psicologo_pacientes` filtra
-// por `institucion_id IN (instituciones del psicólogo)`, y un Consultante
-// tiene `institucion_id = NULL`, que nunca coincide con esa condición.
-// Este archivo ya está listo para mostrar ambas identidades juntas en
-// cuanto se defina (y se implemente en RLS) qué psicólogo(s) atienden a
-// los Consultantes — ítem pendiente de decisión con el cliente.
-
-import { COLOR_MARCA } from '../theme/paletaColores';
-
-export const ETIQUETA_PARTICIPANTE = 'Participante';
-export const ETIQUETA_CONSULTANTE = 'Consultante';
-
-/**
- * Determina la etiqueta a mostrar para la persona que respondió una
- * evaluación, a partir del objeto `paciente` (con o sin `institucion`).
- *
- * @param {{ institucion?: { nombre: string } | null } | null | undefined} persona
- * @returns {'Participante' | 'Consultante'}
- */
-export function obtenerEtiquetaIdentidad(persona) {
-  return persona?.institucion ? ETIQUETA_PARTICIPANTE : ETIQUETA_CONSULTANTE;
-}
-
-/**
- * Nombre a mostrar, con un fallback que respeta la etiqueta correcta en
- * vez del genérico "Paciente desconocido".
- *
- * @param {{ nombre?: string, email?: string, institucion?: object|null } | null | undefined} persona
- * @returns {string}
- */
+// Historial: hasta la corrección de terminología "Paciente → Estudiante",
+// este archivo distinguía entre "Participante" (con institución) y
+// "Consultante" (sin institución). Se retiró junto con el resto de esa
+// corrección: el registro de Consultante particular ya estaba retirado
+// del sistema desde SCRUM-46/47/48 (ver Bienvenida.jsx/Registro.jsx), así
+// que la distinción no podía darse en la práctica con datos nuevos.
+// Donde hace falta distinguir "quién originó el registro" (autoenvío del
+// estudiante vs. caso registrado por un docente), el proyecto ya tenía
+// un concepto separado y vigente: `tipoPersona` en pacientesService.js /
+// `registrado_por_docente_id` en resultadosGlobalesService.js.
 export function obtenerNombreMostrado(persona) {
-  return persona?.nombre || persona?.email || `${obtenerEtiquetaIdentidad(persona)} desconocido`;
-}
-
-/**
- * Clases de Tailwind para la etiqueta de identidad, reutilizando dos de
- * los colores de marca ya definidos en `paletaColores.js` (nunca rojo ni
- * amarillo, reservados exclusivamente para severidad clínica).
- * Participante -> teal azulado, Consultante -> violeta suave.
- *
- * @param {'Participante' | 'Consultante'} etiqueta
- * @returns {string}
- */
-export function obtenerEstiloEtiquetaIdentidad(etiqueta) {
-  return etiqueta === ETIQUETA_PARTICIPANTE
-    ? COLOR_MARCA.tealAzulado.suave
-    : COLOR_MARCA.violetaSuave.suave;
+  return persona?.nombre || persona?.email || 'Estudiante desconocido';
 }

@@ -7,11 +7,15 @@
 // aceptación pide identificar institución y psicólogo "por cada
 // resultado", no por paciente.
 //
-// Los filtros se aplican en memoria sobre el listado ya cargado, mismo
-// criterio que usa Dashboard.jsx para su filtro de institución: las
-// opciones de los selects se derivan de los propios resultados
-// cargados, sin ninguna llamada nueva a Supabase ni un import cruzado a
-// los módulos `instituciones` o `psicologos`.
+// Institución y psicólogo (corrección posterior a SCRUM-56): las
+// opciones de estos dos selects YA NO se derivan de los resultados
+// cargados — eso dejaba afuera a cualquier institución o psicólogo sin
+// evaluaciones todavía. Ahora vienen de los catálogos completos
+// (useInstitucionesCatalogo / usePsicologosCatalogo), consultados
+// directo a los módulos `instituciones` y `psicologos` a través de su
+// API pública. El filtro sigue aplicándose en memoria sobre el listado
+// de resultados ya cargado, comparando por nombre (ver limitación
+// documentada en usePsicologosCatalogo.js).
 //
 // SCRUM-60 — Detalle de casos registrados por docente: se suma acá un
 // filtro más, "Origen del registro", con el mismo criterio que ya usa
@@ -23,6 +27,8 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useResultadosGlobales } from '../hooks/useResultadosGlobales';
+import { useInstitucionesCatalogo } from '../hooks/useInstitucionesCatalogo';
+import { usePsicologosCatalogo } from '../hooks/usePsicologosCatalogo';
 import { TablaResultadosGlobales } from '../components/TablaResultadosGlobales';
 import { BotonCerrarSesion } from '../../autenticacion';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
@@ -35,23 +41,13 @@ const FILTRO_TIPO_PERSONA_DOCENTE = 'docente';
 
 export default function PanelConsolidadoSuperadmin() {
   const { resultados, loading, error } = useResultadosGlobales();
+  const { instituciones } = useInstitucionesCatalogo();
+  const { psicologos } = usePsicologosCatalogo();
   const [filtroInstitucion, setFiltroInstitucion] = useState(FILTRO_INSTITUCION_TODAS);
   const [filtroPsicologo, setFiltroPsicologo] = useState(FILTRO_PSICOLOGO_TODOS);
   const [filtroTipoPersona, setFiltroTipoPersona] = useState(FILTRO_TIPO_PERSONA_TODOS);
   const [fechaDesde, setFechaDesde] = useState('');
   const [fechaHasta, setFechaHasta] = useState('');
-
-  // Opciones derivadas de los resultados ya cargados — mismo criterio
-  // que Dashboard.jsx (ver comentario ahí).
-  const instituciones = useMemo(() => {
-    const nombres = resultados.map((r) => r.paciente?.institucion?.nombre).filter(Boolean);
-    return Array.from(new Set(nombres)).sort((a, b) => a.localeCompare(b));
-  }, [resultados]);
-
-  const psicologos = useMemo(() => {
-    const nombres = resultados.map((r) => r.paciente?.psicologo_asignado?.nombre).filter(Boolean);
-    return Array.from(new Set(nombres)).sort((a, b) => a.localeCompare(b));
-  }, [resultados]);
 
   const resultadosFiltrados = useMemo(() => {
     // "Hasta" incluye el día completo (23:59:59), no solo su medianoche
@@ -142,7 +138,7 @@ export default function PanelConsolidadoSuperadmin() {
           </div>
         )}
 
-        {!loading && resultados.length > 0 && (
+        {!loading && (
           <div className="flex flex-col sm:flex-row sm:items-end gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm mb-6">
             <div className="flex-1 min-w-40">
               <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">

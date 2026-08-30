@@ -2,15 +2,24 @@
 // porcentaje de riesgo por módulo consolidado entre todas las
 // instituciones, con un filtro para acotarlo a una sola institución
 // (criterio de aceptación 3 de la historia).
+//
+// Barras + dona (corrección posterior a SCRUM-57): se agrega el resumen
+// de "con alerta / sin alerta" en el mismo formato que ya usa
+// ResumenFormularios.jsx (SeccionGraficoInstrumento), igual que en
+// IndicadoresGSHS.jsx (psicólogo) — el gráfico por módulo
+// (GraficoModulosGSHS, barras horizontales) se mantiene igual, esto se
+// suma, no lo reemplaza.
 import { Link } from 'react-router-dom';
 import { useIndicadoresGSHS } from '../hooks/useIndicadoresGSHS';
 import { GraficoModulosGSHS } from '../components/GraficoModulosGSHS';
+import { SeccionGraficoInstrumento } from '../components/SeccionGraficoInstrumento';
 import { BotonCerrarSesion } from '../../autenticacion';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
 export default function IndicadoresGSHSSuperadmin() {
   const {
     modulos,
+    resumenAlerta,
     totalEvaluaciones,
     loading,
     error,
@@ -92,7 +101,13 @@ export default function IndicadoresGSHSSuperadmin() {
             <span className="text-gray-700 font-semibold">Cargando resultados del GSHS...</span>
           </div>
         ) : (
-          <GraficoModulosGSHS modulos={modulos} totalEvaluaciones={totalEvaluaciones} />
+          <div className="space-y-4">
+            <SeccionGraficoInstrumento
+              titulo={`GSHS — ${totalEvaluaciones} ${totalEvaluaciones === 1 ? 'evaluación considerada' : 'evaluaciones consideradas'}`}
+              datos={resumenAlerta}
+            />
+            <GraficoModulosGSHS modulos={modulos} totalEvaluaciones={totalEvaluaciones} />
+          </div>
         )}
       </div>
     </div>

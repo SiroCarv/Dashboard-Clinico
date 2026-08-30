@@ -4,10 +4,7 @@
 // completo, una fila por persona) — este es el export individual de la
 // pantalla de Informe Consolidado.
 import { exportarAExcel } from '../../../shared/utils/exportarExcel';
-import {
-  obtenerNombreMostrado,
-  obtenerEtiquetaIdentidad,
-} from '../../../shared/utils/identidadUsuario';
+import { obtenerNombreMostrado } from '../../../shared/utils/identidadUsuario';
 
 const ETIQUETA_INSTRUMENTO = {
   CLIMA_AULA: 'Cuestionario de Clima de Aula',
@@ -42,7 +39,11 @@ function generarNombreArchivo(paciente) {
  */
 export async function exportarInformePacienteAExcel(paciente, instrumentos) {
   const nombre = obtenerNombreMostrado(paciente);
-  const tipo = obtenerEtiquetaIdentidad(paciente);
+  // Toda persona con Informe Consolidado tiene cuenta de rol Estudiante
+  // (pacientesService.js solo trae `rol = 'paciente'`) — mismo criterio
+  // que InformeConsolidadoPaciente.jsx tras retirar Participante/
+  // Consultante (ver shared/utils/identidadUsuario.js).
+  const tipo = 'Estudiante';
   const institucion = paciente.institucion?.nombre || '—';
 
   const filas = instrumentos.flatMap((registro) =>
