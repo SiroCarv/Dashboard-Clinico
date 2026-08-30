@@ -149,7 +149,6 @@ export function FiltrosResumen({
             <option value="ESTRES">Estrés</option>
             <option value="ANSIEDAD">Ansiedad</option>
             <option value="DEPRESION">Depresión</option>
-            <option value="ambos">Ambos (Clima de Aula y GSHS)</option>
           </select>
         </Campo>
 

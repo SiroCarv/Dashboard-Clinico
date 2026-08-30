@@ -24,12 +24,17 @@
 // distinta: allá se deriva por paciente (agregando varias evaluaciones),
 // acá es directo por fila, porque cada resultado YA es una sola
 // evaluación con su propio `registrado_por_docente_id`.
+// Formulario / instrumento (corrección posterior): filtro de selección
+// múltiple nuevo, con FiltroSeleccionMultiple.jsx — no existía ningún
+// filtro por instrumento en esta pantalla. Selección vacía = todos los
+// instrumentos (sin filtrar), igual criterio que documenta ese archivo.
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useResultadosGlobales } from '../hooks/useResultadosGlobales';
 import { useInstitucionesCatalogo } from '../hooks/useInstitucionesCatalogo';
 import { usePsicologosCatalogo } from '../hooks/usePsicologosCatalogo';
 import { TablaResultadosGlobales } from '../components/TablaResultadosGlobales';
+import { FiltroSeleccionMultiple } from '../components/FiltroSeleccionMultiple';
 import { BotonCerrarSesion } from '../../autenticacion';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
@@ -39,6 +44,14 @@ const FILTRO_TIPO_PERSONA_TODOS = 'todos';
 const FILTRO_TIPO_PERSONA_ESTUDIANTE = 'estudiante';
 const FILTRO_TIPO_PERSONA_DOCENTE = 'docente';
 
+const OPCIONES_INSTRUMENTO = [
+  { valor: 'CLIMA_AULA', etiqueta: 'Clima de Aula' },
+  { valor: 'GSHS', etiqueta: 'GSHS' },
+  { valor: 'ESTRES', etiqueta: 'Estrés' },
+  { valor: 'ANSIEDAD', etiqueta: 'Ansiedad' },
+  { valor: 'DEPRESION', etiqueta: 'Depresión' },
+];
+
 export default function PanelConsolidadoSuperadmin() {
   const { resultados, loading, error } = useResultadosGlobales();
   const { instituciones } = useInstitucionesCatalogo();
@@ -46,6 +59,7 @@ export default function PanelConsolidadoSuperadmin() {
   const [filtroInstitucion, setFiltroInstitucion] = useState(FILTRO_INSTITUCION_TODAS);
   const [filtroPsicologo, setFiltroPsicologo] = useState(FILTRO_PSICOLOGO_TODOS);
   const [filtroTipoPersona, setFiltroTipoPersona] = useState(FILTRO_TIPO_PERSONA_TODOS);
+  const [filtroInstrumentos, setFiltroInstrumentos] = useState(() => new Set());
   const [fechaDesde, setFechaDesde] = useState('');
   const [fechaHasta, setFechaHasta] = useState('');
 
@@ -75,17 +89,31 @@ export default function PanelConsolidadoSuperadmin() {
       const coincideTipoPersona =
         filtroTipoPersona === FILTRO_TIPO_PERSONA_TODOS || tipoPersonaResultado === filtroTipoPersona;
 
+      const coincideInstrumento =
+        filtroInstrumentos.size === 0 || filtroInstrumentos.has(r.tipo_instrumento);
+
       const fecha = new Date(r.fecha_registro);
       const coincideFecha = (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
 
-      return coincideInstitucion && coincidePsicologo && coincideTipoPersona && coincideFecha;
+      return (
+        coincideInstitucion && coincidePsicologo && coincideTipoPersona && coincideInstrumento && coincideFecha
+      );
     });
-  }, [resultados, filtroInstitucion, filtroPsicologo, filtroTipoPersona, fechaDesde, fechaHasta]);
+  }, [
+    resultados,
+    filtroInstitucion,
+    filtroPsicologo,
+    filtroTipoPersona,
+    filtroInstrumentos,
+    fechaDesde,
+    fechaHasta,
+  ]);
 
   const hayFiltrosActivos =
     filtroInstitucion !== FILTRO_INSTITUCION_TODAS ||
     filtroPsicologo !== FILTRO_PSICOLOGO_TODOS ||
     filtroTipoPersona !== FILTRO_TIPO_PERSONA_TODOS ||
+    filtroInstrumentos.size > 0 ||
     fechaDesde !== '' ||
     fechaHasta !== '';
 
@@ -93,6 +121,7 @@ export default function PanelConsolidadoSuperadmin() {
     setFiltroInstitucion(FILTRO_INSTITUCION_TODAS);
     setFiltroPsicologo(FILTRO_PSICOLOGO_TODOS);
     setFiltroTipoPersona(FILTRO_TIPO_PERSONA_TODOS);
+    setFiltroInstrumentos(new Set());
     setFechaDesde('');
     setFechaHasta('');
   };
@@ -139,7 +168,7 @@ export default function PanelConsolidadoSuperadmin() {
         )}
 
         {!loading && (
-          <div className="flex flex-col sm:flex-row sm:items-end gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm mb-6">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm mb-6">
             <div className="flex-1 min-w-40">
               <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">
                 Institución
@@ -189,6 +218,16 @@ export default function PanelConsolidadoSuperadmin() {
                 <option value={FILTRO_TIPO_PERSONA_ESTUDIANTE}>Autoenvío del estudiante</option>
                 <option value={FILTRO_TIPO_PERSONA_DOCENTE}>Registrado por docente</option>
               </select>
+            </div>
+
+            <div className="flex-1 min-w-48">
+              <FiltroSeleccionMultiple
+                etiqueta="Formulario"
+                etiquetaTodos="Todos los formularios"
+                opciones={OPCIONES_INSTRUMENTO}
+                seleccionados={filtroInstrumentos}
+                onCambiar={setFiltroInstrumentos}
+              />
             </div>
 
             <div>

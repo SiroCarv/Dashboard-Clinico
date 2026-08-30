@@ -19,8 +19,16 @@
 // no existe la categoría "sin institución", curso/paralelo/turno dejaron
 // de ocultarse condicionalmente — siempre tienen sentido para cualquiera
 // que aparezca en este listado.
+//
+// Curso/paralelo/turno (corrección posterior): antes se derivaban de
+// `valoresUnicos(pacientes, campo)`, mostrando solo los valores que ya
+// existían entre los estudiantes cargados. Ahora usan las mismas listas
+// fijas que ya usaba Dashboard.jsx para el filtro de su propia tabla
+// (ver opcionesEscolares.js) — evita que ambos filtros de la misma
+// pantalla muestren conjuntos de opciones distintos.
 import { useMemo, useState } from 'react';
 import { COLOR_CATEGORIA_CLIMA_AULA, COLOR_ALERTA_GSHS } from '../../../shared/theme/paletaColores';
+import { OPCIONES_CURSO, OPCIONES_PARALELO, OPCIONES_TURNO } from '../data/opcionesEscolares';
 
 const TODOS = 'todos';
 
@@ -61,7 +69,7 @@ const FILTROS_INICIALES = {
   curso: TODOS,
   paralelo: TODOS,
   turno: TODOS,
-  instrumento: TODOS, // 'todos' | 'CLIMA_AULA' | 'GSHS' | 'ESTRES' | 'ANSIEDAD' | 'DEPRESION' | 'ambos'
+  instrumento: TODOS, // 'todos' | 'CLIMA_AULA' | 'GSHS' | 'ESTRES' | 'ANSIEDAD' | 'DEPRESION'
   fechaDesde: '',
   fechaHasta: '',
 };
@@ -109,9 +117,9 @@ export function useResumenFormularios(pacientes) {
     [pacientes]
   );
   const generos = useMemo(() => valoresUnicos(pacientes, 'genero'), [pacientes]);
-  const cursos = useMemo(() => valoresUnicos(pacientes, 'curso'), [pacientes]);
-  const paralelos = useMemo(() => valoresUnicos(pacientes, 'paralelo'), [pacientes]);
-  const turnos = useMemo(() => valoresUnicos(pacientes, 'turno'), [pacientes]);
+  const cursos = OPCIONES_CURSO;
+  const paralelos = OPCIONES_PARALELO;
+  const turnos = OPCIONES_TURNO;
 
   const pacientesFiltrados = useMemo(() => {
     return pacientes.filter((paciente) => {
@@ -134,14 +142,7 @@ export function useResumenFormularios(pacientes) {
 
       const tiposCompletados = new Set((paciente.evaluaciones ?? []).map((e) => e.tipo_instrumento));
 
-      if (filtros.instrumento === 'ambos' && !(tiposCompletados.has('CLIMA_AULA') && tiposCompletados.has('GSHS'))) {
-        return false;
-      }
-      if (
-        filtros.instrumento !== TODOS &&
-        filtros.instrumento !== 'ambos' &&
-        !tiposCompletados.has(filtros.instrumento)
-      ) {
+      if (filtros.instrumento !== TODOS && !tiposCompletados.has(filtros.instrumento)) {
         return false;
       }
 
