@@ -29,18 +29,6 @@ export function FiltrosResumen({
   return (
     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm mb-6">
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        <Campo etiqueta="Tipo de persona">
-          <select
-            value={filtros.tipoPersona}
-            onChange={(e) => actualizarFiltro('tipoPersona', e.target.value)}
-            className={ESTILO_CAMPO}
-          >
-            <option value="todos">Todos</option>
-            <option value="estudiante">Estudiante</option>
-            <option value="docente">Docente</option>
-          </select>
-        </Campo>
-
         <Campo etiqueta="Sexo">
           <select
             value={filtros.sexo}

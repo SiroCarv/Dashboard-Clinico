@@ -47,6 +47,13 @@
 // por institución nunca reduce nada para quien usa esta pantalla. La
 // columna Institución sigue visible en TablaPacientes.jsx, solo se
 // quitó el control de filtro.
+//
+// Tipo de persona (corrección posterior): se retiró también este filtro
+// de acá y de useResumenFormularios.js, a pedido del cliente. La
+// etiqueta Estudiante/Docente sigue mostrándose junto al nombre en
+// TablaPacientes.jsx (viene de `tipoPersona`, calculado en
+// pacientesService.js) — solo se quitó el control de filtro, no la
+// etiqueta.
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
@@ -60,14 +67,6 @@ import { OPCIONES_CURSO, OPCIONES_PARALELO, OPCIONES_TURNO } from '../data/opcio
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
-// Opciones del filtro "tipo de persona" (SCRUM-53): distinguen quién
-// originó el registro (autoenvío del estudiante vs. caso registrado por
-// un docente en su nombre). Los valores coinciden exactamente con
-// `tipoPersona` tal como lo devuelve pacientesService.js.
-const FILTRO_TIPO_PERSONA_TODOS = 'todos';
-const FILTRO_TIPO_PERSONA_ESTUDIANTE = 'estudiante';
-const FILTRO_TIPO_PERSONA_DOCENTE = 'docente';
-
 const FILTRO_ESCOLAR_TODOS = 'todos';
 
 const PESTANA_GRAFICAS = 'graficas';
@@ -78,7 +77,6 @@ export default function Dashboard() {
   const resumen = useResumenFormularios(pacientes);
   const [pestanaActiva, setPestanaActiva] = useState(PESTANA_GRAFICAS);
   const [busqueda, setBusqueda] = useState('');
-  const [filtroTipoPersona, setFiltroTipoPersona] = useState(FILTRO_TIPO_PERSONA_TODOS);
   const [filtroCurso, setFiltroCurso] = useState(FILTRO_ESCOLAR_TODOS);
   const [filtroParalelo, setFiltroParalelo] = useState(FILTRO_ESCOLAR_TODOS);
   const [filtroTurno, setFiltroTurno] = useState(FILTRO_ESCOLAR_TODOS);
@@ -93,14 +91,6 @@ export default function Dashboard() {
         p.nombre?.toLowerCase().includes(texto) ||
         p.email?.toLowerCase().includes(texto);
 
-      // Sin filtro: se ve todo, sin distinción (criterio de aceptación
-      // SCRUM-53). Con un filtro específico elegido: una persona sin
-      // ninguna evaluación (`tipoPersona === null`) no coincide con
-      // ninguna opción, así que queda fuera de ambos — no es "un
-      // registro de estudiante" ni "un registro hecho por un docente".
-      const coincideTipoPersona =
-        filtroTipoPersona === FILTRO_TIPO_PERSONA_TODOS || p.tipoPersona === filtroTipoPersona;
-
       // Un registro histórico sin institución (previo al retiro del
       // registro particular, SCRUM-46/47/48) nunca tiene curso/paralelo/
       // turno, así que si el psicólogo elige un valor específico acá,
@@ -111,20 +101,18 @@ export default function Dashboard() {
       const coincideParalelo = filtroParalelo === FILTRO_ESCOLAR_TODOS || p.paralelo === filtroParalelo;
       const coincideTurno = filtroTurno === FILTRO_ESCOLAR_TODOS || p.turno === filtroTurno;
 
-      return coincideBusqueda && coincideTipoPersona && coincideCurso && coincideParalelo && coincideTurno;
+      return coincideBusqueda && coincideCurso && coincideParalelo && coincideTurno;
     });
-  }, [pacientes, busqueda, filtroTipoPersona, filtroCurso, filtroParalelo, filtroTurno]);
+  }, [pacientes, busqueda, filtroCurso, filtroParalelo, filtroTurno]);
 
   const hayFiltrosActivos =
     busqueda.trim() !== '' ||
-    filtroTipoPersona !== FILTRO_TIPO_PERSONA_TODOS ||
     filtroCurso !== FILTRO_ESCOLAR_TODOS ||
     filtroParalelo !== FILTRO_ESCOLAR_TODOS ||
     filtroTurno !== FILTRO_ESCOLAR_TODOS;
 
   const limpiarFiltros = () => {
     setBusqueda('');
-    setFiltroTipoPersona(FILTRO_TIPO_PERSONA_TODOS);
     setFiltroCurso(FILTRO_ESCOLAR_TODOS);
     setFiltroParalelo(FILTRO_ESCOLAR_TODOS);
     setFiltroTurno(FILTRO_ESCOLAR_TODOS);
@@ -242,16 +230,6 @@ export default function Dashboard() {
                       placeholder="Buscar por nombre o correo..."
                       className="flex-1 px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
                     />
-
-                    <select
-                      value={filtroTipoPersona}
-                      onChange={(e) => setFiltroTipoPersona(e.target.value)}
-                      className="px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
-                    >
-                      <option value={FILTRO_TIPO_PERSONA_TODOS}>Todos los tipos</option>
-                      <option value={FILTRO_TIPO_PERSONA_ESTUDIANTE}>Estudiante</option>
-                      <option value={FILTRO_TIPO_PERSONA_DOCENTE}>Docente</option>
-                    </select>
 
                     <select
                       value={filtroCurso}
