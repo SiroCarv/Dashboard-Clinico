@@ -15,9 +15,11 @@
 //      pertenece, para poder agrupar. `alerta_activada` se agregó junto
 //      con el gráfico de barras+dona de "con alerta / sin alerta"
 //      (corrección posterior a SCRUM-57, mismo criterio de 2 categorías
-//      que ya usaba useResumenFormularios.js para su propio resumen de
-//      GSHS). useIndicadoresGSHS.js nunca expone `resultado_json` fila
-//      por fila — solo lo usa para sumar porcentajes agregados. Ver la
+//      que useResumenFormularios.js usaba antes para su propio resumen de
+//      GSHS en el panel del psicólogo, retirado de ahí más adelante para
+//      no duplicar esta pantalla). useIndicadoresGSHS.js nunca expone
+//      `resultado_json` fila por fila — solo lo usa para sumar
+//      porcentajes agregados. Ver la
 //      nota actualizada en resultadosGlobalesService.js sobre qué
 //      autorizó la Licenciada para GSHS (agregados por módulo sí,
 //      resultado individual de un estudiante no).

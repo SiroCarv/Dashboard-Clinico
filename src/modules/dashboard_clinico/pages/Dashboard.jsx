@@ -55,7 +55,6 @@
 // pacientesService.js) — solo se quitó el control de filtro, no la
 // etiqueta.
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
 import { useListaPacientes } from '../hooks/useListaPacientes';
 import { useResumenFormularios } from '../hooks/useResumenFormularios';
@@ -143,20 +142,11 @@ export default function Dashboard() {
       <BarraSuperior titulo="Panel de Administración (Psicólogo/a)" />
 
       <div className="relative z-10 p-6 md:p-10 max-w-6xl mx-auto">
-        <div className="mb-6 flex items-start justify-between flex-wrap gap-4">
-          <div>
-            <h2 className="text-2xl font-extrabold text-black">Dashboard Clínico</h2>
-            <p className="text-gray-700 mt-1 font-semibold">
-              Seguimiento consolidado del estado clínico de tus estudiantes.
-            </p>
-          </div>
-          {/* Resultados del GSHS por módulo (SCRUM-57) */}
-          <Link
-            to="/dashboard/gshs"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-md font-semibold shadow-sm transition-colors bg-emerald-500 hover:bg-emerald-600 text-white"
-          >
-            Ver resultados del GSHS
-          </Link>
+        <div className="mb-6">
+          <h2 className="text-2xl font-extrabold text-black">Dashboard Clínico</h2>
+          <p className="text-gray-700 mt-1 font-semibold">
+            Seguimiento consolidado del estado clínico de tus estudiantes.
+          </p>
         </div>
 
         {error && (
@@ -212,7 +202,9 @@ export default function Dashboard() {
                 />
                 <ResumenFormularios
                   graficoClimaAula={resumen.graficoClimaAula}
-                  graficoGshs={resumen.graficoGshs}
+                  graficoEstres={resumen.graficoEstres}
+                  graficoAnsiedad={resumen.graficoAnsiedad}
+                  graficoDepresion={resumen.graficoDepresion}
                   hayFiltrosActivos={resumen.hayFiltrosActivos}
                   hayPersonasFiltradas={resumen.hayPersonasFiltradas}
                 />

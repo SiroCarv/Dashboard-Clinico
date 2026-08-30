@@ -40,7 +40,12 @@
 // al nombre en TablaPacientes.jsx — solo se quitó el control de filtro,
 // no el dato ni la etiqueta.
 import { useMemo, useState } from 'react';
-import { COLOR_CATEGORIA_CLIMA_AULA, COLOR_ALERTA_GSHS } from '../../../shared/theme/paletaColores';
+import {
+  COLOR_CATEGORIA_CLIMA_AULA,
+  COLOR_CATEGORIA_ESTRES,
+  COLOR_CATEGORIA_ANSIEDAD,
+  COLOR_CATEGORIA_DEPRESION,
+} from '../../../shared/theme/paletaColores';
 import { OPCIONES_CURSO, OPCIONES_PARALELO, OPCIONES_TURNO } from '../data/opcionesEscolares';
 
 const TODOS = 'todos';
@@ -56,6 +61,38 @@ const CATEGORIAS_CLIMA_AULA = [
   { etiqueta: 'Medianamente favorable', lineas: ['Medianamente', 'favorable'] },
   { etiqueta: 'Poco favorable', lineas: ['Poco', 'favorable'] },
   { etiqueta: 'Negativo', lineas: ['Negativo'] },
+];
+
+// Mismos 4 textos exactos que arma el trigger calcular_resultado_
+// instrumento en Supabase para tipo_instrumento = 'ESTRES' (Escala de
+// Estrés Percibido / PSS-14) — verificados contra la función real, no
+// copiados de la referencia informativa del instrumento
+// (evaluaciones/data/estresData.js), para no arriesgar un typo que rompa
+// la comparación de categorías. Orden de mejor a peor, igual que
+// CATEGORIAS_CLIMA_AULA.
+const CATEGORIAS_ESTRES = [
+  { etiqueta: 'Nivel bajo', lineas: ['Nivel', 'bajo'] },
+  { etiqueta: 'Nivel medio', lineas: ['Nivel', 'medio'] },
+  { etiqueta: 'Nivel alto', lineas: ['Nivel', 'alto'] },
+  { etiqueta: 'Nivel muy alto', lineas: ['Nivel', 'muy alto'] },
+];
+
+// Mismo criterio que CATEGORIAS_ESTRES, para tipo_instrumento =
+// 'ANSIEDAD' (Inventario de Ansiedad de Beck / BAI).
+const CATEGORIAS_ANSIEDAD = [
+  { etiqueta: 'No presenta ansiedad', lineas: ['No presenta', 'ansiedad'] },
+  { etiqueta: 'Ansiedad leve', lineas: ['Ansiedad', 'leve'] },
+  { etiqueta: 'Ansiedad moderada', lineas: ['Ansiedad', 'moderada'] },
+  { etiqueta: 'Ansiedad grave', lineas: ['Ansiedad', 'grave'] },
+];
+
+// Mismo criterio que CATEGORIAS_ESTRES, para tipo_instrumento =
+// 'DEPRESION' (Inventario de Depresión de Beck II / BDI-II).
+const CATEGORIAS_DEPRESION = [
+  { etiqueta: 'Depresión mínima', lineas: ['Depresión', 'mínima'] },
+  { etiqueta: 'Depresión leve o media', lineas: ['Depresión', 'leve o media'] },
+  { etiqueta: 'Depresión moderada', lineas: ['Depresión', 'moderada'] },
+  { etiqueta: 'Depresión severa', lineas: ['Depresión', 'severa'] },
 ];
 
 // Mismos tramos de edad que la pregunta 1 del módulo demográfico del
@@ -104,6 +141,36 @@ function calcularEdad(fechaNacimiento) {
 function valoresUnicos(pacientes, campo) {
   const valores = pacientes.map((p) => p[campo]).filter(Boolean);
   return Array.from(new Set(valores)).sort((a, b) => a.localeCompare(b));
+}
+
+// Cuenta, para un instrumento con categorías fijas calculadas por el
+// trigger (a diferencia de GSHS, que no calcula ninguna), cuántas de las
+// personas ya filtradas que lo completaron cayeron en cada categoría.
+// Estrés, Ansiedad y Depresión comparten exactamente esta forma — solo
+// cambian el tipo de instrumento, la lista de categorías y sus colores —
+// así que se extrae acá en vez de repetir el mismo bucle 3 veces. Clima
+// de Aula (graficoClimaAula, más abajo) se deja como estaba, sin migrar a
+// este helper, para no tocar código ya auditado que no forma parte de
+// este cambio.
+function contarPorCategoria(pacientesFiltrados, tipoInstrumento, categorias, colores) {
+  const conteoPorCategoria = Object.fromEntries(categorias.map((c) => [c.etiqueta, 0]));
+
+  for (const paciente of pacientesFiltrados) {
+    const evaluacion = (paciente.evaluaciones ?? []).find((e) => e.tipo_instrumento === tipoInstrumento);
+    const categoria = evaluacion?.resultado_json?.categoria;
+    if (categoria && categoria in conteoPorCategoria) {
+      conteoPorCategoria[categoria] += 1;
+    }
+  }
+
+  return categorias.map(({ etiqueta, lineas }) => ({
+    etiqueta,
+    etiquetaLineas: lineas,
+    valor: conteoPorCategoria[etiqueta],
+    fill: colores[etiqueta].fill,
+    stroke: colores[etiqueta].stroke,
+    bg: colores[etiqueta].bg,
+  }));
 }
 
 export function useResumenFormularios(pacientes) {
@@ -184,44 +251,25 @@ export function useResumenFormularios(pacientes) {
     }));
   }, [pacientesFiltrados]);
 
-  // Cuántas de las personas ya filtradas que completaron el GSHS tienen
-  // alerta activada o no. GSHS no genera categoría (ver nota en
-  // gshsData.js) — este sigue siendo el único desglose de GSHS que
-  // muestra ESTE panel resumen. El desglose de "% de riesgo por módulo"
-  // (SCRUM-57, autorizado por la Licenciada como agregado entre varios
-  // estudiantes) vive en su propia sección dedicada
-  // (dashboard_clinico/pages/IndicadoresGSHS.jsx), no acá — este panel
-  // resumen no lo necesita duplicar.
-  const graficoGshs = useMemo(() => {
-    let sinAlerta = 0;
-    let conAlerta = 0;
+  // GSHS ya no tiene un gráfico propio en este panel resumen (retirado:
+  // duplicaba el mismo resumen con/sin alerta que ya muestra
+  // IndicadoresGSHS.jsx). La pestaña de GSHS en ResumenFormularios.jsx
+  // ahora es un acceso directo a esa pantalla dedicada, no un gráfico —
+  // por eso este hook ya no calcula nada para GSHS.
+  const graficoEstres = useMemo(
+    () => contarPorCategoria(pacientesFiltrados, 'ESTRES', CATEGORIAS_ESTRES, COLOR_CATEGORIA_ESTRES),
+    [pacientesFiltrados]
+  );
 
-    for (const paciente of pacientesFiltrados) {
-      const evaluacionGshs = (paciente.evaluaciones ?? []).find((e) => e.tipo_instrumento === 'GSHS');
-      if (!evaluacionGshs) continue;
-      if (evaluacionGshs.alerta_activada) conAlerta += 1;
-      else sinAlerta += 1;
-    }
+  const graficoAnsiedad = useMemo(
+    () => contarPorCategoria(pacientesFiltrados, 'ANSIEDAD', CATEGORIAS_ANSIEDAD, COLOR_CATEGORIA_ANSIEDAD),
+    [pacientesFiltrados]
+  );
 
-    return [
-      {
-        etiqueta: 'Sin alerta',
-        etiquetaLineas: ['Sin alerta'],
-        valor: sinAlerta,
-        fill: COLOR_ALERTA_GSHS.sinAlerta.fill,
-        stroke: COLOR_ALERTA_GSHS.sinAlerta.stroke,
-        bg: COLOR_ALERTA_GSHS.sinAlerta.bg,
-      },
-      {
-        etiqueta: 'Con alerta activada',
-        etiquetaLineas: ['Con alerta', 'activada'],
-        valor: conAlerta,
-        fill: COLOR_ALERTA_GSHS.conAlerta.fill,
-        stroke: COLOR_ALERTA_GSHS.conAlerta.stroke,
-        bg: COLOR_ALERTA_GSHS.conAlerta.bg,
-      },
-    ];
-  }, [pacientesFiltrados]);
+  const graficoDepresion = useMemo(
+    () => contarPorCategoria(pacientesFiltrados, 'DEPRESION', CATEGORIAS_DEPRESION, COLOR_CATEGORIA_DEPRESION),
+    [pacientesFiltrados]
+  );
 
   return {
     filtros,
@@ -234,7 +282,9 @@ export function useResumenFormularios(pacientes) {
     turnos,
     tramosEdad: TRAMOS_EDAD.map((t) => t.etiqueta),
     graficoClimaAula,
-    graficoGshs,
+    graficoEstres,
+    graficoAnsiedad,
+    graficoDepresion,
     hayPersonasFiltradas: pacientesFiltrados.length > 0,
   };
 }

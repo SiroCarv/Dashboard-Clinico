@@ -4,11 +4,12 @@
 // (criterio de aceptación 3 de la historia).
 //
 // Barras + dona (corrección posterior a SCRUM-57): se agrega el resumen
-// de "con alerta / sin alerta" en el mismo formato que ya usa
-// ResumenFormularios.jsx (SeccionGraficoInstrumento), igual que en
-// IndicadoresGSHS.jsx (psicólogo) — el gráfico por módulo
-// (GraficoModulosGSHS, barras horizontales) se mantiene igual, esto se
-// suma, no lo reemplaza.
+// de "con alerta / sin alerta" en el mismo formato (SeccionGraficoInstrumento)
+// que ResumenFormularios.jsx usaba antes para su propia pestaña de GSHS
+// en el panel del psicólogo (retirado de ahí más adelante para no
+// duplicar esa pantalla), igual que en IndicadoresGSHS.jsx (psicólogo) —
+// el gráfico por módulo (GraficoModulosGSHS, barras horizontales) se
+// mantiene igual, esto se suma, no lo reemplaza.
 import { Link } from 'react-router-dom';
 import { useIndicadoresGSHS } from '../hooks/useIndicadoresGSHS';
 import { GraficoModulosGSHS } from '../components/GraficoModulosGSHS';

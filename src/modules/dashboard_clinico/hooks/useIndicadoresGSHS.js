@@ -117,11 +117,13 @@ export function useIndicadoresGSHS() {
   );
 
   // Barras + dona de "con alerta / sin alerta" (corrección posterior a
-  // SCRUM-57): mismo criterio de 2 categorías que ya usaba
-  // useResumenFormularios.js para su propio resumen de GSHS — acá suma
-  // sobre TODAS las evaluaciones del alcance vigente (institución propia
-  // para el psicólogo, todas o la elegida para el superadministrador),
-  // no solo sobre pacientes visibles en un listado.
+  // SCRUM-57): mismo criterio de 2 categorías que useResumenFormularios.js
+  // usaba antes para su propio resumen de GSHS en el panel del psicólogo
+  // (retirado de ahí más adelante para no duplicar esta pantalla, ver
+  // nota en ese archivo) — acá suma sobre TODAS las evaluaciones del
+  // alcance vigente (institución propia para el psicólogo, todas o la
+  // elegida para el superadministrador), no solo sobre pacientes visibles
+  // en un listado.
   const resumenAlerta = useMemo(() => {
     let conAlerta = 0;
     let sinAlerta = 0;

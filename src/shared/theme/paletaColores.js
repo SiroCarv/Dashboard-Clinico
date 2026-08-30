@@ -10,11 +10,14 @@
 //    tarjetas, botones primarios, links y acentos en general. tealAzulado,
 //    verdeMenta, celeste, indigo y fucsia quedan reservados para
 //    diferenciar visualmente los instrumentos clínicos entre sí (Clima de
-//    Aula / GSHS / Estrés / Ansiedad / Depresión) dentro de la Encuesta y
-//    el Informe Consolidado — no se usan como acento de marca general en
-//    el resto de la app. Los 3 últimos se sumaron en SCRUM-54 (migración
-//    de formularios del Observatorio) y son tonos nuevos que no pisan
-//    ningún acento existente.
+//    Aula / GSHS / Estrés / Ansiedad / Depresión) dentro de la Encuesta, el
+//    Informe Consolidado y —desde el rediseño con pestañas del panel de
+//    indicadores del psicólogo— también en dashboard_clinico/components/
+//    ResumenFormularios.jsx, donde cada pestaña de instrumento usa el
+//    mismo acento que ya lo identifica en el resto de la app. No se usan
+//    como acento de marca general en el resto de la app. Los 3 últimos se
+//    sumaron en SCRUM-54 (migración de formularios del Observatorio) y son
+//    tonos nuevos que no pisan ningún acento existente.
 // 2. Rojo y amarillo quedan reservados EXCLUSIVAMENTE para indicar
 //    severidad o riesgo clínico (diagnóstico, alertas). No deben usarse
 //    como acento de marca, botón genérico ni elemento puramente visual.
@@ -172,4 +175,40 @@ export const COLOR_MODULOS_GSHS = {
   fill: 'fill-emerald-500',
   stroke: 'stroke-emerald-500',
   bg: 'bg-emerald-500',
+};
+
+// Categorías de Estrés (PSS-14), Ansiedad (BAI) y Depresión (BDI-II) —
+// mismo motivo que COLOR_MODULOS_GSHS: los 4 niveles que calcula el
+// trigger calcular_resultado_instrumento para cada uno de estos 3
+// instrumentos todavía no tienen un esquema de severidad (rojo/amarillo/
+// verde) confirmado por el responsable clínico, a diferencia de Clima de
+// Aula (ver ESTILOS_CATEGORIA_CLIMA_AULA/COLOR_CATEGORIA_CLIMA_AULA, que
+// si lo tiene, aunque también pendiente de confirmación formal). A
+// diferencia de GSHS (un solo color parejo, porque ahí todos los módulos
+// pesan igual), acá sí hace falta distinguir 4 categorías ORDENADAS
+// dentro del mismo gráfico — se resuelve con 4 tonos del mismo color ya
+// asignado a cada instrumento en COLOR_MARCA (celeste/indigo/fucsia), de
+// más claro a más oscuro según el orden de las categorías, sin tocar
+// rojo/amarillo/verde en ningún punto. Si el responsable clínico
+// confirma en el futuro un esquema de severidad real, este es el lugar
+// para reemplazarlo, igual que ya se documenta arriba para GSHS.
+export const COLOR_CATEGORIA_ESTRES = {
+  'Nivel bajo': { fill: 'fill-sky-300', stroke: 'stroke-sky-300', bg: 'bg-sky-300' },
+  'Nivel medio': { fill: 'fill-sky-400', stroke: 'stroke-sky-400', bg: 'bg-sky-400' },
+  'Nivel alto': { fill: 'fill-sky-600', stroke: 'stroke-sky-600', bg: 'bg-sky-600' },
+  'Nivel muy alto': { fill: 'fill-sky-800', stroke: 'stroke-sky-800', bg: 'bg-sky-800' },
+};
+
+export const COLOR_CATEGORIA_ANSIEDAD = {
+  'No presenta ansiedad': { fill: 'fill-indigo-300', stroke: 'stroke-indigo-300', bg: 'bg-indigo-300' },
+  'Ansiedad leve': { fill: 'fill-indigo-400', stroke: 'stroke-indigo-400', bg: 'bg-indigo-400' },
+  'Ansiedad moderada': { fill: 'fill-indigo-600', stroke: 'stroke-indigo-600', bg: 'bg-indigo-600' },
+  'Ansiedad grave': { fill: 'fill-indigo-800', stroke: 'stroke-indigo-800', bg: 'bg-indigo-800' },
+};
+
+export const COLOR_CATEGORIA_DEPRESION = {
+  'Depresión mínima': { fill: 'fill-fuchsia-300', stroke: 'stroke-fuchsia-300', bg: 'bg-fuchsia-300' },
+  'Depresión leve o media': { fill: 'fill-fuchsia-400', stroke: 'stroke-fuchsia-400', bg: 'bg-fuchsia-400' },
+  'Depresión moderada': { fill: 'fill-fuchsia-600', stroke: 'stroke-fuchsia-600', bg: 'bg-fuchsia-600' },
+  'Depresión severa': { fill: 'fill-fuchsia-800', stroke: 'stroke-fuchsia-800', bg: 'bg-fuchsia-800' },
 };
