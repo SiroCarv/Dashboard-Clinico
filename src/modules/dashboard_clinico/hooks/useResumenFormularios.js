@@ -26,6 +26,13 @@
 // fijas que ya usaba Dashboard.jsx para el filtro de su propia tabla
 // (ver opcionesEscolares.js) — evita que ambos filtros de la misma
 // pantalla muestren conjuntos de opciones distintos.
+//
+// Institución (corrección posterior): se retiró el filtro de
+// institución de acá y de Dashboard.jsx — un psicólogo solo puede estar
+// vinculado a una institución (SCRUM-49), así que filtrar por
+// institución nunca reduce nada para quien usa esta pantalla. La
+// columna Institución sigue visible en la tabla (TablaPacientes.jsx),
+// solo se quitó el control de filtro.
 import { useMemo, useState } from 'react';
 import { COLOR_CATEGORIA_CLIMA_AULA, COLOR_ALERTA_GSHS } from '../../../shared/theme/paletaColores';
 import { OPCIONES_CURSO, OPCIONES_PARALELO, OPCIONES_TURNO } from '../data/opcionesEscolares';
@@ -63,7 +70,6 @@ const TRAMOS_EDAD = [
 
 const FILTROS_INICIALES = {
   tipoPersona: TODOS, // 'todos' | 'estudiante' | 'docente' — mismos valores que ya usa Dashboard.jsx (SCRUM-53) para su propio filtro
-  institucion: TODOS,
   sexo: TODOS,
   tramoEdad: TODOS,
   curso: TODOS,
@@ -109,13 +115,6 @@ export function useResumenFormularios(pacientes) {
     [filtros]
   );
 
-  const instituciones = useMemo(
-    () =>
-      Array.from(new Set(pacientes.map((p) => p.institucion?.nombre).filter(Boolean))).sort((a, b) =>
-        a.localeCompare(b)
-      ),
-    [pacientes]
-  );
   const generos = useMemo(() => valoresUnicos(pacientes, 'genero'), [pacientes]);
   const cursos = OPCIONES_CURSO;
   const paralelos = OPCIONES_PARALELO;
@@ -124,10 +123,6 @@ export function useResumenFormularios(pacientes) {
   const pacientesFiltrados = useMemo(() => {
     return pacientes.filter((paciente) => {
       if (filtros.tipoPersona !== TODOS && paciente.tipoPersona !== filtros.tipoPersona) return false;
-
-      if (filtros.institucion !== TODOS && paciente.institucion?.nombre !== filtros.institucion) {
-        return false;
-      }
 
       if (filtros.sexo !== TODOS && paciente.genero !== filtros.sexo) return false;
       if (filtros.curso !== TODOS && paciente.curso !== filtros.curso) return false;
@@ -230,7 +225,6 @@ export function useResumenFormularios(pacientes) {
     actualizarFiltro,
     limpiarFiltros,
     hayFiltrosActivos,
-    instituciones,
     generos,
     cursos,
     paralelos,

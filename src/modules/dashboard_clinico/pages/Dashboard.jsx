@@ -41,6 +41,12 @@
 // (buscador + 4 selects + botón) se desbordaban y quedaban recortados
 // por el `overflow-hidden` del contenedor raíz de la página, en vez de
 // mostrarse en una fila adicional.
+// Institución (corrección posterior): se retiró el filtro de
+// institución de acá y de useResumenFormularios.js — un psicólogo solo
+// puede estar vinculado a una institución (SCRUM-49), así que filtrar
+// por institución nunca reduce nada para quien usa esta pantalla. La
+// columna Institución sigue visible en TablaPacientes.jsx, solo se
+// quitó el control de filtro.
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
@@ -53,8 +59,6 @@ import { exportarPacientesAExcel } from '../utils/exportarPacientesExcel';
 import { OPCIONES_CURSO, OPCIONES_PARALELO, OPCIONES_TURNO } from '../data/opcionesEscolares';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
-
-const FILTRO_INSTITUCION_TODAS = 'todas';
 
 // Opciones del filtro "tipo de persona" (SCRUM-53): distinguen quién
 // originó el registro (autoenvío del estudiante vs. caso registrado por
@@ -74,32 +78,16 @@ export default function Dashboard() {
   const resumen = useResumenFormularios(pacientes);
   const [pestanaActiva, setPestanaActiva] = useState(PESTANA_GRAFICAS);
   const [busqueda, setBusqueda] = useState('');
-  const [filtroInstitucion, setFiltroInstitucion] = useState(FILTRO_INSTITUCION_TODAS);
   const [filtroTipoPersona, setFiltroTipoPersona] = useState(FILTRO_TIPO_PERSONA_TODOS);
   const [filtroCurso, setFiltroCurso] = useState(FILTRO_ESCOLAR_TODOS);
   const [filtroParalelo, setFiltroParalelo] = useState(FILTRO_ESCOLAR_TODOS);
   const [filtroTurno, setFiltroTurno] = useState(FILTRO_ESCOLAR_TODOS);
   const [exportando, setExportando] = useState(false);
 
-  // Instituciones únicas derivadas de los pacientes ya cargados: no se
-  // necesita ninguna llamada nueva a Supabase ni un import cruzado al
-  // módulo `instituciones` para poblar este filtro. Un psicólogo solo
-  // puede estar vinculado a una institución (SCRUM-49), así que esta
-  // lista normalmente tiene un solo valor — no es un error, es el
-  // alcance real de a quién puede ver.
-  const instituciones = useMemo(() => {
-    const nombres = pacientes.map((p) => p.institucion?.nombre).filter(Boolean);
-    return Array.from(new Set(nombres)).sort((a, b) => a.localeCompare(b));
-  }, [pacientes]);
-
   const pacientesFiltrados = useMemo(() => {
     const texto = busqueda.trim().toLowerCase();
 
     return pacientes.filter((p) => {
-      const coincideInstitucion =
-        filtroInstitucion === FILTRO_INSTITUCION_TODAS ||
-        p.institucion?.nombre === filtroInstitucion;
-
       const coincideBusqueda =
         texto === '' ||
         p.nombre?.toLowerCase().includes(texto) ||
@@ -123,28 +111,12 @@ export default function Dashboard() {
       const coincideParalelo = filtroParalelo === FILTRO_ESCOLAR_TODOS || p.paralelo === filtroParalelo;
       const coincideTurno = filtroTurno === FILTRO_ESCOLAR_TODOS || p.turno === filtroTurno;
 
-      return (
-        coincideInstitucion &&
-        coincideBusqueda &&
-        coincideTipoPersona &&
-        coincideCurso &&
-        coincideParalelo &&
-        coincideTurno
-      );
+      return coincideBusqueda && coincideTipoPersona && coincideCurso && coincideParalelo && coincideTurno;
     });
-  }, [
-    pacientes,
-    busqueda,
-    filtroInstitucion,
-    filtroTipoPersona,
-    filtroCurso,
-    filtroParalelo,
-    filtroTurno,
-  ]);
+  }, [pacientes, busqueda, filtroTipoPersona, filtroCurso, filtroParalelo, filtroTurno]);
 
   const hayFiltrosActivos =
     busqueda.trim() !== '' ||
-    filtroInstitucion !== FILTRO_INSTITUCION_TODAS ||
     filtroTipoPersona !== FILTRO_TIPO_PERSONA_TODOS ||
     filtroCurso !== FILTRO_ESCOLAR_TODOS ||
     filtroParalelo !== FILTRO_ESCOLAR_TODOS ||
@@ -152,7 +124,6 @@ export default function Dashboard() {
 
   const limpiarFiltros = () => {
     setBusqueda('');
-    setFiltroInstitucion(FILTRO_INSTITUCION_TODAS);
     setFiltroTipoPersona(FILTRO_TIPO_PERSONA_TODOS);
     setFiltroCurso(FILTRO_ESCOLAR_TODOS);
     setFiltroParalelo(FILTRO_ESCOLAR_TODOS);
@@ -245,7 +216,6 @@ export default function Dashboard() {
                   actualizarFiltro={resumen.actualizarFiltro}
                   limpiarFiltros={resumen.limpiarFiltros}
                   hayFiltrosActivos={resumen.hayFiltrosActivos}
-                  instituciones={resumen.instituciones}
                   generos={resumen.generos}
                   cursos={resumen.cursos}
                   paralelos={resumen.paralelos}
@@ -272,21 +242,6 @@ export default function Dashboard() {
                       placeholder="Buscar por nombre o correo..."
                       className="flex-1 px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
                     />
-
-                    {instituciones.length > 0 && (
-                      <select
-                        value={filtroInstitucion}
-                        onChange={(e) => setFiltroInstitucion(e.target.value)}
-                        className="px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
-                      >
-                        <option value={FILTRO_INSTITUCION_TODAS}>Todas las instituciones</option>
-                        {instituciones.map((nombre) => (
-                          <option key={nombre} value={nombre}>
-                            {nombre}
-                          </option>
-                        ))}
-                      </select>
-                    )}
 
                     <select
                       value={filtroTipoPersona}

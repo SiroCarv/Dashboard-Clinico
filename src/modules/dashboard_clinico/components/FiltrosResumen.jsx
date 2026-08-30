@@ -20,7 +20,6 @@ export function FiltrosResumen({
   actualizarFiltro,
   limpiarFiltros,
   hayFiltrosActivos,
-  instituciones,
   generos,
   cursos,
   paralelos,
@@ -39,22 +38,6 @@ export function FiltrosResumen({
             <option value="todos">Todos</option>
             <option value="estudiante">Estudiante</option>
             <option value="docente">Docente</option>
-          </select>
-        </Campo>
-
-        <Campo etiqueta="Institución">
-          <select
-            value={filtros.institucion}
-            onChange={(e) => actualizarFiltro('institucion', e.target.value)}
-            className={ESTILO_CAMPO}
-            disabled={instituciones.length === 0}
-          >
-            <option value="todos">Todas</option>
-            {instituciones.map((nombre) => (
-              <option key={nombre} value={nombre}>
-                {nombre}
-              </option>
-            ))}
           </select>
         </Campo>
 
