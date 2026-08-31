@@ -38,8 +38,9 @@
 // simple que excluirlo con una consulta condicional), pero para GSHS ese
 // campo contiene los ~53 indicadores de prevalencia por módulo de UN
 // estudiante puntual — la Licenciada autorizó mostrar esto agregado
-// entre muchos estudiantes (ver dashboard_clinico/pages/IndicadoresGSHS.jsx
-// y IndicadoresGSHSSuperadmin.jsx), pero la fila individual sigue sin
+// entre muchos estudiantes (ver la pestaña GSHS de
+// dashboard_clinico/pages/IndicadoresGSHS.jsx y la pestaña Gráficas de
+// PanelConsolidadoSuperadmin.jsx), pero la fila individual sigue sin
 // poder mostrarse, ni siquiera al superadmin. Quien consuma ESTE
 // servicio en particular (listado de resultados fila por fila) debe
 // seguir ignorando `resultado_json` cuando `tipo_instrumento === 'GSHS'`

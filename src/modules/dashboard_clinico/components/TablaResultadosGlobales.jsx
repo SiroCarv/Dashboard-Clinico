@@ -36,8 +36,9 @@
 // autorizó mostrarlos agregados entre muchos estudiantes, nunca fila por
 // fila. Acá se sigue usando solo `alerta_activada`, igual que en
 // InformeConsolidadoPaciente.jsx. El porcentaje agregado por módulo vive
-// en su propia sección (dashboard_clinico/pages/IndicadoresGSHS.jsx /
-// IndicadoresGSHSSuperadmin.jsx), no en esta tabla.
+// en su propia sección (pestaña GSHS de dashboard_clinico/pages/
+// IndicadoresGSHS.jsx para el psicólogo, y de la pestaña Gráficas de
+// PanelConsolidadoSuperadmin.jsx para el superadmin), no en esta tabla.
 //
 // Las filas con `alerta_activada = true` se resaltan con
 // FILA_ALERTA_ACTIVADA (rojo, reservado exclusivamente para severidad

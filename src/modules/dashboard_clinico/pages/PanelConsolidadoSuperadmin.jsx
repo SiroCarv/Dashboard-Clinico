@@ -18,12 +18,14 @@
 //     `evaluaciones_instrumento` (verificado en vivo), así que no hizo
 //     falta ninguna migración. Se agregó un filtro de institución propio
 //     de esta pestaña (reutilizando el `filtroInstitucion` que ya expone
-//     useIndicadoresGSHS para su propia pantalla, IndicadoresGSHSSuperadmin.jsx)
-//     para poder acotar la vista a una sola institución cuando se
-//     necesite. Nota: el botón "Ver resultados del GSHS" del header sigue
-//     llevando a esa pantalla aparte (con su propio desglose por módulo);
-//     queda cierta superposición de contenido entre ambas a propósito,
-//     sin quitar esa navegación ya existente.
+//     useIndicadoresGSHS) para poder acotar la vista a una sola
+//     institución cuando se necesite. Esta pestaña reemplaza a la
+//     pantalla aparte que existía para el GSHS del superadmin
+//     (IndicadoresGSHSSuperadmin.jsx, en la ruta /panel-resultados/gshs)
+//     — se retiró junto con su botón "Ver resultados del GSHS" del
+//     header, porque su contenido (desglose por módulo + resumen de
+//     alerta) ya queda cubierto acá adentro por la pestaña GSHS de
+//     ResumenFormularios.jsx.
 //
 // Institución y psicólogo (corrección posterior a SCRUM-56): las
 // opciones de estos dos selects YA NO se derivan de los resultados
@@ -99,8 +101,9 @@ export default function PanelConsolidadoSuperadmin() {
   // `is_superadmin()`, verificado en vivo). El único agregado acá es
   // `filtroInstitucionGraficas`, para poder acotar la vista a una sola
   // institución — reutiliza el mismo filtro que ya expone
-  // useIndicadoresGSHS() para su propia pantalla de superadmin
-  // (IndicadoresGSHSSuperadmin.jsx), en vez de duplicar el estado: así un
+  // useIndicadoresGSHS() (antes solo lo consumía la pantalla aparte
+  // IndicadoresGSHSSuperadmin.jsx, retirada; ahora este panel es su único
+  // consumidor), en vez de duplicar el estado: así un
   // solo select controla el alcance de los 5 instrumentos a la vez.
   const { pacientes, loading: loadingPacientes, error: errorPacientes } = useListaPacientes();
   const {
@@ -207,13 +210,6 @@ export default function PanelConsolidadoSuperadmin() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {/* Resultados del GSHS por módulo, consolidado (SCRUM-57) */}
-            <Link
-              to="/panel-resultados/gshs"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-md font-semibold shadow-sm transition-colors bg-emerald-500 hover:bg-emerald-600 text-white"
-            >
-              Ver resultados del GSHS
-            </Link>
             <BotonCerrarSesion />
           </div>
         </div>

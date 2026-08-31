@@ -30,7 +30,6 @@ import Encuesta from './modules/evaluaciones/pages/Encuesta';
 import Dashboard from './modules/dashboard_clinico/pages/Dashboard';
 import InformeConsolidado from './modules/dashboard_clinico/pages/InformeConsolidado';
 import IndicadoresGSHS from './modules/dashboard_clinico/pages/IndicadoresGSHS';
-import IndicadoresGSHSSuperadmin from './modules/dashboard_clinico/pages/IndicadoresGSHSSuperadmin';
 // Instituciones
 import PanelMaestro from './modules/instituciones/pages/PanelMaestro';
 import PanelConsolidadoSuperadmin from './modules/dashboard_clinico/pages/PanelConsolidadoSuperadmin';
@@ -127,17 +126,6 @@ function App() {
           element={
             <RutaProtegida rolRequerido="superadmin">
               <PanelConsolidadoSuperadmin />
-            </RutaProtegida>
-          } 
-        />
-
-        {/* Resultados del GSHS por módulo, consolidado entre
-            instituciones con filtro (SCRUM-57). */}
-        <Route 
-          path="/panel-resultados/gshs" 
-          element={
-            <RutaProtegida rolRequerido="superadmin">
-              <IndicadoresGSHSSuperadmin />
             </RutaProtegida>
           } 
         />

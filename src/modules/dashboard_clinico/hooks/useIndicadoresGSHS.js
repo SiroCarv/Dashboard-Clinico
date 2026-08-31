@@ -4,8 +4,8 @@
 // para el superadministrador), y agrega ambas cosas en memoria, mismo
 // criterio que useResumenFormularios.js.
 //
-// El filtro de institución (`filtroInstitucion`) solo lo usa la pantalla
-// del superadministrador (IndicadoresGSHSSuperadmin.jsx) — la pantalla
+// El filtro de institución (`filtroInstitucion`) solo lo usa la pestaña
+// "Gráficas" de PanelConsolidadoSuperadmin.jsx (superadmin) — la pantalla
 // del psicólogo (IndicadoresGSHS.jsx) nunca lo muestra porque un
 // psicólogo solo puede estar vinculado a una institución (SCRUM-49), así
 // que RLS ya devuelve exactamente "los estudiantes de su institución"

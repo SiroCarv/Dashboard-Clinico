@@ -14,10 +14,10 @@
 //     categoría (trigger calcular_resultado_instrumento en Supabase), así
 //     que su pestaña muestra el gráfico de barras + dona de
 //     SeccionGraficoInstrumento, extraído para reutilizarse también en
-//     las pantallas de Resultados GSHS (IndicadoresGSHS.jsx /
-//     IndicadoresGSHSSuperadmin.jsx). Estos 4 dependen de
-//     `hayPersonasFiltradas` (los filtros de perfil de FiltrosResumen.jsx
-//     sí les aplican).
+//     la pestaña GSHS de IndicadoresGSHS.jsx (psicólogo) y en la pestaña
+//     Gráficas de PanelConsolidadoSuperadmin.jsx (superadmin). Estos 4
+//     dependen de `hayPersonasFiltradas` (los filtros de perfil de
+//     FiltrosResumen.jsx sí les aplican).
 //   - GSHS es distinto: es un instrumento de prevalencia sin categoría ni
 //     puntaje agregable acá (ver nota en gshsData.js). Antes esta pestaña
 //     mostraba solo un botón hacia la pantalla dedicada
@@ -106,15 +106,15 @@ export function ResumenFormularios({
       )}
 
       {pestanaActiva === TAB_ESTRES && !sinPersonasFiltradas && (
-        <SeccionGraficoInstrumento titulo="Estrés" datos={graficoEstres} />
+        <SeccionGraficoInstrumento titulo="Estrés — por nivel" datos={graficoEstres} />
       )}
 
       {pestanaActiva === TAB_ANSIEDAD && !sinPersonasFiltradas && (
-        <SeccionGraficoInstrumento titulo="Ansiedad" datos={graficoAnsiedad} />
+        <SeccionGraficoInstrumento titulo="Ansiedad — por nivel" datos={graficoAnsiedad} />
       )}
 
       {pestanaActiva === TAB_DEPRESION && !sinPersonasFiltradas && (
-        <SeccionGraficoInstrumento titulo="Depresión" datos={graficoDepresion} />
+        <SeccionGraficoInstrumento titulo="Depresión — por nivel" datos={graficoDepresion} />
       )}
 
       {pestanaActiva === TAB_GSHS && (

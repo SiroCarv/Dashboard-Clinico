@@ -1,11 +1,12 @@
 // Tarjeta con un gráfico de barras verticales (cantidad absoluta) y uno
 // de dona (proporción del total) lado a lado — a propósito los dos, no
 // uno solo: dan lecturas distintas de los mismos datos. Extraído de
-// ResumenFormularios.jsx para reutilizarlo también en las pantallas de
-// Resultados GSHS (IndicadoresGSHS.jsx / IndicadoresGSHSSuperadmin.jsx),
-// que hasta ahora solo mostraban el desglose por módulo en barras
-// horizontales (GraficoModulosGSHS) y no tenían este segundo tipo de
-// vista para el resumen de alerta activada / sin alerta.
+// ResumenFormularios.jsx para reutilizarlo también en la pestaña GSHS de
+// IndicadoresGSHS.jsx (psicólogo) y en la pestaña Gráficas de
+// PanelConsolidadoSuperadmin.jsx (superadmin), que hasta ahora solo
+// mostraban el desglose por módulo en barras horizontales
+// (GraficoModulosGSHS) y no tenían este segundo tipo de vista para el
+// resumen de alerta activada / sin alerta.
 //
 // No calcula nada acá, solo arma la descripción accesible y delega el
 // dibujo a los componentes genéricos de shared/ (no saben nada de
