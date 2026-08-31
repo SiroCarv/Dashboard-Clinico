@@ -1,24 +1,40 @@
 // Pestaña "Instituciones" del Panel Maestro: tabla con búsqueda por
 // nombre/código, botón para copiar el enlace de registro
-// (`/registro/:codigo`) al portapapeles, y las acciones de editar/
-// eliminar que delegan en el padre (PanelMaestro.jsx) vía props.
-// Este componente no habla con Supabase directamente — solo recibe
-// `instituciones` ya cargadas y notifica intenciones (onEdit, onDelete).
+// (`/registro/:codigo`) al portapapeles, badge de código clickeable para
+// copiar solo el código, y las acciones de editar/eliminar que delegan
+// en el padre (PanelMaestro.jsx) vía props. Este componente no habla con
+// Supabase directamente — solo recibe `instituciones` ya cargadas y
+// notifica intenciones (onEdit, onDelete).
 import { useState, useMemo } from 'react';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 
 export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
-  const [copiadoId, setCopiadoId] = useState(null);
+  // Dos IDs separados (no uno compartido): copiar el enlace y copiar el
+  // código son dos acciones distintas que copian contenido distinto:
+  // compartir un solo estado haría que clickear una mostrara "¡Copiado!"
+  // en la otra también.
+  const [enlaceCopiadoId, setEnlaceCopiadoId] = useState(null);
+  const [codigoCopiadoId, setCodigoCopiadoId] = useState(null);
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
 
   const copiarEnlace = async (inst) => {
     const enlace = `${window.location.origin}/registro/${inst.codigo_registro}`;
     try {
       await navigator.clipboard.writeText(enlace);
-      setCopiadoId(inst.id);
-      setTimeout(() => setCopiadoId(null), 2000);
+      setEnlaceCopiadoId(inst.id);
+      setTimeout(() => setEnlaceCopiadoId(null), 2000);
     } catch (err) {
       console.error('No se pudo copiar el enlace:', err);
+    }
+  };
+
+  const copiarCodigo = async (inst) => {
+    try {
+      await navigator.clipboard.writeText(inst.codigo_registro);
+      setCodigoCopiadoId(inst.id);
+      setTimeout(() => setCodigoCopiadoId(null), 2000);
+    } catch (err) {
+      console.error('No se pudo copiar el código:', err);
     }
   };
 
@@ -99,18 +115,21 @@ export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
                   <tr key={inst.id} className="hover:bg-gray-50 transition-colors">
                     <td className="p-4 text-gray-800 font-medium">{inst.nombre}</td>
                     <td className="p-4">
-                      <span
-                        className={`px-3 py-1 border rounded-full text-sm font-mono font-semibold ${COLOR_MARCA.tealAzulado.suave}`}
+                      <button
+                        type="button"
+                        onClick={() => copiarCodigo(inst)}
+                        title="Copiar código"
+                        className={`px-3 py-1 border rounded-full text-sm font-mono font-semibold cursor-pointer transition-all hover:opacity-75 active:scale-95 ${COLOR_MARCA.tealAzulado.suave}`}
                       >
-                        {inst.codigo_registro}
-                      </span>
+                        {codigoCopiadoId === inst.id ? '¡Copiado!' : inst.codigo_registro}
+                      </button>
                     </td>
                     <td className="p-4 flex justify-end gap-4">
                       <button
                         onClick={() => copiarEnlace(inst)}
                         className="text-sm font-bold text-violet-400 hover:text-orange-800 transition-colors"
                       >
-                        {copiadoId === inst.id ? '¡Copiado!' : 'Copiar Enlace'}
+                        {enlaceCopiadoId === inst.id ? '¡Copiado!' : 'Copiar Enlace'}
                       </button>
                       <button
                         onClick={() => onEdit(inst)}
