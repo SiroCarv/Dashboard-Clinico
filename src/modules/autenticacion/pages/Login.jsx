@@ -11,10 +11,19 @@
 //   4. Reclama la "sesión única" de la cuenta (ver RPC
 //      `iniciar_sesion_unica`, SECURITY DEFINER): si otra persona ya
 //      tiene esta cuenta abierta hace menos de 12 horas, el login se
-//      rechaza y se cierra la sesión recién creada.
-//   5. Si todo salió bien, navega a la vista por defecto de ese rol
-//      (RUTA_POR_DEFECTO, la misma fuente única de verdad que usan
-//      RutaProtegida/RutaPublica).
+//      rechaza — pero NO se cierra la sesión recién creada todavía. En
+//      vez de eso se muestra un aviso con la opción "Forzar ingreso":
+//      como la persona ya demostró su identidad con `signInWithPassword`
+//      momentos antes, es seguro dejarla reclamar la sesión de todas
+//      formas (ver RPC `forzar_sesion_unica`). Si cancela, recién ahí se
+//      cierra sesión. Esto reemplaza al cierre-y-rechazo automático que
+//      existía antes: un caso real de producción (30-ago-2026) mostró que
+//      el "cerrar sesión" del otro dispositivo puede fallar en silencio
+//      (token vencido por pestaña en segundo plano) y dejar la cuenta
+//      trabada 12 horas sin que su dueño pueda recuperarla por su cuenta.
+//   5. Si todo salió bien (de entrada o tras forzar), navega a la vista
+//      por defecto de ese rol (RUTA_POR_DEFECTO, la misma fuente única de
+//      verdad que usan RutaProtegida/RutaPublica).
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
@@ -28,7 +37,15 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
+
+  // Flujo de "sesión única ya activa" (ver comentario de handleLogin más
+  // abajo): cuando iniciar_sesion_unica rechaza el login, guardamos a
+  // dónde tenía que ir (para no repetir la consulta de rol) y mostramos
+  // el aviso de "Forzar ingreso" en vez del formulario.
+  const [sesionBloqueada, setSesionBloqueada] = useState(false);
+  const [rutaPendiente, setRutaPendiente] = useState(null);
+  const [forzando, setForzando] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -120,8 +137,12 @@ export default function Login() {
       }
 
       if (!sesionConcedida) {
-        setError('Esta cuenta ya tiene una sesión activa. Cerrá esa sesión antes de continuar.');
-        await supabase.auth.signOut();
+        // No cerramos la sesión recién creada todavía: la dejamos "en
+        // espera" para que, si la persona confirma que quiere forzar el
+        // ingreso, podamos reclamarla sin pedirle la contraseña de nuevo.
+        // Si en cambio cancela (handleCancelarForzado), ahí sí se cierra.
+        setRutaPendiente(rutaDestino);
+        setSesionBloqueada(true);
         return;
       }
 
@@ -137,6 +158,37 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Reclama la sesión sin chequear la ventana de 12 horas: es seguro
+  // porque solo se llega acá después de un signInWithPassword exitoso en
+  // esta misma pantalla (ver handleLogin) — ya se demostró la identidad.
+  const handleForzarSesion = async () => {
+    setForzando(true);
+    setError('');
+
+    try {
+      const { error: forzarError } = await supabase.rpc('forzar_sesion_unica');
+      if (forzarError) throw forzarError;
+
+      navigate(rutaPendiente, { replace: true });
+    } catch (err) {
+      console.error('Error al forzar sesión única:', err.message);
+      setError('No se pudo cerrar la sesión anterior. Intenta nuevamente.');
+      setSesionBloqueada(false);
+      setRutaPendiente(null);
+      await supabase.auth.signOut();
+    } finally {
+      setForzando(false);
+    }
+  };
+
+  // La persona decide no forzar el ingreso: recién acá cerramos la sesión
+  // que había quedado "en espera" desde handleLogin.
+  const handleCancelarForzado = async () => {
+    setSesionBloqueada(false);
+    setRutaPendiente(null);
+    await supabase.auth.signOut();
   };
 
   return (
@@ -177,7 +229,44 @@ export default function Login() {
             {error}
           </div>
         )}
-        
+
+        {sesionBloqueada ? (
+          <div className="space-y-6">
+            <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-center shadow-sm">
+              <p className="font-bold">⚠️ Esta cuenta ya tiene una sesión activa</p>
+              <p className="text-sm mt-1">
+                Puede ser un dispositivo que no cerró sesión correctamente. Si sos vos, podés cerrar esa sesión y continuar acá.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleForzarSesion}
+              disabled={forzando}
+              className={`w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide flex justify-center items-center ${
+                forzando ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-700 hover:bg-orange-800'
+              }`}
+            >
+              {forzando ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  Cerrando la otra sesión...
+                </span>
+              ) : (
+                'Cerrar esa sesión y continuar aquí'
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCancelarForzado}
+              disabled={forzando}
+              className="w-full text-center text-sm text-gray-600 hover:text-gray-800 font-medium transition-colors disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+          </div>
+        ) : (
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label className="block text-sm font-bold text-black mb-1">
@@ -249,6 +338,7 @@ export default function Login() {
             )}
           </button>
         </form>
+        )}
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
