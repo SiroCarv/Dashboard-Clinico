@@ -106,15 +106,15 @@ export function ResumenFormularios({
       )}
 
       {pestanaActiva === TAB_ESTRES && !sinPersonasFiltradas && (
-        <SeccionGraficoInstrumento titulo="Estrés (PSS-14) — por nivel" datos={graficoEstres} />
+        <SeccionGraficoInstrumento titulo="Estrés" datos={graficoEstres} />
       )}
 
       {pestanaActiva === TAB_ANSIEDAD && !sinPersonasFiltradas && (
-        <SeccionGraficoInstrumento titulo="Ansiedad (BAI) — por nivel" datos={graficoAnsiedad} />
+        <SeccionGraficoInstrumento titulo="Ansiedad" datos={graficoAnsiedad} />
       )}
 
       {pestanaActiva === TAB_DEPRESION && !sinPersonasFiltradas && (
-        <SeccionGraficoInstrumento titulo="Depresión (BDI-II) — por nivel" datos={graficoDepresion} />
+        <SeccionGraficoInstrumento titulo="Depresión" datos={graficoDepresion} />
       )}
 
       {pestanaActiva === TAB_GSHS && (
