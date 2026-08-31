@@ -8,16 +8,16 @@
 // Lectura: la única lectura pública/anónima que existió (listarPublico,
 // sobre la vista `psicologos_publico`) era exclusiva del selector de
 // "psicólogo designado" del registro de Consultantes, retirado del
-// sistema en SCRUM-48. La vista quedó pendiente de eliminación en
-// Supabase (ver SQL entregado aparte). `listarTodos()` de acá abajo es
-// una lectura distinta y nueva: no es pública ni anónima, depende
-// enteramente de la política RLS "usuarios_select" de la tabla
-// `usuarios` (que ya incluye `is_superadmin()`), así que solo devuelve
-// filas para quien inicia sesión como superadministrador — cualquier
-// otro rol recibe una lista vacía, sin necesidad de comprobarlo acá.
-// Se usa para poblar el catálogo completo de psicólogos en el Panel
-// Consolidado (dashboard_clinico), sin depender de qué psicólogos ya
-// tienen resultados asignados.
+// sistema en SCRUM-48. La vista ya fue eliminada de Supabase.
+// `listarTodos()` de acá abajo es una lectura distinta y nueva: no es
+// pública ni anónima, depende enteramente de la política RLS
+// "usuarios_select" de la tabla `usuarios` (que ya incluye
+// `is_superadmin()`), así que solo devuelve filas para quien inicia
+// sesión como superadministrador — cualquier otro rol recibe una lista
+// vacía, sin necesidad de comprobarlo acá. Se usa para poblar el
+// catálogo completo de psicólogos en el Panel Consolidado
+// (dashboard_clinico), sin depender de qué psicólogos ya tienen
+// resultados asignados.
 import { supabase } from '../../../core/api/supabaseClient';
 
 /**
