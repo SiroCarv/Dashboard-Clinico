@@ -13,7 +13,10 @@ export const institucionesService = {
   async getInstituciones() {
     const { data, error } = await supabase
       .from(TABLA)
-      .select('id, nombre, codigo_registro, created_at')
+      // tipo_institucion se incluye para que InstitucionModal pueda
+      // preseleccionar el tipo correcto al editar una institución
+      // existente (antes no se traía porque nada la usaba).
+      .select('id, nombre, tipo_institucion, codigo_registro, created_at')
       .order('created_at', { ascending: false });
 
     if (error) throw error;

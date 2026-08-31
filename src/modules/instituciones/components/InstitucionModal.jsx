@@ -1,11 +1,28 @@
-// Modal de creación/edición de una institución (nombre + código de
-// registro único). Se abre desde InstitucionList.jsx ("+ Nueva
+// Modal de creación/edición de una institución (nombre + tipo + código
+// de registro único). Se abre desde InstitucionList.jsx ("+ Nueva
 // Institución" o "Editar"); el guardado real (insert/update) lo hace
-// PanelMaestro.jsx a través de la prop onSave.
+// PanelMaestro.jsx a través de la prop onSave. El tipo de institución
+// determina el prefijo que arma "Generar" (ver PREFIJOS_POR_TIPO) —
+// agregado para poder emitir códigos de Centro de Salud (CS-) además
+// de los de Unidad Educativa (UNI-) que ya existían.
 import { useState } from 'react';
+
+// Único lugar del código donde se define qué tipos de institución
+// existen y qué prefijo de código le corresponde a cada uno. Si se
+// agrega un tipo nuevo, alcanza con sumar una entrada acá.
+const TIPOS_INSTITUCION = [
+  { value: 'unidad_educativa', label: 'Unidad Educativa', prefijo: 'UNI' },
+  { value: 'centro_salud', label: 'Centro de Salud', prefijo: 'CS' },
+];
+
+const TIPO_POR_DEFECTO = TIPOS_INSTITUCION[0].value;
+
+const obtenerPrefijo = (tipo) =>
+  TIPOS_INSTITUCION.find((t) => t.value === tipo)?.prefijo || TIPOS_INSTITUCION[0].prefijo;
 
 export const InstitucionModal = ({ isOpen, onClose, onSave, institucionEditada }) => {
   const [nombre, setNombre] = useState('');
+  const [tipoInstitucion, setTipoInstitucion] = useState(TIPO_POR_DEFECTO);
   const [codigoRegistro, setCodigoRegistro] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -21,24 +38,31 @@ export const InstitucionModal = ({ isOpen, onClose, onSave, institucionEditada }
     setFormKeyAplicada(formKey);
     if (institucionEditada) {
       setNombre(institucionEditada.nombre || '');
+      // Las instituciones creadas antes de este cambio no tienen tipo
+      // guardado (columna en NULL); todas son en la práctica Unidad
+      // Educativa, así que ese es el valor que se preselecciona para no
+      // mostrar el select "vacío" al editarlas.
+      setTipoInstitucion(institucionEditada.tipo_institucion || TIPO_POR_DEFECTO);
       setCodigoRegistro(institucionEditada.codigo_registro || '');
     } else {
       setNombre('');
+      setTipoInstitucion(TIPO_POR_DEFECTO);
       setCodigoRegistro('');
     }
   }
 
   const generarCodigo = () => {
-    // Genera un código único tipo "UNI-4A9B" (aleatorio, no secuencial —
-    // el superadmin puede editarlo a mano si prefiere un código propio).
+    // Genera un código único tipo "UNI-4A9B" o "CS-4A9B" (aleatorio, no
+    // secuencial — el superadmin puede editarlo a mano si prefiere un
+    // código propio). El prefijo depende del tipo de institución elegido.
     const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
-    setCodigoRegistro(`UNI-${randomStr}`);
+    setCodigoRegistro(`${obtenerPrefijo(tipoInstitucion)}-${randomStr}`);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    await onSave({ nombre, codigo_registro: codigoRegistro });
+    await onSave({ nombre, tipo_institucion: tipoInstitucion, codigo_registro: codigoRegistro });
     setLoading(false);
   };
 
@@ -67,6 +91,24 @@ export const InstitucionModal = ({ isOpen, onClose, onSave, institucionEditada }
                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
                 placeholder="Ej. Colegio San Agustín"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-black mb-1">
+                Tipo de Institución
+              </label>
+              <select
+                value={tipoInstitucion}
+                onChange={(e) => setTipoInstitucion(e.target.value)}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800 bg-white"
+              >
+                {TIPOS_INSTITUCION.map((tipo) => (
+                  <option key={tipo.value} value={tipo.value}>
+                    {tipo.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
