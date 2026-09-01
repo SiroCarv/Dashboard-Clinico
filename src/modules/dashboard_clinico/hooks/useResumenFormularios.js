@@ -34,6 +34,18 @@
 // sola opción. Ahora usa la misma lista fija (`OPCIONES_GENERO`, ver
 // opcionesEscolares.js), igual criterio que curso/paralelo/turno.
 //
+// Formulario / instrumento (retirado, a pedido del cliente): existía un
+// filtro "Formulario" acá que restringía la población de estudiantes a
+// solo quienes completaron un instrumento puntual, afectando los 6
+// gráficos a la vez. Se retiró porque, según el cliente, ya se puede
+// elegir qué instrumento ver a través de las pestañas de
+// ResumenFormularios.jsx — esas pestañas SOLO cambian qué gráfico se
+// muestra, nunca filtraron la población (los 6 gráficos ya se calculaban
+// siempre sobre la misma `pacientesFiltrados`). Con este retiro, ambos
+// comportamientos quedan unificados: la población depende únicamente de
+// sexo/edad/curso/paralelo/turno/fechas, y el instrumento a la vista se
+// elige solo con la pestaña.
+//
 // Institución (corrección posterior): se retiró el filtro de
 // institución de acá y de Dashboard.jsx — un psicólogo solo puede estar
 // vinculado a una institución (SCRUM-49), así que filtrar por
@@ -127,7 +139,6 @@ const FILTROS_INICIALES = {
   curso: TODOS,
   paralelo: TODOS,
   turno: TODOS,
-  instrumento: TODOS, // 'todos' | 'CLIMA_AULA' | 'GSHS' | 'ESTRES' | 'ANSIEDAD' | 'DEPRESION'
   fechaDesde: '',
   fechaHasta: '',
 };
@@ -203,12 +214,6 @@ export function useResumenFormularios(pacientes) {
         const edad = calcularEdad(paciente.fecha_nacimiento);
         const tramo = TRAMOS_EDAD.find((t) => t.etiqueta === filtros.tramoEdad);
         if (edad === null || !tramo || edad < tramo.min || edad > tramo.max) return false;
-      }
-
-      const tiposCompletados = new Set((paciente.evaluaciones ?? []).map((e) => e.tipo_instrumento));
-
-      if (filtros.instrumento !== TODOS && !tiposCompletados.has(filtros.instrumento)) {
-        return false;
       }
 
       if (filtros.fechaDesde || filtros.fechaHasta) {

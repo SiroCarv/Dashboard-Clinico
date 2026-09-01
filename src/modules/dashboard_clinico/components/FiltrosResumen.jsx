@@ -108,26 +108,6 @@ export function FiltrosResumen({
           </select>
         </Campo>
 
-        <Campo etiqueta="Formulario">
-          <select
-            value={filtros.instrumento}
-            onChange={(e) => actualizarFiltro('instrumento', e.target.value)}
-            className={ESTILO_CAMPO}
-          >
-            <option value="todos">Todos</option>
-            <option value="CLIMA_AULA">Clima de Aula</option>
-            <option value="GSHS">GSHS</option>
-            <option value="ESTRES">Estrés</option>
-            <option value="ANSIEDAD">Ansiedad</option>
-            <option value="DEPRESION">Depresión</option>
-            {/* Placeholder visual a pedido del cliente: no hay instrumento
-                real detrás todavía, así que elegir esta opción siempre
-                filtra a "nadie" (ningún estudiante tiene esta evaluación) —
-                comportamiento esperado, no un bug. */}
-            <option value="BULLYING">Bullying</option>
-          </select>
-        </Campo>
-
         <Campo etiqueta="Enviado desde">
           <input
             type="date"
