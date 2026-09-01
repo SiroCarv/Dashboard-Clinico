@@ -18,6 +18,14 @@
 //    como acento de marca general en el resto de la app. Los 3 últimos se
 //    sumaron en SCRUM-54 (migración de formularios del Observatorio) y son
 //    tonos nuevos que no pisan ningún acento existente.
+//    grisNeutro es distinto a los anteriores: no identifica un
+//    instrumento real, es el acento reservado para pestañas/opciones
+//    "placeholder" — hoy solo Bullying (visual únicamente, a pedido del
+//    cliente, sin instrumento clínico detrás todavía). Se usa gris a
+//    propósito para no darle una identidad de color definitiva a un
+//    instrumento que todavía no existe; cuando Bullying se implemente de
+//    verdad, hay que asignarle acá un tono propio (no reutilizar
+//    grisNeutro) y actualizar ResumenFormularios.jsx.
 // 2. Rojo y amarillo quedan reservados EXCLUSIVAMENTE para indicar
 //    severidad o riesgo clínico (diagnóstico, alertas). No deben usarse
 //    como acento de marca, botón genérico ni elemento puramente visual.
@@ -98,6 +106,16 @@ export const COLOR_MARCA = {
     botonPrimario: 'bg-fuchsia-500 hover:bg-fuchsia-600 text-white',
     suave: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200',
     accent: 'accent-fuchsia-500',
+  },
+  // Placeholder visual para instrumentos aún no implementados (hoy:
+  // Bullying) — ver nota de reglas de uso más arriba.
+  grisNeutro: {
+    franja: 'border-gray-400',
+    tabActivo: 'border-gray-400 text-gray-600',
+    tituloSeccion: 'text-gray-600',
+    botonPrimario: 'bg-gray-400 hover:bg-gray-500 text-white',
+    suave: 'bg-gray-100 text-gray-700 border-gray-300',
+    accent: 'accent-gray-400',
   },
 };
 

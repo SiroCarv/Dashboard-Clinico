@@ -7,7 +7,22 @@
 // Orden de pestañas: igual al orden en que el paciente responde los
 // instrumentos en Encuesta.jsx (Clima de Aula, GSHS, Estrés, Ansiedad,
 // Depresión) — mismo criterio en ambas pantallas, para que "el orden de
-// los formularios" se lea igual seas psicólogo o estudiante.
+// los formularios" se lea igual seas psicólogo o estudiante. Bullying va
+// al final, fuera de ese orden: es una pestaña placeholder agregada a
+// pedido del cliente (meramente visual, sin instrumento real detrás) y
+// NO existe todavía en Encuesta.jsx, así que no le corresponde un lugar
+// dentro del orden real de la encuesta del estudiante.
+//
+// Bullying (placeholder visual): no tiene datos, servicio ni trigger de
+// Supabase detrás — a diferencia de los otros 5, esta pestaña no recibe
+// props de gráfico ni depende de `hayPersonasFiltradas`/GSHS. Solo
+// muestra un aviso de "aún no disponible", siempre igual sin importar
+// los filtros de perfil activos (mismo motivo por el que GSHS tampoco
+// respeta esos filtros, aunque la razón acá es que no hay ningún dato
+// que filtrar). Cuando el instrumento se implemente de verdad, esta
+// pestaña deja de ser un caso especial y pasa a construirse igual que
+// Clima de Aula/Estrés/Ansiedad/Depresión (props de gráfico + trigger de
+// Supabase).
 //
 // Por instrumento:
 //   - Clima de Aula, Estrés, Ansiedad y Depresión sí calculan una
@@ -48,6 +63,7 @@ const TAB_GSHS = 'GSHS';
 const TAB_ESTRES = 'ESTRES';
 const TAB_ANSIEDAD = 'ANSIEDAD';
 const TAB_DEPRESION = 'DEPRESION';
+const TAB_BULLYING = 'BULLYING';
 
 const PESTANAS = [
   { id: TAB_CLIMA_AULA, etiqueta: 'Clima de Aula', color: COLOR_MARCA.tealAzulado },
@@ -55,6 +71,7 @@ const PESTANAS = [
   { id: TAB_ESTRES, etiqueta: 'Estrés', color: COLOR_MARCA.celeste },
   { id: TAB_ANSIEDAD, etiqueta: 'Ansiedad', color: COLOR_MARCA.indigo },
   { id: TAB_DEPRESION, etiqueta: 'Depresión', color: COLOR_MARCA.fucsia },
+  { id: TAB_BULLYING, etiqueta: 'Bullying', color: COLOR_MARCA.grisNeutro },
 ];
 
 export function ResumenFormularios({
@@ -74,6 +91,8 @@ export function ResumenFormularios({
 
   // Solo bloquea a los 4 instrumentos que sí dependen del perfil filtrado
   // (ver nota de archivo sobre por qué GSHS queda afuera de esta regla).
+  // Bullying tampoco respeta esta regla — no depende de ningún dato real
+  // (ver nota de archivo).
   const sinPersonasFiltradas = hayFiltrosActivos && !hayPersonasFiltradas;
 
   return (
@@ -95,9 +114,17 @@ export function ResumenFormularios({
         ))}
       </div>
 
-      {pestanaActiva !== TAB_GSHS && sinPersonasFiltradas && (
+      {pestanaActiva !== TAB_GSHS && pestanaActiva !== TAB_BULLYING && sinPersonasFiltradas && (
         <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
           <p className="text-gray-500 font-medium">No hay estudiantes con estas características.</p>
+        </div>
+      )}
+
+      {pestanaActiva === TAB_BULLYING && (
+        <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+          <p className="text-gray-500 font-medium">
+            El formulario de Bullying todavía no está disponible. Esta pestaña es un adelanto visual.
+          </p>
         </div>
       )}
 

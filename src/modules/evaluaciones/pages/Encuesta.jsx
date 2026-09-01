@@ -16,6 +16,18 @@
 //      contra la base de datos (`enviosConocidos`).
 //   4. FormularioInstrumento hace el trabajo pesado real: paginación,
 //      validación de "todo respondido" y el envío en sí.
+//
+// Barra superior en pantallas previas (corrección — bug reportado por el
+// cliente: "no aparece la barra de cerrar sesión cuando pide fecha de
+// nacimiento, y cuando sale el consentimiento"): la barra solo estaba
+// montada en el return final (el formulario en sí). PantallaCentrada, el
+// wrapper que usan las 4 pantallas previas (cargando, error, fecha de
+// nacimiento, consentimiento pendiente/rechazado), no la incluía. Se
+// resolvió agregándola directo a PantallaCentrada en vez de repetirla en
+// cada return: cubre las 2 pantallas reportadas y, de paso, corrige el
+// mismo problema en "cargando", "error" y "consentimiento rechazado" —
+// mismo bug de raíz en los 5 casos, así que no tenía sentido dejar 3 de
+// los 5 sin corregir.
 import { useState } from 'react';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
 import FormularioInstrumento from '../components/FormularioInstrumento';
@@ -77,14 +89,15 @@ const TABS = [
 
 function PantallaCentrada({ children }) {
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gray-100 flex flex-col relative overflow-hidden">
       {/* Imagen de fondo institucional, compartida con el resto de la plataforma */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-10"
         style={{ backgroundImage: `url(${FONDO_PLATAFORMA})` }}
         aria-hidden="true"
       />
-      <div className="relative z-10">{children}</div>
+      <BarraSuperior titulo="Observatorio de Salud Mental" />
+      <div className="relative z-10 flex-1 flex items-center justify-center p-4">{children}</div>
     </div>
   );
 }

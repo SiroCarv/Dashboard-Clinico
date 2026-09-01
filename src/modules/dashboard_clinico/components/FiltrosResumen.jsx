@@ -120,6 +120,11 @@ export function FiltrosResumen({
             <option value="ESTRES">Estrés</option>
             <option value="ANSIEDAD">Ansiedad</option>
             <option value="DEPRESION">Depresión</option>
+            {/* Placeholder visual a pedido del cliente: no hay instrumento
+                real detrás todavía, así que elegir esta opción siempre
+                filtra a "nadie" (ningún estudiante tiene esta evaluación) —
+                comportamiento esperado, no un bug. */}
+            <option value="BULLYING">Bullying</option>
           </select>
         </Campo>
 

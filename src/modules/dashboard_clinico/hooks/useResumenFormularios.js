@@ -27,6 +27,13 @@
 // (ver opcionesEscolares.js) — evita que ambos filtros de la misma
 // pantalla muestren conjuntos de opciones distintos.
 //
+// Género / Sexo (corrección posterior, bug reportado por el cliente:
+// "el filtro Sexo no despliega opciones"): quedó afuera de la corrección
+// de arriba y seguía usando `valoresUnicos(pacientes, 'genero')` —  con
+// pocos estudiantes cargados el select quedaba deshabilitado o con una
+// sola opción. Ahora usa la misma lista fija (`OPCIONES_GENERO`, ver
+// opcionesEscolares.js), igual criterio que curso/paralelo/turno.
+//
 // Institución (corrección posterior): se retiró el filtro de
 // institución de acá y de Dashboard.jsx — un psicólogo solo puede estar
 // vinculado a una institución (SCRUM-49), así que filtrar por
@@ -49,7 +56,7 @@ import {
   COLOR_CATEGORIA_ANSIEDAD,
   COLOR_CATEGORIA_DEPRESION,
 } from '../../../shared/theme/paletaColores';
-import { OPCIONES_CURSO, OPCIONES_PARALELO, OPCIONES_TURNO } from '../data/opcionesEscolares';
+import { OPCIONES_CURSO, OPCIONES_PARALELO, OPCIONES_TURNO, OPCIONES_GENERO } from '../data/opcionesEscolares';
 
 const TODOS = 'todos';
 
@@ -136,16 +143,6 @@ function calcularEdad(fechaNacimiento) {
   return aunNoCumplioEsteAnio ? edad - 1 : edad;
 }
 
-// Deriva las opciones de un select a partir de lo que ya trae `pacientes`
-// (mismo criterio que ya usaba Dashboard.jsx para su propio filtro de
-// institución) — nada de esto pide datos nuevos a Supabase ni depende de
-// una lista fija que se pueda desincronizar de lo que la gente eligió al
-// registrarse.
-function valoresUnicos(pacientes, campo) {
-  const valores = pacientes.map((p) => p[campo]).filter(Boolean);
-  return Array.from(new Set(valores)).sort((a, b) => a.localeCompare(b));
-}
-
 // Cuenta, para un instrumento con categorías fijas calculadas por el
 // trigger (a diferencia de GSHS, que no calcula ninguna), cuántas de las
 // personas ya filtradas que lo completaron cayeron en cada categoría.
@@ -190,7 +187,7 @@ export function useResumenFormularios(pacientes) {
     [filtros]
   );
 
-  const generos = useMemo(() => valoresUnicos(pacientes, 'genero'), [pacientes]);
+  const generos = OPCIONES_GENERO;
   const cursos = OPCIONES_CURSO;
   const paralelos = OPCIONES_PARALELO;
   const turnos = OPCIONES_TURNO;

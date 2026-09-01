@@ -79,6 +79,11 @@ const OPCIONES_INSTRUMENTO = [
   { valor: 'ESTRES', etiqueta: 'Estrés' },
   { valor: 'ANSIEDAD', etiqueta: 'Ansiedad' },
   { valor: 'DEPRESION', etiqueta: 'Depresión' },
+  // Placeholder visual a pedido del cliente: sin instrumento real detrás
+  // todavía. Filtrar por esta opción siempre deja la tabla de resultados
+  // vacía (ningún resultado tiene tipo_instrumento = 'BULLYING') —
+  // comportamiento esperado, no un bug.
+  { valor: 'BULLYING', etiqueta: 'Bullying' },
 ];
 
 export default function PanelConsolidadoSuperadmin() {
