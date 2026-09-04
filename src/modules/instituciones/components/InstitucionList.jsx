@@ -1,12 +1,17 @@
 // Pestaña "Instituciones" del Panel Maestro: tabla con búsqueda por
-// nombre/código, botón para copiar el enlace de registro
-// (`/registro/:codigo`) al portapapeles, badge de código clickeable para
-// copiar solo el código, y las acciones de editar/eliminar que delegan
-// en el padre (PanelMaestro.jsx) vía props. Este componente no habla con
-// Supabase directamente — solo recibe `instituciones` ya cargadas y
-// notifica intenciones (onEdit, onDelete).
+// nombre/código, filtro por tipo de institución, badge de tipo, botón
+// para copiar el enlace de registro (`/registro/:codigo`) al
+// portapapeles, badge de código clickeable para copiar solo el código,
+// y las acciones de editar/eliminar que delegan en el padre
+// (PanelMaestro.jsx) vía props. Este componente no habla con Supabase
+// directamente — solo recibe `instituciones` ya cargadas y notifica
+// intenciones (onEdit, onDelete).
 import { useState, useMemo } from 'react';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
+import { TIPOS_INSTITUCION, TIPO_POR_DEFECTO, obtenerLabelTipo } from '../data/tiposInstitucion';
+
+// Valor especial del filtro (no es un tipo real) para "sin filtrar por tipo".
+const FILTRO_TIPO_TODOS = 'todos';
 
 export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
   // Dos IDs separados (no uno compartido): copiar el enlace y copiar el
@@ -16,6 +21,7 @@ export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
   const [enlaceCopiadoId, setEnlaceCopiadoId] = useState(null);
   const [codigoCopiadoId, setCodigoCopiadoId] = useState(null);
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
+  const [filtroTipo, setFiltroTipo] = useState(FILTRO_TIPO_TODOS);
 
   const copiarEnlace = async (inst) => {
     const enlace = `${window.location.origin}/registro/${inst.codigo_registro}`;
@@ -38,19 +44,27 @@ export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
     }
   };
 
-  const hayBusquedaActiva = terminoBusqueda.trim().length > 0;
+  const hayFiltroTipoActivo = filtroTipo !== FILTRO_TIPO_TODOS;
+  const hayBusquedaActiva = terminoBusqueda.trim().length > 0 || hayFiltroTipoActivo;
 
   const institucionesFiltradas = useMemo(() => {
     const termino = terminoBusqueda.trim().toLowerCase();
-    if (!termino) return instituciones;
     return instituciones.filter((inst) => {
       const nombre = (inst.nombre || '').toLowerCase();
       const codigo = (inst.codigo_registro || '').toLowerCase();
-      return nombre.includes(termino) || codigo.includes(termino);
-    });
-  }, [instituciones, terminoBusqueda]);
+      const coincideTexto = !termino || nombre.includes(termino) || codigo.includes(termino);
 
-  const limpiarFiltros = () => setTerminoBusqueda('');
+      const tipoInst = inst.tipo_institucion || TIPO_POR_DEFECTO;
+      const coincideTipo = !hayFiltroTipoActivo || tipoInst === filtroTipo;
+
+      return coincideTexto && coincideTipo;
+    });
+  }, [instituciones, terminoBusqueda, filtroTipo, hayFiltroTipoActivo]);
+
+  const limpiarFiltros = () => {
+    setTerminoBusqueda('');
+    setFiltroTipo(FILTRO_TIPO_TODOS);
+  };
 
   return (
     <div className="space-y-6">
@@ -81,6 +95,19 @@ export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
             placeholder="Buscar por nombre o código de registro..."
             className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
           />
+          <select
+            aria-label="Filtrar instituciones por tipo"
+            value={filtroTipo}
+            onChange={(e) => setFiltroTipo(e.target.value)}
+            className="w-full sm:w-auto px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800 bg-white"
+          >
+            <option value={FILTRO_TIPO_TODOS}>Todos los tipos</option>
+            {TIPOS_INSTITUCION.map((tipo) => (
+              <option key={tipo.value} value={tipo.value}>
+                {tipo.label}
+              </option>
+            ))}
+          </select>
           <button
             onClick={limpiarFiltros}
             disabled={!hayBusquedaActiva}
@@ -106,6 +133,7 @@ export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
               <thead>
                 <tr className="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider">
                   <th className="p-4 font-bold border-b border-gray-200">Nombre</th>
+                  <th className="p-4 font-bold border-b border-gray-200">Tipo</th>
                   <th className="p-4 font-bold border-b border-gray-200">Código de Acceso</th>
                   <th className="p-4 font-bold border-b border-gray-200 text-right">Acciones</th>
                 </tr>
@@ -114,6 +142,11 @@ export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
                 {institucionesFiltradas.map((inst) => (
                   <tr key={inst.id} className="hover:bg-gray-50 transition-colors">
                     <td className="p-4 text-gray-800 font-medium">{inst.nombre}</td>
+                    <td className="p-4">
+                      <span className="px-3 py-1 border border-gray-300 rounded-full text-xs font-bold uppercase tracking-wide text-gray-600 bg-gray-100 whitespace-nowrap">
+                        {obtenerLabelTipo(inst.tipo_institucion)}
+                      </span>
+                    </td>
                     <td className="p-4">
                       <button
                         type="button"

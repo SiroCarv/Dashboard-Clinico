@@ -2,23 +2,11 @@
 // de registro único). Se abre desde InstitucionList.jsx ("+ Nueva
 // Institución" o "Editar"); el guardado real (insert/update) lo hace
 // PanelMaestro.jsx a través de la prop onSave. El tipo de institución
-// determina el prefijo que arma "Generar" (ver PREFIJOS_POR_TIPO) —
-// agregado para poder emitir códigos de Centro de Salud (CS-) además
-// de los de Unidad Educativa (UNI-) que ya existían.
+// determina el prefijo que arma "Generar" -- ver
+// data/tiposInstitucion.js, catálogo compartido con InstitucionList.jsx
+// (que lo usa para el badge y el filtro por tipo).
 import { useState } from 'react';
-
-// Único lugar del código donde se define qué tipos de institución
-// existen y qué prefijo de código le corresponde a cada uno. Si se
-// agrega un tipo nuevo, alcanza con sumar una entrada acá.
-const TIPOS_INSTITUCION = [
-  { value: 'unidad_educativa', label: 'Unidad Educativa', prefijo: 'UNI' },
-  { value: 'centro_salud', label: 'Centro de Salud', prefijo: 'CS' },
-];
-
-const TIPO_POR_DEFECTO = TIPOS_INSTITUCION[0].value;
-
-const obtenerPrefijo = (tipo) =>
-  TIPOS_INSTITUCION.find((t) => t.value === tipo)?.prefijo || TIPOS_INSTITUCION[0].prefijo;
+import { TIPOS_INSTITUCION, TIPO_POR_DEFECTO, obtenerPrefijo } from '../data/tiposInstitucion';
 
 export const InstitucionModal = ({ isOpen, onClose, onSave, institucionEditada }) => {
   const [nombre, setNombre] = useState('');
