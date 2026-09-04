@@ -7,13 +7,14 @@
 //   - GuardianDeSesion: cierra sesiones "abandonadas" (pestaña cerrada
 //     sin logout) antes de que se renderice cualquier ruta — excepto
 //     Inicio ("/"), que se muestra de inmediato mientras la verificación
-//     corre en segundo plano (no hay nada que "flashear": es solo un
-//     redirect a /login, sin contenido propio — ver SCRUM-46).
+//     corre en segundo plano (es contenido público, sin nada privado
+//     que "flashear" — landing del Observatorio de Salud Mental,
+//     restaurada tras SCRUM-46).
 //   - RutaPublica: pantallas de acceso libre (Login, Registro...); si ya
 //     hay sesión activa, redirige lejos de ellas.
 //   - RutaProtegida: pantallas privadas; exige un `rolRequerido` exacto
 //     (paciente / psicologo / superadmin / docente) o redirige.
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 
 // --- MÓDULOS ---
 // Autenticación
@@ -23,6 +24,10 @@ import Registro from './modules/autenticacion/pages/Registro';
 import RegistroDocente from './modules/autenticacion/pages/RegistroDocente';
 import RecuperarPassword from './modules/autenticacion/pages/RecuperarPassword';
 import RestablecerPassword from './modules/autenticacion/pages/RestablecerPassword';
+// Home (restaurado): landing pública con misión/visión -- ver conversación
+// de reunión. Épica "Observatorio de Salud Mental" reconfirmada con el
+// cliente.
+import { Home } from './modules/observatorio';
 
 // Evaluaciones
 import Encuesta from './modules/evaluaciones/pages/Encuesta';
@@ -44,10 +49,9 @@ function App() {
   return (
     <GuardianDeSesion>
       <Routes>
-        {/* SCRUM-46: "/" ya no tiene una landing propia (se retiró toda
-            la sección de imágenes/observatorio) — ahora entra directo
-            a Login, que queda como pantalla principal. */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        {/* Home restaurado (reemplaza al redirect de SCRUM-46): landing
+            pública con misión/visión, reconfirmada con el cliente. */}
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<RutaPublica><Login /></RutaPublica>} />
 
         {/* SCRUM-33: pantalla de bienvenida + selector de perfil,

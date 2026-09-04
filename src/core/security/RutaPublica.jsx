@@ -4,6 +4,10 @@
 // URL a mano, volvió por un bookmark, o usó el botón "Atrás" del
 // navegador sin haber cerrado sesión antes.
 //
+// Home ("/") queda fuera de esta capa a propósito, igual que antes de
+// SCRUM-46: es la única pantalla que debe verse siempre de inmediato,
+// incluso para alguien con sesión activa (ver GuardianDeSesion.jsx).
+//
 // Si detecta sesión activa y conoce el rol, redirige directo a la vista
 // por defecto de ese rol (mismo mapa que usa RutaProtegida). Si el rol no
 // se pudo determinar (por ejemplo, un error de red al consultar
@@ -47,9 +51,6 @@ export default function RutaPublica({ children }) {
 
       if (error) {
         if (error.code === 'PGRST116') {
-          // Sesión huérfana: el id de la sesión local no tiene fila en
-          // `usuarios`. Cerramos sesión acá mismo en vez de dejarla
-          // reintentando en cada carga de página.
           console.warn('Sesión sin usuario asociado, cerrando sesión local.');
           await supabase.auth.signOut();
           setHaySesion(false);
@@ -69,7 +70,6 @@ export default function RutaPublica({ children }) {
     verificarSesion();
   }, []);
 
-  // Misma pantalla de carga que usa RutaProtegida, para que no haya parpadeo visual
   if (cargando) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-600 font-medium">
@@ -78,7 +78,6 @@ export default function RutaPublica({ children }) {
     );
   }
 
-  // Solo redirigimos si hay sesión Y conocemos a dónde mandarlo.
   if (haySesion && RUTA_POR_DEFECTO[rolUsuario]) {
     return <Navigate to={RUTA_POR_DEFECTO[rolUsuario]} replace />;
   }

@@ -38,10 +38,6 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Flujo de "sesión única ya activa" (ver comentario de handleLogin más
-  // abajo): cuando iniciar_sesion_unica rechaza el login, guardamos a
-  // dónde tenía que ir (para no repetir la consulta de rol) y mostramos
-  // el aviso de "Forzar ingreso" en vez del formulario.
   const [sesionBloqueada, setSesionBloqueada] = useState(false);
   const [rutaPendiente, setRutaPendiente] = useState(null);
   const [forzando, setForzando] = useState(false);
@@ -49,16 +45,12 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Se lee una sola vez, en la inicialización del estado: así el primer
-  // render ya sale con el valor correcto y el efecto no necesita hacer
-  // un setState síncrono para "sincronizarlo" después.
   const [mensajeExito, setMensajeExito] = useState(() => location.state?.mensajeRegistro || '');
   const [desvanecer, setDesvanecer] = useState(false);
 
   useEffect(() => {
     if (!mensajeExito) return;
 
-    // Limpiamos el state de navegación para que un refresh no vuelva a mostrar el mensaje.
     window.history.replaceState({}, document.title);
 
     const fadeTimer = setTimeout(() => {
@@ -74,9 +66,6 @@ export default function Login() {
       clearTimeout(fadeTimer);
       clearTimeout(removeTimer);
     };
-    // Solo debe correr una vez, al montar: es la misma condición que antes
-    // tenía como dependencia [location], pero ese efecto solo se disparaba
-    // en el primer render de esta pantalla (login siempre remonta al navegar).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -87,7 +76,6 @@ export default function Login() {
 
     const cleanedEmail = email.trim().replace(/\s+/g, '');
 
-    // Regex para asegurar que el correo tenga dominio
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(cleanedEmail)) {
       setError('Por favor, ingresa un correo electrónico válido (ej. usuario@gmail.com).');
@@ -111,10 +99,6 @@ export default function Login() {
 
       if (userError) throw userError;
 
-      // RUTA_POR_DEFECTO es la misma fuente única de verdad que usan
-      // RutaProtegida.jsx y RutaPublica.jsx. Si el rol es nulo, vacío o no
-      // reconocido, rutaDestino queda undefined: NO asumimos "paciente"
-      // por defecto, mostramos un error y no navegamos a ningún lado.
       const rutaDestino = RUTA_POR_DEFECTO[userData?.rol];
 
       if (!rutaDestino) {
@@ -122,11 +106,6 @@ export default function Login() {
         return;
       }
 
-      // Historia "Sesión única por cuenta": se reclama la sesión de forma
-      // atómica en el servidor (función con SECURITY DEFINER, no una
-      // política RLS de UPDATE — así ningún cliente puede tocar otras
-      // columnas de su propia fila, como `rol`). Si otra persona ya tiene
-      // la cuenta abierta hace menos de 12 horas, se rechaza este login.
       const { data: sesionConcedida, error: sesionError } = await supabase.rpc('iniciar_sesion_unica');
 
       if (sesionError) {
@@ -137,19 +116,11 @@ export default function Login() {
       }
 
       if (!sesionConcedida) {
-        // No cerramos la sesión recién creada todavía: la dejamos "en
-        // espera" para que, si la persona confirma que quiere forzar el
-        // ingreso, podamos reclamarla sin pedirle la contraseña de nuevo.
-        // Si en cambio cancela (handleCancelarForzado), ahí sí se cierra.
         setRutaPendiente(rutaDestino);
         setSesionBloqueada(true);
         return;
       }
 
-      // replace: true evita que /login quede apilado en el historial:
-      // sin esto, un solo "Atrás" desde el panel devolvía a esta pantalla
-      // con la sesión todavía activa (RutaPublica es la segunda capa de
-      // defensa para cuando el usuario llega a /login por otro camino).
       navigate(rutaDestino, { replace: true });
 
     } catch (err) {
@@ -160,9 +131,6 @@ export default function Login() {
     }
   };
 
-  // Reclama la sesión sin chequear la ventana de 12 horas: es seguro
-  // porque solo se llega acá después de un signInWithPassword exitoso en
-  // esta misma pantalla (ver handleLogin) — ya se demostró la identidad.
   const handleForzarSesion = async () => {
     setForzando(true);
     setError('');
@@ -183,8 +151,6 @@ export default function Login() {
     }
   };
 
-  // La persona decide no forzar el ingreso: recién acá cerramos la sesión
-  // que había quedado "en espera" desde handleLogin.
   const handleCancelarForzado = async () => {
     setSesionBloqueada(false);
     setRutaPendiente(null);
@@ -194,7 +160,6 @@ export default function Login() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-violet-50 p-4 relative overflow-hidden">
 
-      {/* Imagen de fondo semi-transparente (placeholder temporal) */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-40"
         style={{ backgroundImage: `url(${FONDO_PLATAFORMA})` }}
@@ -212,6 +177,15 @@ export default function Login() {
       )}
 
       <div className="relative z-10 max-w-md w-full bg-white p-8 border-t-8 border-violet-400 rounded-lg shadow-xl">
+        <div className="mb-4">
+          <Link
+            to="/"
+            className="text-sm font-bold text-gray-500 hover:text-orange-700 transition-colors inline-flex items-center gap-1"
+          >
+            ← Volver al inicio
+          </Link>
+        </div>
+
         <div className="text-center mb-8">
           <img 
             src={logo} 
