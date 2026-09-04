@@ -23,10 +23,10 @@ export default function Bienvenida() {
 
         <div className="mb-4">
           <Link
-            to="/login"
+            to="/"
             className="text-sm font-bold text-gray-500 hover:text-orange-700 transition-colors inline-flex items-center gap-1"
           >
-            ← Volver atrás
+            ← Volver al inicio
           </Link>
         </div>
 
