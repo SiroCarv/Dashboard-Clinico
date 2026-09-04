@@ -67,11 +67,15 @@ import { exportarPacientesAExcel } from '../utils/exportarPacientesExcel';
 import { OPCIONES_CURSO, OPCIONES_PARALELO, OPCIONES_TURNO } from '../data/opcionesEscolares';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
+// Pestaña "Reportes" (reemplazo de SCRUM-51): siempre a través de la API
+// pública de casos_docente, nunca de una ruta interna del módulo.
+import { PanelReportesInstitucion, useReportesInstitucion } from '../../casos_docente';
 
 const FILTRO_ESCOLAR_TODOS = 'todos';
 
 const PESTANA_GRAFICAS = 'graficas';
 const PESTANA_ESTUDIANTES = 'estudiantes';
+const PESTANA_REPORTES = 'reportes';
 
 export default function Dashboard() {
   const { pacientes, loading, error } = useListaPacientes();
@@ -83,6 +87,7 @@ export default function Dashboard() {
     loading: loadingGshs,
     error: errorGshs,
   } = useIndicadoresGSHS();
+  const { reportes: reportesDocente, loading: loadingReportes, error: errorReportes } = useReportesInstitucion();
   const [pestanaActiva, setPestanaActiva] = useState(PESTANA_GRAFICAS);
   const [busqueda, setBusqueda] = useState('');
   const [filtroCurso, setFiltroCurso] = useState(FILTRO_ESCOLAR_TODOS);
@@ -99,12 +104,6 @@ export default function Dashboard() {
         p.nombre?.toLowerCase().includes(texto) ||
         p.email?.toLowerCase().includes(texto);
 
-      // Un registro histórico sin institución (previo al retiro del
-      // registro particular, SCRUM-46/47/48) nunca tiene curso/paralelo/
-      // turno, así que si el psicólogo elige un valor específico acá,
-      // esas filas quedan fuera sin necesidad de ningún caso especial:
-      // p.curso/paralelo/turno son `null` y nunca coinciden con un valor
-      // elegido.
       const coincideCurso = filtroCurso === FILTRO_ESCOLAR_TODOS || p.curso === filtroCurso;
       const coincideParalelo = filtroParalelo === FILTRO_ESCOLAR_TODOS || p.paralelo === filtroParalelo;
       const coincideTurno = filtroTurno === FILTRO_ESCOLAR_TODOS || p.turno === filtroTurno;
@@ -126,9 +125,6 @@ export default function Dashboard() {
     setFiltroTurno(FILTRO_ESCOLAR_TODOS);
   };
 
-  // Recibe `pacientesFiltrados` -no `pacientes`- a propósito: el archivo
-  // debe reflejar exactamente lo que el psicólogo ve en pantalla tras
-  // aplicar búsqueda/filtros, nunca el padrón completo.
   const handleExportarExcel = async () => {
     if (pacientesFiltrados.length === 0) return;
     setExportando(true);
@@ -141,7 +137,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-100 relative overflow-hidden">
-      {/* Imagen de fondo institucional, compartida con el resto de la plataforma */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-10"
         style={{ backgroundImage: `url(${FONDO_PLATAFORMA})` }}
@@ -193,6 +188,17 @@ export default function Dashboard() {
                 }`}
               >
                 Estudiantes
+              </button>
+              <button
+                type="button"
+                onClick={() => setPestanaActiva(PESTANA_REPORTES)}
+                className={`px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors ${
+                  pestanaActiva === PESTANA_REPORTES
+                    ? COLOR_MARCA.violetaSuave.tabActivo
+                    : 'border-transparent text-gray-700 hover:text-gray-900'
+                }`}
+              >
+                Reportes
               </button>
             </div>
 
@@ -357,6 +363,10 @@ export default function Dashboard() {
 
                 <TablaPacientes pacientes={pacientesFiltrados} hayFiltrosActivos={hayFiltrosActivos} />
               </>
+            )}
+
+            {pestanaActiva === PESTANA_REPORTES && (
+              <PanelReportesInstitucion reportes={reportesDocente} cargando={loadingReportes} error={errorReportes} />
             )}
           </>
         )}
