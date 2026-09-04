@@ -44,6 +44,9 @@ import { RegistroCasoDocente } from './modules/casos_docente';
 import RutaProtegida from './core/security/RutaProtegida';
 import RutaPublica from './core/security/RutaPublica';
 import GuardianDeSesion from './core/security/GuardianDeSesion';
+// --- SHARED ---
+// Fallback de enrutamiento (no pertenece a ningún módulo de negocio)
+import NoEncontrado from './shared/pages/NoEncontrado';
 
 function App() {
   return (
@@ -145,6 +148,13 @@ function App() {
             </RutaProtegida>
           } 
         />
+
+        {/* Comodín: cualquier URL que no coincida con ninguna ruta de
+            arriba (typo, enlace viejo, o un enlace tipo
+            /registro-docente/:codigo que todavía no existe -- ver
+            comentario en RegistroDocente.jsx) cae acá en vez de
+            renderizar una pantalla en blanco. */}
+        <Route path="*" element={<NoEncontrado />} />
       </Routes>
     </GuardianDeSesion>
   );
