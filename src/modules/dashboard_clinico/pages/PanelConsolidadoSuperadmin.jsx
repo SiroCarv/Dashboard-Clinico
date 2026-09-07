@@ -2,8 +2,8 @@
 //
 //   - "Resultados": listado de TODOS los resultados de evaluaciones del
 //     sistema (todas las instituciones y psicólogos), con filtro por
-//     tipo de institución, institución, por psicólogo, por origen del
-//     registro (SCRUM-60) y por rango de fechas. A diferencia de
+//     tipo de institución, institución, por psicólogo y por rango de
+//     fechas. A diferencia de
 //     Dashboard.jsx (el panel del psicólogo, que lista pacientes), acá
 //     cada fila es un resultado puntual — el criterio de aceptación pide
 //     identificar institución y psicólogo "por cada resultado", no por
@@ -61,13 +61,14 @@
 // instituciones" en vez de quedarse en un valor que ya no aparece en su
 // propia lista de opciones.
 //
-// SCRUM-60 — Detalle de casos registrados por docente: se suma acá un
-// filtro más, "Origen del registro", con el mismo criterio que ya usa
-// Dashboard.jsx (SCRUM-53) para su propio filtro "Estudiante/Docente" —
-// mismos valores ('estudiante' | 'docente'), aunque la fuente es
-// distinta: allá se deriva por paciente (agregando varias evaluaciones),
-// acá es directo por fila, porque cada resultado YA es una sola
-// evaluación con su propio `registrado_por_docente_id`.
+// Origen del registro (corrección posterior a SCRUM-60): se retiró el
+// filtro "Origen del registro" (Autoenvío del estudiante / Registrado
+// por docente) de esta pestaña, a pedido del cliente — el docente ya no
+// resuelve ningún formulario, solo genera reportes (pestaña "Reportes de
+// Docentes"), así que distinguir el origen de un resultado dejó de tener
+// utilidad para filtrar. La etiqueta de origen por fila en
+// TablaResultadosGlobales.jsx (componente OrigenRegistro) se mantiene
+// sin cambios, ya que solo informa y no es un control de filtro.
 // Formulario / instrumento (corrección posterior): filtro de selección
 // múltiple nuevo, con FiltroSeleccionMultiple.jsx — no existía ningún
 // filtro por instrumento en esta pantalla. Selección vacía = todos los
@@ -93,9 +94,6 @@ import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 const FILTRO_INSTITUCION_TODAS = 'todas';
 const FILTRO_TIPO_INSTITUCION_TODOS = 'todos';
 const FILTRO_PSICOLOGO_TODOS = 'todos';
-const FILTRO_TIPO_PERSONA_TODOS = 'todos';
-const FILTRO_TIPO_PERSONA_ESTUDIANTE = 'estudiante';
-const FILTRO_TIPO_PERSONA_DOCENTE = 'docente';
 
 const PESTANA_GRAFICAS = 'graficas';
 const PESTANA_RESULTADOS = 'resultados';
@@ -124,7 +122,6 @@ export default function PanelConsolidadoSuperadmin() {
   const [filtroInstitucion, setFiltroInstitucion] = useState(FILTRO_INSTITUCION_TODAS);
   const [filtroTipoInstitucion, setFiltroTipoInstitucion] = useState(FILTRO_TIPO_INSTITUCION_TODOS);
   const [filtroPsicologo, setFiltroPsicologo] = useState(FILTRO_PSICOLOGO_TODOS);
-  const [filtroTipoPersona, setFiltroTipoPersona] = useState(FILTRO_TIPO_PERSONA_TODOS);
   const [filtroInstrumentos, setFiltroInstrumentos] = useState(() => new Set());
   const [fechaDesde, setFechaDesde] = useState('');
   const [fechaHasta, setFechaHasta] = useState('');
@@ -223,41 +220,20 @@ export default function PanelConsolidadoSuperadmin() {
         filtroPsicologo === FILTRO_PSICOLOGO_TODOS ||
         r.paciente?.psicologo_asignado?.nombre === filtroPsicologo;
 
-      // SCRUM-60 — cada resultado ya trae su propio origen: no hay caso
-      // "sin evaluaciones" como en pacientesService.js (esta fila ES una
-      // evaluación), así que alcanza con revisar si tiene un docente que
-      // la registró o no.
-      const tipoPersonaResultado = r.registrado_por_docente_id
-        ? FILTRO_TIPO_PERSONA_DOCENTE
-        : FILTRO_TIPO_PERSONA_ESTUDIANTE;
-      const coincideTipoPersona =
-        filtroTipoPersona === FILTRO_TIPO_PERSONA_TODOS || tipoPersonaResultado === filtroTipoPersona;
-
       const coincideInstrumento =
         filtroInstrumentos.size === 0 || filtroInstrumentos.has(r.tipo_instrumento);
 
       const fecha = new Date(r.fecha_registro);
       const coincideFecha = (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
 
-      return (
-        coincideInstitucion && coincidePsicologo && coincideTipoPersona && coincideInstrumento && coincideFecha
-      );
+      return coincideInstitucion && coincidePsicologo && coincideInstrumento && coincideFecha;
     });
-  }, [
-    resultados,
-    filtroInstitucion,
-    filtroPsicologo,
-    filtroTipoPersona,
-    filtroInstrumentos,
-    fechaDesde,
-    fechaHasta,
-  ]);
+  }, [resultados, filtroInstitucion, filtroPsicologo, filtroInstrumentos, fechaDesde, fechaHasta]);
 
   const hayFiltrosActivos =
     filtroInstitucion !== FILTRO_INSTITUCION_TODAS ||
     filtroTipoInstitucion !== FILTRO_TIPO_INSTITUCION_TODOS ||
     filtroPsicologo !== FILTRO_PSICOLOGO_TODOS ||
-    filtroTipoPersona !== FILTRO_TIPO_PERSONA_TODOS ||
     filtroInstrumentos.size > 0 ||
     fechaDesde !== '' ||
     fechaHasta !== '';
@@ -266,7 +242,6 @@ export default function PanelConsolidadoSuperadmin() {
     setFiltroInstitucion(FILTRO_INSTITUCION_TODAS);
     setFiltroTipoInstitucion(FILTRO_TIPO_INSTITUCION_TODOS);
     setFiltroPsicologo(FILTRO_PSICOLOGO_TODOS);
-    setFiltroTipoPersona(FILTRO_TIPO_PERSONA_TODOS);
     setFiltroInstrumentos(new Set());
     setFechaDesde('');
     setFechaHasta('');
@@ -494,21 +469,6 @@ export default function PanelConsolidadoSuperadmin() {
                         {nombre}
                       </option>
                     ))}
-                  </select>
-                </div>
-
-                <div className="flex-1 min-w-40">
-                  <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">
-                    Origen del registro
-                  </label>
-                  <select
-                    value={filtroTipoPersona}
-                    onChange={(e) => setFiltroTipoPersona(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
-                  >
-                    <option value={FILTRO_TIPO_PERSONA_TODOS}>Todos</option>
-                    <option value={FILTRO_TIPO_PERSONA_ESTUDIANTE}>Autoenvío del estudiante</option>
-                    <option value={FILTRO_TIPO_PERSONA_DOCENTE}>Registrado por docente</option>
                   </select>
                 </div>
 

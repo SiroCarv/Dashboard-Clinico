@@ -4,6 +4,19 @@
 // más de una a la vez — restricción UNIQUE(psicologo_id) en la base), y
 // las acciones de crear/editar/eliminar la cuenta en sí.
 //
+// Restricción de un psicólogo por institución: además, una institución
+// ya no puede tener más de un psicólogo asignado (restricción
+// UNIQUE(institucion_id), sumada a la anterior). En el select de cada
+// fila, las instituciones que ya están ocupadas por OTRO psicólogo se
+// muestran deshabilitadas y con la leyenda "(ya asignada)" — se calculan
+// en `institucionesOcupadasPorOtro`, comparando contra `psicologo.id` de
+// la propia fila para no deshabilitar la institución que el psicólogo ya
+// tiene asignada a sí mismo. Esto es una ayuda visual, no la única
+// protección: si dos superadmins intentan asignar la misma institución
+// casi al mismo tiempo, la base rechaza el segundo intento y
+// psicologoInstitucionService.asignar() traduce ese rechazo a un mensaje
+// legible que se muestra con el mismo alert() de siempre.
+//
 // La creación/edición/eliminación real de la CUENTA (Supabase Auth +
 // fila en `usuarios`) pasa por `psicologosService`, que a su vez invoca
 // las Edge Functions con service_role — nunca se hace directo desde acá
@@ -107,7 +120,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
       await cargarDatos();
     } catch (error) {
       console.error("Error al modificar la asignación:", error);
-      alert("Error al modificar la asignación.");
+      alert(error.message || "Error al modificar la asignación.");
     } finally {
       setProcesandoId(null);
     }
@@ -205,6 +218,15 @@ export const AsignacionPsicologos = ({ instituciones }) => {
   }, [psicologos, terminoBusqueda]);
 
   const limpiarFiltros = () => setTerminoBusqueda('');
+
+  // Institución -> id del psicólogo que ya la tiene asignada. Con esto,
+  // cada fila puede deshabilitar en su select las instituciones que ya
+  // están tomadas por OTRO psicólogo (ver comentario de cabecera).
+  const psicologoPorInstitucion = useMemo(() => {
+    const mapa = new Map();
+    asignaciones.forEach((a) => mapa.set(a.institucion_id, a.psicologo_id));
+    return mapa;
+  }, [asignaciones]);
 
   return (
     <div className="space-y-6">
@@ -332,11 +354,22 @@ export const AsignacionPsicologos = ({ instituciones }) => {
                               <option value="" className="bg-white text-gray-600">
                                 Sin institución asignada
                               </option>
-                              {instituciones.map((inst) => (
-                                <option key={inst.id} value={inst.id} className="bg-white text-gray-800">
-                                  {inst.nombre}
-                                </option>
-                              ))}
+                              {instituciones.map((inst) => {
+                                const psicologoOcupante = psicologoPorInstitucion.get(inst.id);
+                                const ocupadaPorOtro = psicologoOcupante && psicologoOcupante !== psico.id;
+
+                                return (
+                                  <option
+                                    key={inst.id}
+                                    value={inst.id}
+                                    disabled={ocupadaPorOtro}
+                                    className="bg-white text-gray-800"
+                                  >
+                                    {inst.nombre}
+                                    {ocupadaPorOtro ? ' (ya asignada)' : ''}
+                                  </option>
+                                );
+                              })}
                             </select>
                           );
                         })()
