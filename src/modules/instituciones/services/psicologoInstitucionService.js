@@ -6,21 +6,29 @@
 // en la base: un psicólogo ya no puede tener más de una fila.
 //
 // Restricción de un psicólogo por institución (migración 007): la tabla
-// ahora también tiene UNIQUE(institucion_id) — una institución no puede
-// tener más de un psicólogo asignado. Con las dos restricciones activas,
-// `psicologo_institucion` termina siendo una relación 1 a 1 entre
-// psicólogos y instituciones (a lo sumo una fila por cada uno de los dos).
+// también tiene UNIQUE(institucion_id) — una institución no puede tener
+// más de un psicólogo asignado al mismo tiempo. Con las dos
+// restricciones activas, `psicologo_institucion` es una relación 1 a 1
+// entre psicólogos y instituciones (a lo sumo una fila por cada uno de
+// los dos), sin cambios en esto.
 //
-// Por esto, asignar() ya no hace DELETE + INSERT como dos llamadas
-// separadas: si el psicólogo ya tenía institución y la institución nueva
-// falla por estar ocupada, un DELETE+INSERT en dos pasos dejaría al
-// psicólogo sin ninguna institución (el DELETE ya se habría aplicado
-// antes de que el INSERT fallara). En su lugar, asignar() llama al RPC
-// `asignar_psicologo_institucion`, que hace ambos pasos dentro de una
-// sola función de base de datos: si el INSERT viola la restricción, toda
-// la operación se revierte y el psicólogo conserva su institución
-// anterior. El código '23505' (unique_violation) de Postgres se traduce
-// acá a un mensaje en español entendible para quien usa el panel.
+// Reasignación de institución entre psicólogos (migración 008 —
+// corrige el bloqueo de SCRUM-73 sin editar esa historia cerrada): antes,
+// si la institución elegida ya estaba ocupada por otro psicólogo, el
+// RPC fallaba entero y el frontend solo podía mostrar el error. Ahora
+// `asignar_psicologo_institucion` además desvincula, dentro de la misma
+// transacción, a cualquier OTRO psicólogo que tuviera esa institución
+// antes de insertar la fila nueva — el reemplazo es intencional:
+// AsignacionPsicologos.jsx ya avisa y pide confirmación explícita antes
+// de llamar a este método cuando eso va a pasar (ver su comentario de
+// cabecera). asignar() sigue llamando al mismo RPC (no dos pasos
+// DELETE+INSERT separados desde el cliente, por la misma razón de
+// siempre: si el psicólogo ya tenía institución y algo falla a mitad de
+// camino, dos llamadas separadas podrían dejarlo sin ninguna). El código
+// '23505' (unique_violation) que se traduce más abajo ya casi nunca
+// debería dispararse por este motivo — queda como red de contención para
+// el caso real de que dos superadministradores confirmen casi al mismo
+// tiempo un cambio sobre la misma institución.
 //
 // Este servicio NO crea/edita/elimina cuentas de psicólogo (eso vive en
 // el módulo `psicologos`, vía Edge Functions con service_role) — solo
@@ -51,10 +59,13 @@ export const psicologoInstitucionService = {
     return data;
   },
 
-  // Reemplaza la institución del psicólogo por institucionId, de forma
-  // atómica (ver comentario de cabecera). Si la institución elegida ya
-  // tiene otro psicólogo asignado, el RPC revierte todo y esta función
-  // lanza un error con mensaje amigable en vez del error crudo de Postgres.
+  // Asigna institucionId al psicólogo, de forma atómica (ver comentario
+  // de cabecera): libera cualquier institución anterior del psicólogo Y
+  // libera la institución de destino de cualquier otro psicólogo que la
+  // tuviera, todo dentro del mismo RPC. Si de todas formas ocurre un
+  // conflicto (dos superadmins confirmando casi al mismo tiempo sobre la
+  // misma institución), esta función traduce el error crudo de Postgres
+  // a un mensaje legible.
   async asignar(psicologoId, institucionId) {
     const { error } = await supabase.rpc('asignar_psicologo_institucion', {
       p_psicologo_id: psicologoId,
@@ -64,7 +75,7 @@ export const psicologoInstitucionService = {
     if (error) {
       if (error.code === '23505') {
         throw new Error(
-          'Esa institución ya tiene un psicólogo asignado. Retira esa asignación antes de asignar a otro.'
+          'No se pudo completar la asignación porque otro superadministrador acaba de modificar esa institución. Volvé a intentarlo.'
         );
       }
       throw error;

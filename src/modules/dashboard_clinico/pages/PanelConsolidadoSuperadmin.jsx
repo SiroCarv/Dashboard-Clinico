@@ -68,7 +68,18 @@
 // Docentes"), así que distinguir el origen de un resultado dejó de tener
 // utilidad para filtrar. La etiqueta de origen por fila en
 // TablaResultadosGlobales.jsx (componente OrigenRegistro) se mantiene
-// sin cambios, ya que solo informa y no es un control de filtro.
+// solo para la excepción (registrado por un docente); la etiqueta
+// "Autoenvío" del caso por defecto se retiró también, por ser el único
+// rastro visual que quedaba de un filtro que ya no existe.
+//
+// Psicólogo (corrección posterior — filtro no encontraba coincidencias
+// para pacientes institucionales): la comparación de este filtro usa
+// `paciente.psicologoResponsable`, ya resuelto por
+// resultadosGlobalesService.js (institucional vía su institución,
+// particular vía asignación directa) — nunca comparar contra
+// `paciente.psicologo_asignado` directo en este archivo, ver el
+// comentario de ese servicio para el detalle completo del bug y la
+// corrección.
 // Formulario / instrumento (corrección posterior): filtro de selección
 // múltiple nuevo, con FiltroSeleccionMultiple.jsx — no existía ningún
 // filtro por instrumento en esta pantalla. Selección vacía = todos los
@@ -218,7 +229,7 @@ export default function PanelConsolidadoSuperadmin() {
 
       const coincidePsicologo =
         filtroPsicologo === FILTRO_PSICOLOGO_TODOS ||
-        r.paciente?.psicologo_asignado?.nombre === filtroPsicologo;
+        r.paciente?.psicologoResponsable?.nombre === filtroPsicologo;
 
       const coincideInstrumento =
         filtroInstrumentos.size === 0 || filtroInstrumentos.has(r.tipo_instrumento);

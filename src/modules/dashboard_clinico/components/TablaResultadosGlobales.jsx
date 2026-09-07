@@ -122,15 +122,20 @@ function ResumenResultado({ resultado }) {
   );
 }
 
-// Línea chica bajo el nombre con el origen del registro (SCRUM-60): gris
-// neutro para el autoenvío (caso por defecto, no necesita destacarse) y
-// violeta — mismo acento que ya usaba OrigenRegistro antes de fusionar
-// esto bajo el nombre — para el caso registrado por un docente, ya que
-// es la excepción que la Licenciada pidió poder distinguir de un
-// vistazo.
+// Línea chica bajo el nombre con el origen del registro (SCRUM-60), solo
+// para el caso que sigue siendo excepción: registrado por un docente.
+// El caso por defecto (autoenvío del propio estudiante, la inmensa
+// mayoría de las filas) ya no muestra ninguna etiqueta — antes decía
+// "Autoenvío" en gris, pero esa palabra era rastro del filtro "Origen
+// del registro" que se retiró de esta pantalla (ver comentario de
+// cabecera de PanelConsolidadoSuperadmin.jsx); como control de filtro ya
+// no existe, y como dato informativo no aportaba nada que la ausencia de
+// esta misma línea no comunique igual. La distinción sigue siendo
+// posible con solo esto: fila sin etiqueta = autoenvío, fila con
+// etiqueta violeta = la excepción registrada por un docente.
 function OrigenRegistro({ resultado }) {
   if (!resultado.registrado_por_docente_id) {
-    return <p className="text-xs text-gray-500 mt-0.5">Autoenvío</p>;
+    return null;
   }
 
   return (
@@ -185,7 +190,7 @@ export function TablaResultadosGlobales({ resultados, hayFiltrosActivos = false 
                   <OrigenRegistro resultado={resultado} />
                 </td>
                 <td className="p-4 text-gray-600 align-top">{paciente?.institucion?.nombre || '—'}</td>
-                <td className="p-4 text-gray-600 align-top">{paciente?.psicologo_asignado?.nombre || '—'}</td>
+                <td className="p-4 text-gray-600 align-top">{paciente?.psicologoResponsable?.nombre || '—'}</td>
                 <td className="p-4 align-top">
                   <div className="flex flex-col gap-1.5 items-start">
                     <span className={`px-2.5 py-1 border rounded-full text-xs font-semibold ${acento.suave}`}>

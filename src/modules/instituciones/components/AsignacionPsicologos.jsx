@@ -4,18 +4,27 @@
 // más de una a la vez — restricción UNIQUE(psicologo_id) en la base), y
 // las acciones de crear/editar/eliminar la cuenta en sí.
 //
-// Restricción de un psicólogo por institución: además, una institución
-// ya no puede tener más de un psicólogo asignado (restricción
-// UNIQUE(institucion_id), sumada a la anterior). En el select de cada
-// fila, las instituciones que ya están ocupadas por OTRO psicólogo se
-// muestran deshabilitadas y con la leyenda "(ya asignada)" — se calculan
-// en `institucionesOcupadasPorOtro`, comparando contra `psicologo.id` de
-// la propia fila para no deshabilitar la institución que el psicólogo ya
-// tiene asignada a sí mismo. Esto es una ayuda visual, no la única
-// protección: si dos superadmins intentan asignar la misma institución
-// casi al mismo tiempo, la base rechaza el segundo intento y
-// psicologoInstitucionService.asignar() traduce ese rechazo a un mensaje
-// legible que se muestra con el mismo alert() de siempre.
+// Reasignación de institución entre psicólogos (corrige el bloqueo de
+// SCRUM-73 sin editar esa historia cerrada — ver historia nueva
+// "Reasignación de institución entre psicólogos"): una institución sigue
+// sin poder tener más de un psicólogo a la vez (restricción
+// UNIQUE(institucion_id) en la base, sin cambios), pero ya NO se
+// bloquea elegir en el select una institución ocupada por otro
+// psicólogo — antes esa opción quedaba `disabled` con la leyenda "(ya
+// asignada)" y no se podía tomar. Ahora el select sí la deja elegir (con
+// la leyenda "(asignada a [nombre])", calculada en
+// `psicologoPorInstitucion` para saber quién la ocupa), y
+// `handleSeleccionInstitucion` decide si hace falta confirmar antes de
+// ejecutar el cambio: lo pide tanto si el psicólogo de esta fila ya
+// tenía otra institución (caso de SCRUM-49) como si la institución
+// elegida ya pertenece a OTRO psicólogo (caso nuevo) — cualquiera de los
+// dos motivos, o ambos a la vez, arma el mismo `cambioPendiente` con los
+// datos que necesita el mensaje. La ejecución real
+// (`handleCambiarInstitucion`) sigue pasando siempre por
+// `psicologoInstitucionService.asignar()`, que ahora en la base
+// desvincula a cualquier otro psicólogo que tuviera esa institución
+// antes de insertar la nueva fila (ver comentario de ese servicio) — ya
+// no hace falta desasignar manualmente antes de reasignar.
 //
 // La creación/edición/eliminación real de la CUENTA (Supabase Auth +
 // fila en `usuarios`) pasa por `psicologosService`, que a su vez invoca
@@ -47,11 +56,16 @@ export const AsignacionPsicologos = ({ instituciones }) => {
   // Psicólogo pendiente de confirmación de borrado (reemplaza window.confirm)
   const [psicologoAEliminar, setPsicologoAEliminar] = useState(null);
 
-  // Cambio de institución pendiente de confirmar (SCRUM-49, criterio 3):
-  // reemplazar la institución de un psicólogo que ya tenía otra asignada
-  // exige aviso explícito antes de ejecutarlo. Asignar por primera vez o
-  // quitar la institución (dejarlo "Sin institución asignada") no pasa
-  // por acá, se ejecuta directo.
+  // Cambio de institución pendiente de confirmar. Dos motivos posibles
+  // (uno, otro, o ambos a la vez — ver handleSeleccionInstitucion):
+  //   - SCRUM-49, criterio 3: el psicólogo de esta fila ya tenía otra
+  //     institución asignada.
+  //   - Reasignación de institución entre psicólogos (corrige el bloqueo
+  //     de SCRUM-73): la institución elegida ya pertenece a OTRO
+  //     psicólogo.
+  // Asignar por primera vez a una institución libre, o quitarle la
+  // institución a un psicólogo (dejarlo "Sin institución asignada"), no
+  // pasa por acá, se ejecuta directo.
   const [cambioPendiente, setCambioPendiente] = useState(null);
 
   // Solo hace las llamadas a Supabase, sin tocar ningún estado. La comparte
@@ -127,25 +141,45 @@ export const AsignacionPsicologos = ({ instituciones }) => {
   };
 
   // Decide si el cambio elegido en el <select> necesita confirmación
-  // antes de ejecutarse. Solo la necesita el caso que pide SCRUM-49: el
-  // psicólogo ya tenía una institución distinta a la elegida. Asignar por
-  // primera vez o dejarlo sin institución se ejecuta directo.
+  // antes de ejecutarse, evaluando los dos motivos posibles por
+  // separado, para poder armar un mensaje que mencione ambos si los dos
+  // aplican a la vez:
+  //   - yaTeniaOtraInstitucion (SCRUM-49): el psicólogo de esta fila ya
+  //     tenía una institución distinta a la elegida.
+  //   - asignacionOcupante (nuevo): la institución elegida ya pertenece
+  //     a OTRO psicólogo.
+  // Asignar por primera vez a una institución libre, o dejar al
+  // psicólogo sin institución, no dispara ninguno de los dos y se
+  // ejecuta directo.
   const handleSeleccionInstitucion = (psicologo, institucionIdSeleccionado) => {
     const asignacionActual = asignaciones.find((a) => a.psicologo_id === psicologo.id);
     const yaTeniaOtraInstitucion =
       asignacionActual && institucionIdSeleccionado && institucionIdSeleccionado !== asignacionActual.institucion_id;
 
-    if (!yaTeniaOtraInstitucion) {
+    const asignacionOcupante = institucionIdSeleccionado
+      ? asignaciones.find(
+          (a) => a.institucion_id === institucionIdSeleccionado && a.psicologo_id !== psicologo.id
+        )
+      : null;
+
+    if (!yaTeniaOtraInstitucion && !asignacionOcupante) {
       handleCambiarInstitucion(psicologo.id, institucionIdSeleccionado);
       return;
     }
+
+    const psicologoOcupante = asignacionOcupante
+      ? psicologos.find((p) => p.id === asignacionOcupante.psicologo_id)
+      : null;
 
     setCambioPendiente({
       psicologoId: psicologo.id,
       institucionIdNueva: institucionIdSeleccionado,
       nombrePsicologo: psicologo.nombre || psicologo.email,
-      nombreInstitucionActual: instituciones.find((i) => i.id === asignacionActual.institucion_id)?.nombre || '—',
+      nombreInstitucionActual: yaTeniaOtraInstitucion
+        ? instituciones.find((i) => i.id === asignacionActual.institucion_id)?.nombre || '—'
+        : null,
       nombreInstitucionNueva: instituciones.find((i) => i.id === institucionIdSeleccionado)?.nombre || '—',
+      nombrePsicologoOcupante: psicologoOcupante ? psicologoOcupante.nombre || psicologoOcupante.email : null,
     });
   };
 
@@ -355,18 +389,17 @@ export const AsignacionPsicologos = ({ instituciones }) => {
                                 Sin institución asignada
                               </option>
                               {instituciones.map((inst) => {
-                                const psicologoOcupante = psicologoPorInstitucion.get(inst.id);
-                                const ocupadaPorOtro = psicologoOcupante && psicologoOcupante !== psico.id;
+                                const psicologoOcupanteId = psicologoPorInstitucion.get(inst.id);
+                                const ocupadaPorOtro = psicologoOcupanteId && psicologoOcupanteId !== psico.id;
+                                const nombreOcupante = ocupadaPorOtro
+                                  ? psicologos.find((p) => p.id === psicologoOcupanteId)?.nombre ||
+                                    psicologos.find((p) => p.id === psicologoOcupanteId)?.email
+                                  : null;
 
                                 return (
-                                  <option
-                                    key={inst.id}
-                                    value={inst.id}
-                                    disabled={ocupadaPorOtro}
-                                    className="bg-white text-gray-800"
-                                  >
+                                  <option key={inst.id} value={inst.id} className="bg-white text-gray-800">
                                     {inst.nombre}
-                                    {ocupadaPorOtro ? ' (ya asignada)' : ''}
+                                    {ocupadaPorOtro ? ` (asignada a ${nombreOcupante || 'otro psicólogo'})` : ''}
                                   </option>
                                 );
                               })}
@@ -407,17 +440,28 @@ export const AsignacionPsicologos = ({ instituciones }) => {
         psicologoEditado={psicologoEnEdicion}
       />
 
-      {/* Confirmación de reemplazo de institución (SCRUM-49, criterio 3) */}
+      {/* Confirmación de reasignación de institución: cubre el caso de
+          SCRUM-49 (el psicólogo ya tenía otra institución) y el caso
+          nuevo de reasignar una institución que ya tiene otro psicólogo
+          — ambos motivos, si aplican a la vez, se listan en el mismo
+          mensaje. */}
       <ModalConfirmacion
         isOpen={!!cambioPendiente}
-        titulo="¿Reemplazar institución asignada?"
+        titulo={cambioPendiente?.nombrePsicologoOcupante ? '¿Reasignar institución ocupada?' : '¿Reemplazar institución asignada?'}
         mensaje={
           cambioPendiente
-            ? `${cambioPendiente.nombrePsicologo} ya está vinculado a "${cambioPendiente.nombreInstitucionActual}". Al confirmar, pasará a "${cambioPendiente.nombreInstitucionNueva}" y perderá el acceso a los pacientes de la institución anterior.`
+            ? [
+                cambioPendiente.nombrePsicologoOcupante &&
+                  `"${cambioPendiente.nombreInstitucionNueva}" ya está asignada a ${cambioPendiente.nombrePsicologoOcupante}. Si confirmás, ${cambioPendiente.nombrePsicologoOcupante} perderá el acceso a esa institución.`,
+                cambioPendiente.nombreInstitucionActual &&
+                  `${cambioPendiente.nombrePsicologo} pasará de "${cambioPendiente.nombreInstitucionActual}" a "${cambioPendiente.nombreInstitucionNueva}" y perderá el acceso a los pacientes de la institución anterior.`,
+              ]
+                .filter(Boolean)
+                .join(' ')
             : ''
         }
-        textoConfirmar="Reemplazar"
-        textoCargando="Reemplazando..."
+        textoConfirmar="Confirmar"
+        textoCargando="Guardando..."
         onConfirm={confirmarCambioInstitucion}
         onCancel={() => setCambioPendiente(null)}
       />
