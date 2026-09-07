@@ -6,6 +6,15 @@
 // Resultados GSHS), sin depender de qué instituciones ya tienen
 // resultados cargados. Ningún otro módulo debe importar
 // InstitucionList, AsignacionPsicologos, etc. directamente — solo estos
-// dos puntos de entrada.
+// puntos de entrada.
+//
+// TIPOS_INSTITUCION / TIPO_POR_DEFECTO / obtenerLabelTipo (agregado para
+// el filtro "Tipo de Institución" del Panel Consolidado del
+// superadmin, dashboard_clinico): antes solo los usaba este módulo
+// internamente (InstitucionList/InstitucionModal). Se re-exportan tal
+// cual desde data/tiposInstitucion.js -- única fuente de verdad -- para
+// que otro módulo nunca tenga que duplicar la lista de tipos ni importar
+// esa ruta interna directamente.
 export { default as PanelMaestro } from './pages/PanelMaestro';
 export { institucionesService } from './services/institucionesService';
+export { TIPOS_INSTITUCION, TIPO_POR_DEFECTO, obtenerLabelTipo } from './data/tiposInstitucion';

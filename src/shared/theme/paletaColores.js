@@ -107,6 +107,18 @@ export const COLOR_MARCA = {
     suave: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200',
     accent: 'accent-fuchsia-500',
   },
+  // Agregado para la pestaña de "Cuidado Primario De Salud Familiar"
+  // (instrumento APGAR Familiar) — mismo criterio que celeste/indigo/
+  // fucsia: solo identifica este instrumento, nunca se usa como acento
+  // de marca general.
+  rosa: {
+    franja: 'border-rose-500',
+    tabActivo: 'border-rose-500 text-rose-600',
+    tituloSeccion: 'text-rose-600',
+    botonPrimario: 'bg-rose-500 hover:bg-rose-600 text-white',
+    suave: 'bg-rose-50 text-rose-700 border-rose-200',
+    accent: 'accent-rose-500',
+  },
   // Placeholder visual para instrumentos aún no implementados (hoy:
   // Bullying) — ver nota de reglas de uso más arriba.
   grisNeutro: {
@@ -229,4 +241,15 @@ export const COLOR_CATEGORIA_DEPRESION = {
   'Depresión leve o media': { fill: 'fill-fuchsia-400', stroke: 'stroke-fuchsia-400', bg: 'bg-fuchsia-400' },
   'Depresión moderada': { fill: 'fill-fuchsia-600', stroke: 'stroke-fuchsia-600', bg: 'bg-fuchsia-600' },
   'Depresión severa': { fill: 'fill-fuchsia-800', stroke: 'stroke-fuchsia-800', bg: 'bg-fuchsia-800' },
+};
+
+// Mismos 3 textos exactos que arma el trigger calcular_resultado_
+// instrumento en Supabase para tipo_instrumento = 'APGAR_FAMILIAR'
+// (Cuidado Primario De Salud Familiar). Familia funcional = mejor
+// resultado (claro), familia disfuncional = peor (oscuro) — mismo
+// criterio de tono que el resto de los COLOR_CATEGORIA_*.
+export const COLOR_CATEGORIA_APGAR_FAMILIAR = {
+  'Familia funcional': { fill: 'fill-rose-300', stroke: 'stroke-rose-300', bg: 'bg-rose-300' },
+  'Moderada disfunción familiar': { fill: 'fill-rose-500', stroke: 'stroke-rose-500', bg: 'bg-rose-500' },
+  'Familia disfuncional': { fill: 'fill-rose-800', stroke: 'stroke-rose-800', bg: 'bg-rose-800' },
 };

@@ -6,12 +6,13 @@
 //
 // Orden de pestañas: igual al orden en que el paciente responde los
 // instrumentos en Encuesta.jsx (Clima de Aula, GSHS, Estrés, Ansiedad,
-// Depresión) — mismo criterio en ambas pantallas, para que "el orden de
-// los formularios" se lea igual seas psicólogo o estudiante. Bullying va
-// al final, fuera de ese orden: es una pestaña placeholder agregada a
-// pedido del cliente (meramente visual, sin instrumento real detrás) y
-// NO existe todavía en Encuesta.jsx, así que no le corresponde un lugar
-// dentro del orden real de la encuesta del estudiante.
+// Depresión, Cuidado Primario De Salud Familiar) — mismo criterio en
+// ambas pantallas, para que "el orden de los formularios" se lea igual
+// seas psicólogo o estudiante. Bullying va al final, fuera de ese orden:
+// es una pestaña placeholder agregada a pedido del cliente (meramente
+// visual, sin instrumento real detrás) y NO existe todavía en
+// Encuesta.jsx, así que no le corresponde un lugar dentro del orden real
+// de la encuesta del estudiante.
 //
 // Bullying (placeholder visual): no tiene datos, servicio ni trigger de
 // Supabase detrás — a diferencia de los otros 5, esta pestaña no recibe
@@ -25,8 +26,9 @@
 // Supabase).
 //
 // Por instrumento:
-//   - Clima de Aula, Estrés, Ansiedad y Depresión sí calculan una
-//     categoría (trigger calcular_resultado_instrumento en Supabase), así
+//   - Clima de Aula, Estrés, Ansiedad, Depresión y Cuidado Primario De
+//     Salud Familiar sí calculan una categoría (trigger
+//     calcular_resultado_instrumento en Supabase), así
 //     que su pestaña muestra el gráfico de barras + dona de
 //     SeccionGraficoInstrumento, extraído para reutilizarse también en
 //     la pestaña GSHS de IndicadoresGSHS.jsx (psicólogo) y en la pestaña
@@ -63,6 +65,7 @@ const TAB_GSHS = 'GSHS';
 const TAB_ESTRES = 'ESTRES';
 const TAB_ANSIEDAD = 'ANSIEDAD';
 const TAB_DEPRESION = 'DEPRESION';
+const TAB_APGAR_FAMILIAR = 'APGAR_FAMILIAR';
 const TAB_BULLYING = 'BULLYING';
 
 const PESTANAS = [
@@ -71,6 +74,7 @@ const PESTANAS = [
   { id: TAB_ESTRES, etiqueta: 'Estrés', color: COLOR_MARCA.celeste },
   { id: TAB_ANSIEDAD, etiqueta: 'Ansiedad', color: COLOR_MARCA.indigo },
   { id: TAB_DEPRESION, etiqueta: 'Depresión', color: COLOR_MARCA.fucsia },
+  { id: TAB_APGAR_FAMILIAR, etiqueta: 'Cuidado Primario De Salud Familiar', color: COLOR_MARCA.rosa },
   { id: TAB_BULLYING, etiqueta: 'Bullying', color: COLOR_MARCA.grisNeutro },
 ];
 
@@ -79,6 +83,7 @@ export function ResumenFormularios({
   graficoEstres,
   graficoAnsiedad,
   graficoDepresion,
+  graficoApgarFamiliar,
   hayFiltrosActivos,
   hayPersonasFiltradas,
   modulosGshs,
@@ -142,6 +147,13 @@ export function ResumenFormularios({
 
       {pestanaActiva === TAB_DEPRESION && !sinPersonasFiltradas && (
         <SeccionGraficoInstrumento titulo="Depresión — por nivel" datos={graficoDepresion} />
+      )}
+
+      {pestanaActiva === TAB_APGAR_FAMILIAR && !sinPersonasFiltradas && (
+        <SeccionGraficoInstrumento
+          titulo="Cuidado Primario De Salud Familiar — por categoría"
+          datos={graficoApgarFamiliar}
+        />
       )}
 
       {pestanaActiva === TAB_GSHS && (

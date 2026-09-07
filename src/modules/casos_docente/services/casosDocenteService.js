@@ -33,15 +33,21 @@ export const casosDocenteService = {
   },
 
   /**
-   * Reportes de todos los docentes de la institución del psicólogo
-   * autenticado. El alcance ya lo resuelve la policy de SELECT (RLS) --
-   * acá no hace falta (ni conviene) filtrar institución a mano.
+   * Reportes visibles para el usuario autenticado. El alcance ya lo
+   * resuelve la policy de SELECT (RLS): un psicólogo ve los de su propia
+   * institución, el superadministrador los ve TODOS -- acá no hace falta
+   * (ni conviene) filtrar institución a mano.
+   *
+   * `docente.institucion.nombre` (agregado a pedido del cliente, para
+   * que el superadministrador pueda distinguir de qué institución es
+   * cada reporte al ver varias a la vez -- para el psicólogo, que solo
+   * ve la suya, es un dato redundante pero inofensivo).
    */
   async obtenerReportesInstitucion() {
     const { data, error } = await supabase
       .from(TABLA)
       .select(
-        'id, nombre_alumno, apellido_alumno, curso, paralelo, turno, descripcion, fecha_registro, docente:usuarios!docente_id ( email )'
+        'id, nombre_alumno, apellido_alumno, curso, paralelo, turno, descripcion, fecha_registro, docente:usuarios!docente_id ( email, institucion:instituciones ( nombre ) )'
       )
       .order('fecha_registro', { ascending: false });
 

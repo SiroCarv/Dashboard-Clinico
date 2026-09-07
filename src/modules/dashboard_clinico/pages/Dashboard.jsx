@@ -220,6 +220,7 @@ export default function Dashboard() {
                   graficoEstres={resumen.graficoEstres}
                   graficoAnsiedad={resumen.graficoAnsiedad}
                   graficoDepresion={resumen.graficoDepresion}
+                  graficoApgarFamiliar={resumen.graficoApgarFamiliar}
                   hayFiltrosActivos={resumen.hayFiltrosActivos}
                   hayPersonasFiltradas={resumen.hayPersonasFiltradas}
                   modulosGshs={modulosGshs}

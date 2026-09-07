@@ -42,4 +42,12 @@ export const INFO_INSTRUMENTO = {
       'Conocer cómo te has sentido durante las últimas dos semanas, para identificar a tiempo si necesitas apoyo.',
     deQueTrata: '21 grupos de frases; en cada uno eliges la que mejor describe cómo te has sentido.',
   },
+  // Agregado a pedido del cliente. Tiempo estimado en base a la cantidad
+  // de ítems (5, la más corta de todos los instrumentos), mismo criterio
+  // que el resto — pendiente de que el responsable clínico lo confirme.
+  apgar_familiar: {
+    tiempoEstimado: '2 a 3 minutos',
+    objetivo: 'Conocer cómo percibes el funcionamiento de tu familia, para identificar a tiempo si necesitas apoyo.',
+    deQueTrata: '5 preguntas cortas sobre tu familia, respondidas según su frecuencia.',
+  },
 };

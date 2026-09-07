@@ -41,6 +41,7 @@ import { INSTRUMENTO_GSHS } from '../data/gshsData';
 import { INSTRUMENTO_ESTRES } from '../data/estresData';
 import { INSTRUMENTO_ANSIEDAD } from '../data/ansiedadData';
 import { INSTRUMENTO_DEPRESION } from '../data/depresionData';
+import { INSTRUMENTO_APGAR_FAMILIAR } from '../data/apgarFamiliarData';
 import { INFO_INSTRUMENTO } from '../data/infoInstrumentos';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
@@ -84,6 +85,15 @@ const TABS = [
     etiqueta: 'Depresión',
     instrumento: INSTRUMENTO_DEPRESION,
     acento: COLOR_MARCA.fucsia,
+  },
+  // Agregado a pedido del cliente: instrumento nuevo, respondido por el
+  // estudiante igual que los 5 anteriores.
+  {
+    id: 'apgar_familiar',
+    tipoInstrumento: 'APGAR_FAMILIAR',
+    etiqueta: 'Cuidado Primario De Salud Familiar',
+    instrumento: INSTRUMENTO_APGAR_FAMILIAR,
+    acento: COLOR_MARCA.rosa,
   },
 ];
 

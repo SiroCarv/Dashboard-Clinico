@@ -1,9 +1,17 @@
-// Pestaña "Reportes" del panel del psicólogo: lista los reportes que
-// enviaron los docentes de su institución, identificando quién los
+// Lista los reportes que enviaron los docentes, identificando quién los
 // redactó y qué problema presenta el alumno -- criterio de aceptación
-// explícito. Mismo estilo de tarjeta que HistorialReportesDocente.jsx
-// (vista del propio docente), para que ambas listas se sientan como la
-// misma pieza de UI vista desde dos roles distintos.
+// explícito de "Reportes de Docente". Mismo estilo de tarjeta que
+// HistorialReportesDocente.jsx (vista del propio docente), para que
+// ambas listas se sientan como la misma pieza de UI vista desde roles
+// distintos.
+//
+// Compartido por dos pestañas con alcance distinto (agregado a pedido
+// del cliente): la pestaña "Reportes" del panel del psicólogo (solo los
+// de su institución) y la pestaña "Reportes de Docentes" del Panel
+// Consolidado del superadministrador (de todas las instituciones a la
+// vez) -- por eso siempre muestra la institución de cada reporte y el
+// mensaje de "sin reportes" no menciona "tu institución": ese texto
+// dejaría de tener sentido para quien ve varias instituciones a la vez.
 export default function PanelReportesInstitucion({ reportes, cargando, error }) {
   if (error) {
     return (
@@ -23,7 +31,7 @@ export default function PanelReportesInstitucion({ reportes, cargando, error }) 
   if (reportes.length === 0) {
     return (
       <div className="p-4 bg-gray-100 border border-gray-300 text-gray-600 rounded-md text-center">
-        Todavía no hay reportes de docentes en tu institución.
+        Todavía no hay reportes de docentes.
       </div>
     );
   }
@@ -41,7 +49,12 @@ export default function PanelReportesInstitucion({ reportes, cargando, error }) 
             </p>
           </div>
           <p className="text-sm text-gray-500 mb-2">{[r.curso, r.paralelo, r.turno].filter(Boolean).join(' · ')}</p>
-          <p className="text-xs font-semibold text-violet-600 mb-3">Reportado por: {r.docente?.email ?? 'Docente'}</p>
+          <div className="mb-3">
+            <p className="text-xs font-semibold text-violet-600">Reportado por: {r.docente?.email ?? 'Docente'}</p>
+            {r.docente?.institucion?.nombre && (
+              <p className="text-xs font-semibold text-gray-500">Institución: {r.docente.institucion.nombre}</p>
+            )}
+          </div>
           <p className="text-gray-700 text-sm whitespace-pre-wrap">{r.descripcion}</p>
         </div>
       ))}

@@ -67,6 +67,7 @@ import {
   COLOR_CATEGORIA_ESTRES,
   COLOR_CATEGORIA_ANSIEDAD,
   COLOR_CATEGORIA_DEPRESION,
+  COLOR_CATEGORIA_APGAR_FAMILIAR,
 } from '../../../shared/theme/paletaColores';
 import { OPCIONES_CURSO, OPCIONES_PARALELO, OPCIONES_TURNO, OPCIONES_GENERO } from '../data/opcionesEscolares';
 
@@ -115,6 +116,17 @@ const CATEGORIAS_DEPRESION = [
   { etiqueta: 'Depresión leve o media', lineas: ['Depresión', 'leve o media'] },
   { etiqueta: 'Depresión moderada', lineas: ['Depresión', 'moderada'] },
   { etiqueta: 'Depresión severa', lineas: ['Depresión', 'severa'] },
+];
+
+// Mismo criterio que CATEGORIAS_ESTRES, para tipo_instrumento =
+// 'APGAR_FAMILIAR' (Cuidado Primario De Salud Familiar) — acá "mejor" es
+// el puntaje más alto (Familia funcional), al revés que Estrés/Ansiedad/
+// Depresión, así que el orden de mejor a peor va de mayor a menor
+// puntaje.
+const CATEGORIAS_APGAR_FAMILIAR = [
+  { etiqueta: 'Familia funcional', lineas: ['Familia', 'funcional'] },
+  { etiqueta: 'Moderada disfunción familiar', lineas: ['Moderada', 'disfunción familiar'] },
+  { etiqueta: 'Familia disfuncional', lineas: ['Familia', 'disfuncional'] },
 ];
 
 // Mismos tramos de edad que la pregunta 1 del módulo demográfico del
@@ -276,6 +288,17 @@ export function useResumenFormularios(pacientes) {
     [pacientesFiltrados]
   );
 
+  const graficoApgarFamiliar = useMemo(
+    () =>
+      contarPorCategoria(
+        pacientesFiltrados,
+        'APGAR_FAMILIAR',
+        CATEGORIAS_APGAR_FAMILIAR,
+        COLOR_CATEGORIA_APGAR_FAMILIAR
+      ),
+    [pacientesFiltrados]
+  );
+
   return {
     filtros,
     actualizarFiltro,
@@ -290,6 +313,7 @@ export function useResumenFormularios(pacientes) {
     graficoEstres,
     graficoAnsiedad,
     graficoDepresion,
+    graficoApgarFamiliar,
     hayPersonasFiltradas: pacientesFiltrados.length > 0,
   };
 }

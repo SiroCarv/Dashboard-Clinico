@@ -1,20 +1,22 @@
-// Panel consolidado del superadministrador (SCRUM-56), con dos pestañas:
+// Panel consolidado del superadministrador (SCRUM-56), con tres pestañas:
 //
 //   - "Resultados": listado de TODOS los resultados de evaluaciones del
 //     sistema (todas las instituciones y psicólogos), con filtro por
-//     institución, por psicólogo, por origen del registro (SCRUM-60) y
-//     por rango de fechas. A diferencia de Dashboard.jsx (el panel del
-//     psicólogo, que lista pacientes), acá cada fila es un resultado
-//     puntual — el criterio de aceptación pide identificar institución y
-//     psicólogo "por cada resultado", no por paciente.
+//     tipo de institución, institución, por psicólogo, por origen del
+//     registro (SCRUM-60) y por rango de fechas. A diferencia de
+//     Dashboard.jsx (el panel del psicólogo, que lista pacientes), acá
+//     cada fila es un resultado puntual — el criterio de aceptación pide
+//     identificar institución y psicólogo "por cada resultado", no por
+//     paciente.
 //
 //   - "Gráficas" (agregada después de SCRUM-56, a pedido del cliente):
 //     mismos gráficos de Clima de Aula / GSHS / Estrés / Ansiedad /
-//     Depresión que ya usa Dashboard.jsx en el panel del psicólogo
-//     (useListaPacientes + useResumenFormularios + useIndicadoresGSHS +
-//     FiltrosResumen + ResumenFormularios, sin modificar ninguno de esos
-//     archivos), pero consolidado entre TODAS las instituciones — RLS ya
-//     le da a is_superadmin() acceso total en `usuarios` y
+//     Depresión / Cuidado Primario De Salud Familiar que ya usa
+//     Dashboard.jsx en el panel del psicólogo (useListaPacientes +
+//     useResumenFormularios + useIndicadoresGSHS + FiltrosResumen +
+//     ResumenFormularios, sin modificar ninguno de esos archivos), pero
+//     consolidado entre TODAS las instituciones — RLS ya le da a
+//     is_superadmin() acceso total en `usuarios` y
 //     `evaluaciones_instrumento` (verificado en vivo), así que no hizo
 //     falta ninguna migración. Se agregó un filtro de institución propio
 //     de esta pestaña (reutilizando el `filtroInstitucion` que ya expone
@@ -27,6 +29,16 @@
 //     alerta) ya queda cubierto acá adentro por la pestaña GSHS de
 //     ResumenFormularios.jsx.
 //
+//   - "Reportes de Docentes" (nueva, a pedido del cliente): extensión de
+//     "Reportes de Docente" (historia ya cerrada, que solo dejaba verlos
+//     al psicólogo de la institución del docente) para que el
+//     superadministrador también pueda verlos, ahora de TODAS las
+//     instituciones a la vez. RLS ya lo permitía (la policy de SELECT de
+//     `reportes_docente` ya incluye is_superadmin(), verificado en vivo)
+//     — el hueco era solo de interfaz. Reutiliza tal cual la API pública
+//     de `casos_docente` (mismo componente y hook que ya consume
+//     Dashboard.jsx para el psicólogo), sin duplicar nada.
+//
 // Institución y psicólogo (corrección posterior a SCRUM-56): las
 // opciones de estos dos selects YA NO se derivan de los resultados
 // cargados — eso dejaba afuera a cualquier institución o psicólogo sin
@@ -36,6 +48,18 @@
 // API pública. El filtro sigue aplicándose en memoria sobre el listado
 // de resultados ya cargado, comparando por nombre (ver limitación
 // documentada en usePsicologosCatalogo.js).
+//
+// Tipo de institución (nuevo, a pedido del cliente): filtro dependiente
+// que antecede al de institución en ambas pestañas — elegir un tipo
+// acota las opciones del select de institución a solo las de ese tipo.
+// Usa el mismo catálogo (`instituciones`, ahora con `tipoInstitucion` por
+// cada una) para las dos pestañas, pero cada una mantiene su propio
+// estado de tipo — mismo criterio que ya usa esta pantalla para el resto
+// de sus filtros (Gráficas y Resultados son independientes entre sí). Si
+// la institución elegida deja de pertenecer al tipo recién seleccionado,
+// el filtro de institución de esa misma pestaña vuelve a "Todas las
+// instituciones" en vez de quedarse en un valor que ya no aparece en su
+// propia lista de opciones.
 //
 // SCRUM-60 — Detalle de casos registrados por docente: se suma acá un
 // filtro más, "Origen del registro", con el mismo criterio que ya usa
@@ -61,10 +85,13 @@ import { FiltroSeleccionMultiple } from '../components/FiltroSeleccionMultiple';
 import { FiltrosResumen } from '../components/FiltrosResumen';
 import { ResumenFormularios } from '../components/ResumenFormularios';
 import { BotonCerrarSesion } from '../../autenticacion';
+import { TIPOS_INSTITUCION } from '../../instituciones';
+import { PanelReportesInstitucion, useReportesInstitucion } from '../../casos_docente';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
 const FILTRO_INSTITUCION_TODAS = 'todas';
+const FILTRO_TIPO_INSTITUCION_TODOS = 'todos';
 const FILTRO_PSICOLOGO_TODOS = 'todos';
 const FILTRO_TIPO_PERSONA_TODOS = 'todos';
 const FILTRO_TIPO_PERSONA_ESTUDIANTE = 'estudiante';
@@ -72,6 +99,7 @@ const FILTRO_TIPO_PERSONA_DOCENTE = 'docente';
 
 const PESTANA_GRAFICAS = 'graficas';
 const PESTANA_RESULTADOS = 'resultados';
+const PESTANA_REPORTES_DOCENTES = 'reportes_docentes';
 
 const OPCIONES_INSTRUMENTO = [
   { valor: 'CLIMA_AULA', etiqueta: 'Clima de Aula' },
@@ -79,6 +107,7 @@ const OPCIONES_INSTRUMENTO = [
   { valor: 'ESTRES', etiqueta: 'Estrés' },
   { valor: 'ANSIEDAD', etiqueta: 'Ansiedad' },
   { valor: 'DEPRESION', etiqueta: 'Depresión' },
+  { valor: 'APGAR_FAMILIAR', etiqueta: 'Cuidado Primario De Salud Familiar' },
   // Placeholder visual a pedido del cliente: sin instrumento real detrás
   // todavía. Filtrar por esta opción siempre deja la tabla de resultados
   // vacía (ningún resultado tiene tipo_instrumento = 'BULLYING') —
@@ -93,11 +122,23 @@ export default function PanelConsolidadoSuperadmin() {
   const { instituciones } = useInstitucionesCatalogo();
   const { psicologos } = usePsicologosCatalogo();
   const [filtroInstitucion, setFiltroInstitucion] = useState(FILTRO_INSTITUCION_TODAS);
+  const [filtroTipoInstitucion, setFiltroTipoInstitucion] = useState(FILTRO_TIPO_INSTITUCION_TODOS);
   const [filtroPsicologo, setFiltroPsicologo] = useState(FILTRO_PSICOLOGO_TODOS);
   const [filtroTipoPersona, setFiltroTipoPersona] = useState(FILTRO_TIPO_PERSONA_TODOS);
   const [filtroInstrumentos, setFiltroInstrumentos] = useState(() => new Set());
   const [fechaDesde, setFechaDesde] = useState('');
   const [fechaHasta, setFechaHasta] = useState('');
+
+  // Pestaña "Reportes de Docentes": alcance completo (todas las
+  // instituciones) resuelto por RLS gracias a is_superadmin() — el mismo
+  // hook que usa Dashboard.jsx para el psicólogo, sin ningún parámetro
+  // distinto. No hace falta ningún estado de filtro nuevo acá: la propia
+  // pestaña ya es "ver todo".
+  const {
+    reportes: reportesDocente,
+    loading: loadingReportesDocente,
+    error: errorReportesDocente,
+  } = useReportesInstitucion();
 
   // Pestaña "Gráficas": mismos hooks que ya usa Dashboard.jsx (panel del
   // psicólogo) para Clima de Aula, Estrés, Ansiedad y Depresión — ninguno
@@ -120,6 +161,44 @@ export default function PanelConsolidadoSuperadmin() {
     filtroInstitucion: filtroInstitucionGraficas,
     setFiltroInstitucion: setFiltroInstitucionGraficas,
   } = useIndicadoresGSHS();
+  const [filtroTipoInstitucionGraficas, setFiltroTipoInstitucionGraficas] = useState(
+    FILTRO_TIPO_INSTITUCION_TODOS
+  );
+
+  // Instituciones visibles en el select de institución de cada pestaña,
+  // acotadas por el tipo elegido en el select hermano de "Tipo de
+  // Institución". Dos listas independientes (una por pestaña) porque
+  // cada una tiene su propio estado de tipo, igual que ya pasa con el
+  // resto de los filtros de esta pantalla.
+  const institucionesGraficas = useMemo(() => {
+    if (filtroTipoInstitucionGraficas === FILTRO_TIPO_INSTITUCION_TODOS) return instituciones;
+    return instituciones.filter((i) => i.tipoInstitucion === filtroTipoInstitucionGraficas);
+  }, [instituciones, filtroTipoInstitucionGraficas]);
+
+  const institucionesResultados = useMemo(() => {
+    if (filtroTipoInstitucion === FILTRO_TIPO_INSTITUCION_TODOS) return instituciones;
+    return instituciones.filter((i) => i.tipoInstitucion === filtroTipoInstitucion);
+  }, [instituciones, filtroTipoInstitucion]);
+
+  // Cambiar el tipo de institución de una pestaña resetea su propia
+  // institución elegida a "Todas las instituciones" si esa institución
+  // ya no pertenece al tipo nuevo — evita que el select de institución
+  // se quede mostrando un valor que dejó de estar entre sus opciones.
+  const cambiarTipoInstitucionGraficas = (tipo) => {
+    setFiltroTipoInstitucionGraficas(tipo);
+    if (tipo === FILTRO_TIPO_INSTITUCION_TODOS || filtroInstitucionGraficas === FILTRO_INSTITUCION_TODAS) return;
+    const sigueVisible = instituciones.some(
+      (i) => i.nombre === filtroInstitucionGraficas && i.tipoInstitucion === tipo
+    );
+    if (!sigueVisible) setFiltroInstitucionGraficas(FILTRO_INSTITUCION_TODAS);
+  };
+
+  const cambiarTipoInstitucion = (tipo) => {
+    setFiltroTipoInstitucion(tipo);
+    if (tipo === FILTRO_TIPO_INSTITUCION_TODOS || filtroInstitucion === FILTRO_INSTITUCION_TODAS) return;
+    const sigueVisible = instituciones.some((i) => i.nombre === filtroInstitucion && i.tipoInstitucion === tipo);
+    if (!sigueVisible) setFiltroInstitucion(FILTRO_INSTITUCION_TODAS);
+  };
 
   const pacientesGraficas = useMemo(() => {
     if (filtroInstitucionGraficas === FILTRO_INSTITUCION_TODAS) return pacientes;
@@ -176,6 +255,7 @@ export default function PanelConsolidadoSuperadmin() {
 
   const hayFiltrosActivos =
     filtroInstitucion !== FILTRO_INSTITUCION_TODAS ||
+    filtroTipoInstitucion !== FILTRO_TIPO_INSTITUCION_TODOS ||
     filtroPsicologo !== FILTRO_PSICOLOGO_TODOS ||
     filtroTipoPersona !== FILTRO_TIPO_PERSONA_TODOS ||
     filtroInstrumentos.size > 0 ||
@@ -184,6 +264,7 @@ export default function PanelConsolidadoSuperadmin() {
 
   const limpiarFiltros = () => {
     setFiltroInstitucion(FILTRO_INSTITUCION_TODAS);
+    setFiltroTipoInstitucion(FILTRO_TIPO_INSTITUCION_TODOS);
     setFiltroPsicologo(FILTRO_PSICOLOGO_TODOS);
     setFiltroTipoPersona(FILTRO_TIPO_PERSONA_TODOS);
     setFiltroInstrumentos(new Set());
@@ -219,7 +300,7 @@ export default function PanelConsolidadoSuperadmin() {
           </div>
         </div>
 
-        <div className="flex gap-2 mb-6 border-b border-gray-200">
+        <div className="flex gap-2 mb-6 border-b border-gray-200 flex-wrap">
           <button
             type="button"
             onClick={() => setPestanaActiva(PESTANA_GRAFICAS)}
@@ -242,6 +323,17 @@ export default function PanelConsolidadoSuperadmin() {
           >
             Resultados
           </button>
+          <button
+            type="button"
+            onClick={() => setPestanaActiva(PESTANA_REPORTES_DOCENTES)}
+            className={`px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors ${
+              pestanaActiva === PESTANA_REPORTES_DOCENTES
+                ? COLOR_MARCA.violetaSuave.tabActivo
+                : 'border-transparent text-gray-700 hover:text-gray-900'
+            }`}
+          >
+            Reportes de Docentes
+          </button>
         </div>
 
         {pestanaActiva === PESTANA_GRAFICAS && (
@@ -256,6 +348,24 @@ export default function PanelConsolidadoSuperadmin() {
               <div className="flex flex-col sm:flex-row sm:items-end gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm mb-6">
                 <div className="flex-1 min-w-40">
                   <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">
+                    Tipo de Institución
+                  </label>
+                  <select
+                    value={filtroTipoInstitucionGraficas}
+                    onChange={(e) => cambiarTipoInstitucionGraficas(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
+                  >
+                    <option value={FILTRO_TIPO_INSTITUCION_TODOS}>Todos los tipos</option>
+                    {TIPOS_INSTITUCION.map((tipo) => (
+                      <option key={tipo.value} value={tipo.value}>
+                        {tipo.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex-1 min-w-40">
+                  <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">
                     Institución
                   </label>
                   <select
@@ -264,7 +374,7 @@ export default function PanelConsolidadoSuperadmin() {
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
                   >
                     <option value={FILTRO_INSTITUCION_TODAS}>Todas las instituciones</option>
-                    {instituciones.map((nombre) => (
+                    {institucionesGraficas.map(({ nombre }) => (
                       <option key={nombre} value={nombre}>
                         {nombre}
                       </option>
@@ -309,6 +419,7 @@ export default function PanelConsolidadoSuperadmin() {
                   graficoEstres={resumenGraficas.graficoEstres}
                   graficoAnsiedad={resumenGraficas.graficoAnsiedad}
                   graficoDepresion={resumenGraficas.graficoDepresion}
+                  graficoApgarFamiliar={resumenGraficas.graficoApgarFamiliar}
                   hayFiltrosActivos={resumenGraficas.hayFiltrosActivos}
                   hayPersonasFiltradas={resumenGraficas.hayPersonasFiltradas}
                   modulosGshs={modulosGshs}
@@ -334,6 +445,24 @@ export default function PanelConsolidadoSuperadmin() {
               <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm mb-6">
                 <div className="flex-1 min-w-40">
                   <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">
+                    Tipo de Institución
+                  </label>
+                  <select
+                    value={filtroTipoInstitucion}
+                    onChange={(e) => cambiarTipoInstitucion(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
+                  >
+                    <option value={FILTRO_TIPO_INSTITUCION_TODOS}>Todos los tipos</option>
+                    {TIPOS_INSTITUCION.map((tipo) => (
+                      <option key={tipo.value} value={tipo.value}>
+                        {tipo.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex-1 min-w-40">
+                  <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">
                     Institución
                   </label>
                   <select
@@ -342,7 +471,7 @@ export default function PanelConsolidadoSuperadmin() {
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
                   >
                     <option value={FILTRO_INSTITUCION_TODAS}>Todas las instituciones</option>
-                    {instituciones.map((nombre) => (
+                    {institucionesResultados.map(({ nombre }) => (
                       <option key={nombre} value={nombre}>
                         {nombre}
                       </option>
@@ -464,6 +593,14 @@ export default function PanelConsolidadoSuperadmin() {
               <TablaResultadosGlobales resultados={resultadosFiltrados} hayFiltrosActivos={hayFiltrosActivos} />
             )}
           </>
+        )}
+
+        {pestanaActiva === PESTANA_REPORTES_DOCENTES && (
+          <PanelReportesInstitucion
+            reportes={reportesDocente}
+            cargando={loadingReportesDocente}
+            error={errorReportesDocente}
+          />
         )}
       </div>
     </div>
