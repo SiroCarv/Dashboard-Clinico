@@ -215,7 +215,14 @@ export default function Encuesta() {
       )}
 
       <div className="relative z-10 p-6 md:p-10 max-w-3xl mx-auto">
-        <div className="flex gap-2 mb-6 border-b border-gray-200">
+        {/* flex-wrap: con 6 instrumentos, en celular vertical el ancho
+            total de las pestañas supera el viewport. El contenedor padre
+            tiene overflow-hidden (para recortar la imagen de fondo), así
+            que sin flex-wrap las pestañas que no entraban quedaban
+            recortadas (invisibles) hasta rotar a horizontal — bug
+            reportado por el cliente. Mismo patrón ya usado en
+            PanelConsolidadoSuperadmin.jsx. */}
+        <div className="flex gap-2 mb-6 border-b border-gray-200 flex-wrap">
           {TABS.map(({ id, etiqueta, acento }) => (
             <button
               key={id}
