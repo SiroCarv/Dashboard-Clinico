@@ -9,11 +9,17 @@
 // landing pública sin pasar por el flujo de registro. Se agrega acá como
 // tercer link, con menos peso visual que "Iniciar sesión" (gris en vez
 // de violeta) para no competir con los dos CTA principales de siempre.
-// Texto "Iniciar sesión (Particular)" en vez de solo "Persona
-// Particular": reutiliza la misma palabra que ya reconoce cualquiera
-// ("Iniciar sesión") en vez de nombrar solo el perfil, para que quede
-// claro de un vistazo que el link ES para entrar, no solo para
-// identificar el rol.
+//
+// CORRECCIÓN (bug reportado: "olvidaste tu contraseña sigue en el inicio
+// de sesión"): no era un bug del login de Persona Particular en sí (se
+// verificó que ese link no existe ahí) — era que este link venía con
+// `hidden sm:inline`, copiado sin pensar del link "Inicio". En celular
+// quedaba invisible, así que la única forma de iniciar sesión visible
+// era la general (con recuperación de contraseña, correcta para
+// Estudiante/Docente/Psicólogo/Superadmin), y eso es lo que la persona
+// terminaba viendo. Ahora el link siempre está visible; en pantallas
+// chicas se acorta el texto ("Entrar (Particular)") para que entre sin
+// romper el layout, sin dejar de transmitir que es para iniciar sesión.
 import { Link } from 'react-router-dom';
 import logo from '../../../shared/assets/logo.webp';
 
@@ -31,12 +37,13 @@ export default function NavbarFlotante() {
           </a>
         </div>
 
-        <div className="flex items-center gap-3 md:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
           <Link
             to="/login-particular"
-            className="hidden sm:inline text-sm font-bold text-gray-500 hover:text-orange-800 transition-colors"
+            className="text-xs sm:text-sm font-bold text-gray-500 hover:text-orange-800 transition-colors whitespace-nowrap"
           >
-            Iniciar sesión (Particular)
+            <span className="sm:hidden">Entrar (Particular)</span>
+            <span className="hidden sm:inline">Iniciar sesión (Particular)</span>
           </Link>
           <Link to="/login" className="text-sm font-bold text-violet-400 hover:text-orange-800 transition-colors">
             Iniciar sesión
