@@ -50,4 +50,13 @@ export const INFO_INSTRUMENTO = {
     objetivo: 'Conocer cómo percibes el funcionamiento de tu familia, para identificar a tiempo si necesitas apoyo.',
     deQueTrata: '5 preguntas cortas sobre tu familia, respondidas según su frecuencia.',
   },
+  // NUEVO — Persona Particular (sprint Persona Particular). Tiempo
+  // estimado con el mismo criterio que el resto (25 ítems, similar
+  // longitud a Depresión), pendiente de confirmación clínica.
+  riesgo_suicida: {
+    tiempoEstimado: '8 a 12 minutos',
+    objetivo:
+      'Identificar a tiempo situaciones de riesgo para tu bienestar emocional, para poder ofrecerte el apoyo adecuado.',
+    deQueTrata: '25 preguntas sobre distintos aspectos de tu vida, respondidas según su frecuencia.',
+  },
 };

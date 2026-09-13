@@ -61,6 +61,17 @@
 // exportarPacientesExcel.js — ambas corrección posteriores a esta, a
 // pedido del cliente. El dato queda calculado pero sin ningún consumidor
 // visual por ahora.
+//
+// Riesgo Suicida (sprint "Persona Particular"): se agrega
+// `graficoRiesgoSuicida` con el mismo helper `contarPorCategoria` que ya
+// usan Estrés/Ansiedad/Depresión/Cuidado Primario — el instrumento
+// calcula 3 categorías (Riesgo Leve/Moderado/Alto), mismo criterio que
+// Cuidado Primario (3 categorías) en vez de 4. Este gráfico solo se
+// renderiza en ResumenFormularios.jsx cuando corresponde según el tipo
+// de psicólogo (ver historia "Filtrado de formularios según el tipo de
+// psicólogo/a") — acá se calcula siempre, sin costo real: si nadie en
+// `pacientesFiltrados` es Persona Particular, todas las categorías
+// simplemente quedan en 0.
 import { useMemo, useState } from 'react';
 import {
   COLOR_CATEGORIA_CLIMA_AULA,
@@ -68,6 +79,7 @@ import {
   COLOR_CATEGORIA_ANSIEDAD,
   COLOR_CATEGORIA_DEPRESION,
   COLOR_CATEGORIA_APGAR_FAMILIAR,
+  COLOR_CATEGORIA_RIESGO_SUICIDA,
 } from '../../../shared/theme/paletaColores';
 import { OPCIONES_CURSO, OPCIONES_PARALELO, OPCIONES_TURNO, OPCIONES_GENERO } from '../data/opcionesEscolares';
 
@@ -129,6 +141,15 @@ const CATEGORIAS_APGAR_FAMILIAR = [
   { etiqueta: 'Familia disfuncional', lineas: ['Familia', 'disfuncional'] },
 ];
 
+// NUEVO — mismos 3 textos exactos que arma la rama RIESGO_SUICIDA del
+// trigger (ver migración de esta historia). Orden de mejor a peor, igual
+// criterio que CATEGORIAS_APGAR_FAMILIAR (3 categorías, no 4).
+const CATEGORIAS_RIESGO_SUICIDA = [
+  { etiqueta: 'Riesgo Leve', lineas: ['Riesgo', 'Leve'] },
+  { etiqueta: 'Riesgo Moderado', lineas: ['Riesgo', 'Moderado'] },
+  { etiqueta: 'Riesgo Alto', lineas: ['Riesgo', 'Alto'] },
+];
+
 // Mismos tramos de edad que la pregunta 1 del módulo demográfico del
 // GSHS (ver evaluaciones/data/gshsData.js) — decisión explícita de la
 // historia "Filtros de conteo por perfil", para que el panel hable el
@@ -169,12 +190,12 @@ function calcularEdad(fechaNacimiento) {
 // Cuenta, para un instrumento con categorías fijas calculadas por el
 // trigger (a diferencia de GSHS, que no calcula ninguna), cuántas de las
 // personas ya filtradas que lo completaron cayeron en cada categoría.
-// Estrés, Ansiedad y Depresión comparten exactamente esta forma — solo
-// cambian el tipo de instrumento, la lista de categorías y sus colores —
-// así que se extrae acá en vez de repetir el mismo bucle 3 veces. Clima
-// de Aula (graficoClimaAula, más abajo) se deja como estaba, sin migrar a
-// este helper, para no tocar código ya auditado que no forma parte de
-// este cambio.
+// Estrés, Ansiedad, Depresión y Riesgo Suicida comparten exactamente
+// esta forma — solo cambian el tipo de instrumento, la lista de
+// categorías y sus colores — así que se extrae acá en vez de repetir el
+// mismo bucle. Clima de Aula (graficoClimaAula, más abajo) se deja como
+// estaba, sin migrar a este helper, para no tocar código ya auditado que
+// no forma parte de este cambio.
 function contarPorCategoria(pacientesFiltrados, tipoInstrumento, categorias, colores) {
   const conteoPorCategoria = Object.fromEntries(categorias.map((c) => [c.etiqueta, 0]));
 
@@ -299,6 +320,18 @@ export function useResumenFormularios(pacientes) {
     [pacientesFiltrados]
   );
 
+  // NUEVO — sprint "Persona Particular".
+  const graficoRiesgoSuicida = useMemo(
+    () =>
+      contarPorCategoria(
+        pacientesFiltrados,
+        'RIESGO_SUICIDA',
+        CATEGORIAS_RIESGO_SUICIDA,
+        COLOR_CATEGORIA_RIESGO_SUICIDA
+      ),
+    [pacientesFiltrados]
+  );
+
   return {
     filtros,
     actualizarFiltro,
@@ -314,6 +347,7 @@ export function useResumenFormularios(pacientes) {
     graficoAnsiedad,
     graficoDepresion,
     graficoApgarFamiliar,
+    graficoRiesgoSuicida,
     hayPersonasFiltradas: pacientesFiltrados.length > 0,
   };
 }

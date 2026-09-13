@@ -12,6 +12,16 @@
 // (`evaluaciones_instrumento!id_paciente`) o rechaza la consulta entera
 // con un error de relación ambigua (PGRST201) — bug real detectado y
 // corregido en esta sesión: rompía el listado completo del Dashboard.
+//
+// Persona Particular (sprint "Persona Particular"): `obtenerPacientesPropios`
+// ahora trae también `rol = 'persona_particular'`, no solo `'paciente'`
+// — requiere la migración de RLS de esta historia (`usuarios_select`
+// dejaba pasar únicamente `rol = 'paciente'` hacia un psicólogo; sin
+// esa migración, esta consulta simplemente no devolvería ninguna
+// Persona Particular, sin ningún error visible). Se agrega `rol` al
+// select para que Dashboard.jsx pueda separar Estudiantes de Personas
+// Particulares en 2 pestañas (historia "Pestañas de Estudiantes y
+// Personas Particulares").
 import { supabase } from '../../../core/api/supabaseClient';
 
 export const pacientesService = {
@@ -54,7 +64,11 @@ export const pacientesService = {
    *    día cambia. `null` (sin evaluaciones) significa que la persona
    *    aún no tiene ningún registro — no encaja en ninguna de las dos
    *    categorías, así que el filtro de Dashboard.jsx la excluye cuando
-   *    se elige "Estudiante" o "Docente" específicamente.
+   *    se elige "Estudiante" o "Docente" específicamente. Para
+   *    `persona_particular` esto queda siempre en `null` (no aplica el
+   *    concepto de "quién originó el registro" — siempre es autoenvío).
+   *  - `rol`: 'paciente' | 'persona_particular' — NUEVO, para que
+   *    Dashboard.jsx pueda separarlos en pestañas distintas.
    * El embed respeta la misma política RLS "instrumento_select" de esa
    * tabla, así que nunca expone datos de pacientes fuera de las
    * instituciones (o asignación directa) del psicólogo. El sufijo
@@ -65,9 +79,9 @@ export const pacientesService = {
     const { data, error } = await supabase
       .from('usuarios')
       .select(
-        'id, nombre, email, genero, turno, fecha_nacimiento, curso, paralelo, institucion:instituciones(nombre), evaluaciones_instrumento!id_paciente(tipo_instrumento, fecha_registro, alerta_activada, resultado_json, registrado_por_docente_id)'
+        'id, rol, nombre, email, genero, turno, fecha_nacimiento, curso, paralelo, institucion:instituciones(nombre), evaluaciones_instrumento!id_paciente(tipo_instrumento, fecha_registro, alerta_activada, resultado_json, registrado_por_docente_id)'
       )
-      .eq('rol', 'paciente')
+      .in('rol', ['paciente', 'persona_particular'])
       .order('nombre', { ascending: true });
 
     if (error) throw error;
@@ -80,7 +94,14 @@ export const pacientesService = {
         ...paciente,
         evaluaciones,
         tieneAlertaActiva: evaluaciones.some((e) => e.alerta_activada),
-        tipoPersona: evaluaciones.length === 0 ? null : tieneRegistroDocente ? 'docente' : 'estudiante',
+        tipoPersona:
+          paciente.rol === 'persona_particular'
+            ? null
+            : evaluaciones.length === 0
+              ? null
+              : tieneRegistroDocente
+                ? 'docente'
+                : 'estudiante',
       };
     });
   },
@@ -103,5 +124,73 @@ export const pacientesService = {
 
     if (error) throw error;
     return data;
+  },
+
+  /**
+   * NUEVO — equivalente a `obtenerPacientePropio`, pero para Persona
+   * Particular: trae su propio conjunto de campos (sin curso/paralelo/
+   * turno/código de estudiante, que no le corresponden) para la historia
+   * "Vista de informe individual de Persona Particular". Depende de la
+   * misma RLS "usuarios_select" — si el psicólogo fuerza el acceso a
+   * alguien fuera de su institución, esto devuelve `null`.
+   */
+  async obtenerPersonaParticularPropia(idPersona) {
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select(
+        'id, nombre, telefono, carnet_identidad, edad, sexo, estado_civil, grado_instruccion, numero_hijos, tipo_trabajo, institucion:instituciones(nombre)'
+      )
+      .eq('id', idPersona)
+      .eq('rol', 'persona_particular')
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * NUEVO — para la historia "Vista de informe individual de Persona
+   * Particular": trae la evaluación más reciente de una persona
+   * puntual, de cualquier instrumento (no un instrumento fijo, ya que
+   * Persona Particular tiene 5 distintos). Se consulta la tabla
+   * directamente en vez de importar evaluacionesInstrumentoService del
+   * módulo `evaluaciones` — un módulo no puede importar servicios de
+   * otro módulo, solo hablarle a las mismas tablas de Supabase (mismo
+   * criterio que ya usa `obtenerPacientesPropios` embebiendo
+   * `evaluaciones_instrumento` en vez de llamar a ese servicio).
+   */
+  async obtenerUltimaEvaluacion(idPersona) {
+    const { data, error } = await supabase
+      .from('evaluaciones_instrumento')
+      .select('tipo_instrumento, fecha_registro, resultado_json, alerta_activada')
+      .eq('id_paciente', idPersona)
+      .order('fecha_registro', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * NUEVO — para la historia "Filtrado de formularios según el tipo de
+   * psicólogo/a": determina si el/la psicólogo/a autenticado/a atiende
+   * en un Centro de Salud o en un colegio (Unidad Educativa/Institución),
+   * a partir de `psicologo_institucion` -> `instituciones.tipo_institucion`.
+   * Un psicólogo solo puede estar vinculado a UNA institución (SCRUM-49),
+   * así que siempre hay a lo sumo 1 fila. Devuelve `null` si la persona
+   * autenticada no tiene ninguna institución asignada (ej. superadmin,
+   * que de todas formas nunca llega a llamar esto porque usa su propia
+   * pantalla) — Dashboard.jsx trata `null` como "mostrar todo", igual
+   * que "colegio", nunca como "ocultar todo" por accidente.
+   */
+  async obtenerTipoInstitucionPropia() {
+    const { data, error } = await supabase
+      .from('psicologo_institucion')
+      .select('institucion:instituciones(tipo_institucion)')
+      .maybeSingle();
+
+    if (error) throw error;
+    return data?.institucion?.tipo_institucion ?? null;
   },
 };

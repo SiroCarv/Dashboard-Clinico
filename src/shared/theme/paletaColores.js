@@ -8,16 +8,17 @@
 // 1. La app usa 2 colores de marca activos: violeta claro (COLOR_MARCA.
 //    violetaSuave) y naranja oscuro (COLOR_MARCA.naranja) — franjas de
 //    tarjetas, botones primarios, links y acentos en general. tealAzulado,
-//    verdeMenta, celeste, indigo y fucsia quedan reservados para
-//    diferenciar visualmente los instrumentos clínicos entre sí (Clima de
-//    Aula / GSHS / Estrés / Ansiedad / Depresión) dentro de la Encuesta, el
-//    Informe Consolidado y —desde el rediseño con pestañas del panel de
-//    indicadores del psicólogo— también en dashboard_clinico/components/
-//    ResumenFormularios.jsx, donde cada pestaña de instrumento usa el
-//    mismo acento que ya lo identifica en el resto de la app. No se usan
-//    como acento de marca general en el resto de la app. Los 3 últimos se
-//    sumaron en SCRUM-54 (migración de formularios del Observatorio) y son
-//    tonos nuevos que no pisan ningún acento existente.
+//    verdeMenta, celeste, indigo, fucsia, rosa y purpura quedan reservados
+//    para diferenciar visualmente los instrumentos clínicos entre sí
+//    dentro de la Encuesta, el Informe Consolidado y —desde el rediseño
+//    con pestañas del panel de indicadores del psicólogo— también en
+//    dashboard_clinico/components/ResumenFormularios.jsx, donde cada
+//    pestaña de instrumento usa el mismo acento que ya lo identifica en
+//    el resto de la app. No se usan como acento de marca general en el
+//    resto de la app. purpura se agregó en el sprint "Persona Particular"
+//    para la pestaña de Riesgo Suicida — mismo criterio que los 3
+//    anteriores (celeste/indigo/fucsia de SCRUM-54): tono nuevo que no
+//    pisa ningún acento existente.
 //    grisNeutro es distinto a los anteriores: no identifica un
 //    instrumento real, es el acento reservado para pestañas/opciones
 //    "placeholder" — hoy solo Bullying (visual únicamente, a pedido del
@@ -29,6 +30,11 @@
 // 2. Rojo y amarillo quedan reservados EXCLUSIVAMENTE para indicar
 //    severidad o riesgo clínico (diagnóstico, alertas). No deben usarse
 //    como acento de marca, botón genérico ni elemento puramente visual.
+//    Por esto, aunque Riesgo Suicida SÍ activa una alerta real
+//    (alerta_activada = true en "Riesgo Alto"), su color de PESTAÑA
+//    (purpura) no puede ser rojo — la alerta ya se resalta aparte, a
+//    nivel de fila, con FILA_ALERTA_ACTIVADA (ver TablaPacientes.jsx /
+//    TablaPersonasParticulares.jsx).
 // 3. Los tonos exactos de Tailwind (orange-700, teal-500, emerald-500,
 //    violet-400) son una aproximación hecha en ausencia de códigos de
 //    color exactos de la Licenciada. Si UNIFRANZ entrega una guía de
@@ -119,6 +125,18 @@ export const COLOR_MARCA = {
     suave: 'bg-rose-50 text-rose-700 border-rose-200',
     accent: 'accent-rose-500',
   },
+  // NUEVO — sprint "Persona Particular". Identifica exclusivamente la
+  // pestaña/instrumento Riesgo Suicida, en Encuesta.jsx, ResumenFormularios.jsx
+  // y donde más se muestre. Ver nota de regla 2 arriba sobre por qué no
+  // es rojo/amarillo pese a estar asociado a un instrumento de riesgo.
+  purpura: {
+    franja: 'border-purple-500',
+    tabActivo: 'border-purple-500 text-purple-600',
+    tituloSeccion: 'text-purple-600',
+    botonPrimario: 'bg-purple-500 hover:bg-purple-600 text-white',
+    suave: 'bg-purple-50 text-purple-700 border-purple-200',
+    accent: 'accent-purple-500',
+  },
   // Placeholder visual para instrumentos aún no implementados (hoy:
   // Bullying) — ver nota de reglas de uso más arriba.
   grisNeutro: {
@@ -155,7 +173,8 @@ export const ESTILOS_CATEGORIA_CLIMA_AULA = {
 };
 
 // Fila resaltada en las tablas cuando el registro activó una alerta
-// (ej. GSHS con alerta_activada = true por riesgo suicida).
+// (ej. GSHS con alerta_activada = true por riesgo suicida, o Riesgo
+// Suicida propio de Persona Particular con categoría "Riesgo Alto").
 export const FILA_ALERTA_ACTIVADA =
   'bg-red-50 border-l-4 border-red-500 hover:bg-red-100';
 
@@ -252,4 +271,18 @@ export const COLOR_CATEGORIA_APGAR_FAMILIAR = {
   'Familia funcional': { fill: 'fill-rose-300', stroke: 'stroke-rose-300', bg: 'bg-rose-300' },
   'Moderada disfunción familiar': { fill: 'fill-rose-500', stroke: 'stroke-rose-500', bg: 'bg-rose-500' },
   'Familia disfuncional': { fill: 'fill-rose-800', stroke: 'stroke-rose-800', bg: 'bg-rose-800' },
+};
+
+// NUEVO — sprint "Persona Particular". Mismos 3 textos exactos que arma
+// la rama RIESGO_SUICIDA del trigger calcular_resultado_instrumento.
+// Mismo criterio que COLOR_CATEGORIA_ESTRES/ANSIEDAD/DEPRESION: 3 tonos
+// del color ya asignado a este instrumento (purpura), de más claro
+// (mejor) a más oscuro (peor) — SIN usar rojo pese a que "Riesgo Alto"
+// activa una alerta real, por la misma razón documentada en la regla 2
+// de arriba. Si el responsable clínico confirma un esquema de severidad
+// real para este instrumento, este es el lugar para reemplazarlo.
+export const COLOR_CATEGORIA_RIESGO_SUICIDA = {
+  'Riesgo Leve': { fill: 'fill-purple-300', stroke: 'stroke-purple-300', bg: 'bg-purple-300' },
+  'Riesgo Moderado': { fill: 'fill-purple-500', stroke: 'stroke-purple-500', bg: 'bg-purple-500' },
+  'Riesgo Alto': { fill: 'fill-purple-800', stroke: 'stroke-purple-800', bg: 'bg-purple-800' },
 };

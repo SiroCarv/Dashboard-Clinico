@@ -13,7 +13,17 @@
 //   - RutaPublica: pantallas de acceso libre (Login, Registro...); si ya
 //     hay sesión activa, redirige lejos de ellas.
 //   - RutaProtegida: pantallas privadas; exige un `rolRequerido` exacto
-//     (paciente / psicologo / superadmin / docente) o redirige.
+//     (paciente / psicologo / superadmin / docente / persona_particular)
+//     o redirige.
+//
+// Persona Particular (sprint "Persona Particular"): usa rutas propias
+// (/registro-particular, /login-particular, /encuesta-particular)
+// separadas de las de Estudiante, aunque /encuesta-particular renderice
+// el mismo componente <Encuesta /> — RutaProtegida exige un rol exacto
+// por ruta, así que dos roles necesitan dos rutas para llegar a la misma
+// pantalla (ver comentario completo en rutasPorDefecto.js). El informe
+// individual (/dashboard/informe-particular/:idPersona) es una página
+// nueva y propia, InformePersonaParticular, distinta de InformeConsolidado.
 import { Routes, Route } from 'react-router-dom';
 
 // --- MÓDULOS ---
@@ -28,12 +38,15 @@ import RestablecerPassword from './modules/autenticacion/pages/RestablecerPasswo
 // de reunión. Épica "Observatorio de Salud Mental" reconfirmada con el
 // cliente.
 import { Home } from './modules/observatorio';
+// Persona Particular (NUEVO)
+import { RegistroPersonaParticular, LoginPersonaParticular } from './modules/personas-particulares';
 
 // Evaluaciones
 import Encuesta from './modules/evaluaciones/pages/Encuesta';
 // Dashboard
 import Dashboard from './modules/dashboard_clinico/pages/Dashboard';
 import InformeConsolidado from './modules/dashboard_clinico/pages/InformeConsolidado';
+import InformePersonaParticular from './modules/dashboard_clinico/pages/InformePersonaParticular';
 import IndicadoresGSHS from './modules/dashboard_clinico/pages/IndicadoresGSHS';
 // Instituciones
 import PanelMaestro from './modules/instituciones/pages/PanelMaestro';
@@ -58,7 +71,7 @@ function App() {
         <Route path="/login" element={<RutaPublica><Login /></RutaPublica>} />
 
         {/* SCRUM-33: pantalla de bienvenida + selector de perfil,
-            previa a los dos flujos de registro ya existentes */}
+            previa a los tres flujos de registro ya existentes */}
         <Route path="/registro-nuevo" element={<RutaPublica><Bienvenida /></RutaPublica>} />
 
         {/* Ruta dinámica para atrapar el código de la institución */}
@@ -69,11 +82,19 @@ function App() {
         {/* Registro de docentes (SCRUM-47): mismo patrón de código de
             institución que Registro.jsx, sin campos de estudiante. */}
         <Route path="/registro-docente" element={<RutaPublica><RegistroDocente /></RutaPublica>} />
-      
+
+        {/* Registro e inicio de sesión de Persona Particular (NUEVO):
+            código de Centro de Salud + carnet/PIN, sin correo — ver
+            personasParticularesService.js. */}
+        <Route path="/registro-particular" element={<RutaPublica><RegistroPersonaParticular /></RutaPublica>} />
+        <Route path="/login-particular" element={<RutaPublica><LoginPersonaParticular /></RutaPublica>} />
+
         <Route path="/recuperar-password" element={<RutaPublica><RecuperarPassword /></RutaPublica>} />
         {/* /restablecer-password queda SIN RutaPublica a propósito: depende de la
             sesión "oculta" que Supabase abre desde el link del correo de recuperación
-            (ver comentario en RestablecerPassword.jsx). Envolverla la rompería. */}
+            (ver comentario en RestablecerPassword.jsx). Envolverla la rompería.
+            No existe un equivalente para Persona Particular — historia
+            "Eliminación de recuperación de acceso para Persona Particular". */}
         <Route path="/restablecer-password" element={<RestablecerPassword />} />
       
         <Route 
@@ -83,6 +104,19 @@ function App() {
               <Encuesta />
             </RutaProtegida>
           } 
+        />
+
+        {/* Persona Particular responde el mismo componente <Encuesta />
+            que Estudiante, en una ruta separada (ver nota de archivo
+            arriba) — Encuesta.jsx decide internamente, según el rol
+            real, qué formularios mostrar. */}
+        <Route
+          path="/encuesta-particular"
+          element={
+            <RutaProtegida rolRequerido="persona_particular">
+              <Encuesta />
+            </RutaProtegida>
+          }
         />
       
         <Route 
@@ -101,6 +135,16 @@ function App() {
               <InformeConsolidado />
             </RutaProtegida>
           } 
+        />
+
+        {/* Informe individual de Persona Particular (NUEVO). */}
+        <Route
+          path="/dashboard/informe-particular/:idPersona"
+          element={
+            <RutaProtegida rolRequerido="psicologo">
+              <InformePersonaParticular />
+            </RutaProtegida>
+          }
         />
 
         {/* Resultados del GSHS por módulo (SCRUM-57), scopeado a la

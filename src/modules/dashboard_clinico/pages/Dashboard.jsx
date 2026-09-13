@@ -1,6 +1,7 @@
-// Panel principal del psicólogo: pestaña "Gráficas" (indicadores +
-// filtros por perfil) y pestaña "Estudiantes" (listado con búsqueda,
-// filtros propios y exportación a Excel).
+// Panel principal del psicólogo: pestaña "Gráficas", pestaña
+// "Estudiantes" y —NUEVO, sprint "Persona Particular"— pestaña "Personas
+// Particulares" (listado separado, mismo criterio que ya separaba
+// Estudiantes de Reportes de Docente).
 //
 // Pestañas (corrección posterior): antes las gráficas y el listado
 // convivían en una sola pantalla larga, uno debajo del otro. Se separó
@@ -9,15 +10,29 @@
 // naranja, porque violeta es el acento de marca que ya usa el resto de
 // esta pantalla (bordes de tarjetas, focus rings), igual que
 // PanelMaestro.jsx usa naranja por ser su propio acento ya establecido.
-// Ambas pestañas comparten `pacientes`/`loading`/`error`: solo cambia
-// qué se muestra, no se vuelve a pedir nada a Supabase al cambiar de
-// pestaña.
+//
+// Personas Particulares (NUEVO): usa su propio listado derivado del
+// mismo `pacientes` que ya trae useListaPacientes (ahora incluye ambos
+// roles, ver pacientesService.js) — no abre una segunda consulta a
+// Supabase. Comparte el mismo campo de búsqueda por texto que
+// Estudiantes, pero SIN los filtros de curso/paralelo/turno (no le
+// corresponden a este perfil) y sin botón de exportar a Excel —
+// ninguna de las 8 historias de este sprint pidió exportación para este
+// grupo; se deja fuera a propósito en vez de reutilizar
+// exportarPacientesAExcel con columnas que no le corresponden.
+//
+// Gráficas + tipo de psicólogo (NUEVO, historia "Filtrado de formularios
+// según el tipo de psicólogo/a"): useTipoInstitucionPropia() resuelve si
+// el/la psicólogo/a atiende en un Centro de Salud; si es así,
+// ResumenFormularios.jsx recibe `soloPersonaParticular` y oculta Clima
+// de Aula/GSHS/Bullying, dejando solo los 5 formularios de Persona
+// Particular. Para colegio/otra institución/superadmin, no cambia nada.
 //
 // El Dashboard dejó de tener 2 pestañas (Clima de Aula/GSHS + "Historial
 // anterior PHQ-9"). La pantalla de historial PHQ-9 y su ruta de detalle
 // se retiraron por completo — decisión explícita del cliente. Las
 // pestañas actuales son un concepto nuevo y no relacionado (organizan
-// Gráficas vs. Estudiantes, no instrumentos).
+// Gráficas vs. Estudiantes/Personas Particulares, no instrumentos).
 //
 // El panel de indicadores (pestaña Gráficas) usa su propio filtro
 // independiente (useResumenFormularios) — a propósito no comparte
@@ -60,7 +75,9 @@ import BarraSuperior from '../../../shared/components/BarraSuperior';
 import { useListaPacientes } from '../hooks/useListaPacientes';
 import { useResumenFormularios } from '../hooks/useResumenFormularios';
 import { useIndicadoresGSHS } from '../hooks/useIndicadoresGSHS';
+import { useTipoInstitucionPropia } from '../hooks/useTipoInstitucionPropia';
 import { TablaPacientes } from '../components/TablaPacientes';
+import { TablaPersonasParticulares } from '../components/TablaPersonasParticulares';
 import { ResumenFormularios } from '../components/ResumenFormularios';
 import { FiltrosResumen } from '../components/FiltrosResumen';
 import { exportarPacientesAExcel } from '../utils/exportarPacientesExcel';
@@ -75,6 +92,7 @@ const FILTRO_ESCOLAR_TODOS = 'todos';
 
 const PESTANA_GRAFICAS = 'graficas';
 const PESTANA_ESTUDIANTES = 'estudiantes';
+const PESTANA_PERSONAS_PARTICULARES = 'personas_particulares';
 const PESTANA_REPORTES = 'reportes';
 
 export default function Dashboard() {
@@ -88,6 +106,7 @@ export default function Dashboard() {
     error: errorGshs,
   } = useIndicadoresGSHS();
   const { reportes: reportesDocente, loading: loadingReportes, error: errorReportes } = useReportesInstitucion();
+  const { tipoInstitucion } = useTipoInstitucionPropia();
   const [pestanaActiva, setPestanaActiva] = useState(PESTANA_GRAFICAS);
   const [busqueda, setBusqueda] = useState('');
   const [filtroCurso, setFiltroCurso] = useState(FILTRO_ESCOLAR_TODOS);
@@ -95,10 +114,18 @@ export default function Dashboard() {
   const [filtroTurno, setFiltroTurno] = useState(FILTRO_ESCOLAR_TODOS);
   const [exportando, setExportando] = useState(false);
 
+  // NUEVO — separa el listado combinado (paciente + persona_particular)
+  // en 2 grupos, uno por pestaña. `rol` lo agrega pacientesService.js.
+  const estudiantes = useMemo(() => pacientes.filter((p) => p.rol === 'paciente'), [pacientes]);
+  const personasParticulares = useMemo(
+    () => pacientes.filter((p) => p.rol === 'persona_particular'),
+    [pacientes]
+  );
+
   const pacientesFiltrados = useMemo(() => {
     const texto = busqueda.trim().toLowerCase();
 
-    return pacientes.filter((p) => {
+    return estudiantes.filter((p) => {
       const coincideBusqueda =
         texto === '' ||
         p.nombre?.toLowerCase().includes(texto) ||
@@ -110,7 +137,18 @@ export default function Dashboard() {
 
       return coincideBusqueda && coincideCurso && coincideParalelo && coincideTurno;
     });
-  }, [pacientes, busqueda, filtroCurso, filtroParalelo, filtroTurno]);
+  }, [estudiantes, busqueda, filtroCurso, filtroParalelo, filtroTurno]);
+
+  // NUEVO — búsqueda por texto propia de la pestaña Personas
+  // Particulares, reutilizando el mismo campo `busqueda` (no tiene
+  // sentido un segundo buscador en la misma pantalla). Sin filtros de
+  // curso/paralelo/turno: no existen para este perfil.
+  const personasParticularesFiltradas = useMemo(() => {
+    const texto = busqueda.trim().toLowerCase();
+    return personasParticulares.filter(
+      (p) => texto === '' || p.nombre?.toLowerCase().includes(texto)
+    );
+  }, [personasParticulares, busqueda]);
 
   const hayFiltrosActivos =
     busqueda.trim() !== '' ||
@@ -166,7 +204,7 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
-            <div className="flex gap-2 mb-6 border-b border-gray-200">
+            <div className="flex gap-2 mb-6 border-b border-gray-200 flex-wrap">
               <button
                 type="button"
                 onClick={() => setPestanaActiva(PESTANA_GRAFICAS)}
@@ -188,6 +226,17 @@ export default function Dashboard() {
                 }`}
               >
                 Estudiantes
+              </button>
+              <button
+                type="button"
+                onClick={() => setPestanaActiva(PESTANA_PERSONAS_PARTICULARES)}
+                className={`px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors ${
+                  pestanaActiva === PESTANA_PERSONAS_PARTICULARES
+                    ? COLOR_MARCA.violetaSuave.tabActivo
+                    : 'border-transparent text-gray-700 hover:text-gray-900'
+                }`}
+              >
+                Personas Particulares
               </button>
               <button
                 type="button"
@@ -221,6 +270,7 @@ export default function Dashboard() {
                   graficoAnsiedad={resumen.graficoAnsiedad}
                   graficoDepresion={resumen.graficoDepresion}
                   graficoApgarFamiliar={resumen.graficoApgarFamiliar}
+                  graficoRiesgoSuicida={resumen.graficoRiesgoSuicida}
                   hayFiltrosActivos={resumen.hayFiltrosActivos}
                   hayPersonasFiltradas={resumen.hayPersonasFiltradas}
                   modulosGshs={modulosGshs}
@@ -228,13 +278,14 @@ export default function Dashboard() {
                   totalEvaluacionesGshs={totalEvaluacionesGshs}
                   loadingGshs={loadingGshs}
                   errorGshs={errorGshs}
+                  soloPersonaParticular={tipoInstitucion === 'centro_salud'}
                 />
               </>
             )}
 
             {pestanaActiva === PESTANA_ESTUDIANTES && (
               <>
-                {pacientes.length > 0 && (
+                {estudiantes.length > 0 && (
                   <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm mb-6">
                     <input
                       type="text"
@@ -363,6 +414,27 @@ export default function Dashboard() {
                 )}
 
                 <TablaPacientes pacientes={pacientesFiltrados} hayFiltrosActivos={hayFiltrosActivos} />
+              </>
+            )}
+
+            {pestanaActiva === PESTANA_PERSONAS_PARTICULARES && (
+              <>
+                {personasParticulares.length > 0 && (
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm mb-6">
+                    <input
+                      type="text"
+                      value={busqueda}
+                      onChange={(e) => setBusqueda(e.target.value)}
+                      placeholder="Buscar por nombre..."
+                      className="flex-1 px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
+                    />
+                  </div>
+                )}
+
+                <TablaPersonasParticulares
+                  personas={personasParticularesFiltradas}
+                  hayFiltrosActivos={busqueda.trim() !== ''}
+                />
               </>
             )}
 

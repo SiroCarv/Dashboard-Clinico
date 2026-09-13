@@ -1,7 +1,19 @@
 // Barra de navegación fija (flotante) de la landing pública. Solo enlaza
-// a rutas ya existentes (/login, /registro-nuevo) por href de React
-// Router — nunca importa componentes de otro módulo, respetando el
-// aislamiento entre dominios (DDD).
+// a rutas ya existentes (/login, /login-particular, /registro-nuevo) por
+// href de React Router — nunca importa componentes de otro módulo,
+// respetando el aislamiento entre dominios (DDD).
+//
+// "Persona Particular" (NUEVO, sprint "Persona Particular"): antes solo
+// se podía llegar a /login-particular desde el link chico al pie de
+// Bienvenida.jsx — poco visible para alguien que entra directo a la
+// landing pública sin pasar por el flujo de registro. Se agrega acá como
+// tercer link, con menos peso visual que "Iniciar sesión" (gris en vez
+// de violeta) para no competir con los dos CTA principales de siempre.
+// Texto "Iniciar sesión (Particular)" en vez de solo "Persona
+// Particular": reutiliza la misma palabra que ya reconoce cualquiera
+// ("Iniciar sesión") en vez de nombrar solo el perfil, para que quede
+// claro de un vistazo que el link ES para entrar, no solo para
+// identificar el rol.
 import { Link } from 'react-router-dom';
 import logo from '../../../shared/assets/logo.webp';
 
@@ -20,6 +32,12 @@ export default function NavbarFlotante() {
         </div>
 
         <div className="flex items-center gap-3 md:gap-4">
+          <Link
+            to="/login-particular"
+            className="hidden sm:inline text-sm font-bold text-gray-500 hover:text-orange-800 transition-colors"
+          >
+            Iniciar sesión (Particular)
+          </Link>
           <Link to="/login" className="text-sm font-bold text-violet-400 hover:text-orange-800 transition-colors">
             Iniciar sesión
           </Link>
