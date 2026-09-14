@@ -177,12 +177,25 @@ export default function Login() {
       )}
 
       <div className="relative z-10 max-w-md w-full bg-white p-8 border-t-8 border-violet-400 rounded-lg shadow-xl">
-        <div className="mb-4">
+        {/* Acceso a Persona Particular (historia "Acceso directo a Persona
+            Particular desde Inicio de Sesión"): antes el único acceso vivía
+            en la barra de la landing pública (NavbarFlotante.jsx) y era poco
+            visible; el cliente pidió moverlo acá, arriba a la derecha, al
+            mismo nivel que "Volver al inicio". Apunta a /login-particular
+            (inicio de sesión con Carnet, no a /registro-particular) — mismo
+            destino al que ya apuntaba el enlace retirado de la Navbar. */}
+        <div className="mb-4 flex items-center justify-between">
           <Link
             to="/"
             className="text-sm font-bold text-gray-500 hover:text-orange-700 transition-colors inline-flex items-center gap-1"
           >
             ← Volver al inicio
+          </Link>
+          <Link
+            to="/login-particular"
+            className="text-sm font-bold text-gray-500 hover:text-orange-700 transition-colors"
+          >
+            Soy Persona Particular
           </Link>
         </div>
 

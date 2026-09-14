@@ -15,6 +15,27 @@ import { GraficoBarrasVerticales } from '../../../shared/components/GraficoBarra
 import { GraficoDona } from '../../../shared/components/GraficoDona';
 
 export function SeccionGraficoInstrumento({ titulo, datos }) {
+  // Guarda defensiva (bug real: pantalla en blanco al abrir la pestaña
+  // "Riesgo Suicida" en el Panel Consolidado del superadmin — ver
+  // PanelConsolidadoSuperadmin.jsx). Antes este componente asumía que
+  // `datos` siempre llegaba como un arreglo ya armado; si llega
+  // `undefined` (ej. una prop que se olvidó pasar, como pasó acá) o
+  // vacío, el `.map()` de acá abajo y el de los 2 componentes hijos
+  // (GraficoBarrasVerticales/GraficoDona) hacían caer el render entero
+  // sin ningún mensaje de error, en vez de mostrar un estado vacío como
+  // ya hace el resto de la app (ej. "No hay estudiantes con estas
+  // características" en ResumenFormularios.jsx).
+  if (!datos || datos.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow-xl border-t-8 border-violet-400 p-6">
+        <p className="text-gray-700 font-bold mb-4">{titulo}</p>
+        <p className="text-gray-500 text-sm text-center py-6">
+          No hay datos disponibles para este formulario todavía.
+        </p>
+      </div>
+    );
+  }
+
   const descripcion = `${titulo}: ${datos.map((d) => `${d.etiqueta} ${d.valor}`).join(', ')}`;
 
   return (

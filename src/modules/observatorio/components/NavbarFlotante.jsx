@@ -1,25 +1,15 @@
 // Barra de navegación fija (flotante) de la landing pública. Solo enlaza
-// a rutas ya existentes (/login, /login-particular, /registro-nuevo) por
-// href de React Router — nunca importa componentes de otro módulo,
-// respetando el aislamiento entre dominios (DDD).
+// a rutas ya existentes (/login, /registro-nuevo) por href de React
+// Router — nunca importa componentes de otro módulo, respetando el
+// aislamiento entre dominios (DDD).
 //
-// "Persona Particular" (NUEVO, sprint "Persona Particular"): antes solo
-// se podía llegar a /login-particular desde el link chico al pie de
-// Bienvenida.jsx — poco visible para alguien que entra directo a la
-// landing pública sin pasar por el flujo de registro. Se agrega acá como
-// tercer link, con menos peso visual que "Iniciar sesión" (gris en vez
-// de violeta) para no competir con los dos CTA principales de siempre.
-//
-// CORRECCIÓN (bug reportado: "olvidaste tu contraseña sigue en el inicio
-// de sesión"): no era un bug del login de Persona Particular en sí (se
-// verificó que ese link no existe ahí) — era que este link venía con
-// `hidden sm:inline`, copiado sin pensar del link "Inicio". En celular
-// quedaba invisible, así que la única forma de iniciar sesión visible
-// era la general (con recuperación de contraseña, correcta para
-// Estudiante/Docente/Psicólogo/Superadmin), y eso es lo que la persona
-// terminaba viendo. Ahora el link siempre está visible; en pantallas
-// chicas se acorta el texto ("Entrar (Particular)") para que entre sin
-// romper el layout, sin dejar de transmitir que es para iniciar sesión.
+// "Persona Particular" RETIRADO de acá (historia "Acceso directo a
+// Persona Particular desde Inicio de Sesión"): este enlace vivió acá
+// desde el sprint "Persona Particular" (ver historial de comentarios en
+// git), pero el cliente lo consideró poco visible en la landing pública
+// y pidió moverlo a la pantalla de Login (Login.jsx), arriba a la
+// derecha junto a "Volver al inicio" — mismo destino (/login-particular),
+// solo cambia dónde vive.
 import { Link } from 'react-router-dom';
 import logo from '../../../shared/assets/logo.webp';
 
@@ -38,13 +28,6 @@ export default function NavbarFlotante() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
-          <Link
-            to="/login-particular"
-            className="text-xs sm:text-sm font-bold text-gray-500 hover:text-orange-800 transition-colors whitespace-nowrap"
-          >
-            <span className="sm:hidden">Entrar (Particular)</span>
-            <span className="hidden sm:inline">Iniciar sesión (Particular)</span>
-          </Link>
           <Link to="/login" className="text-sm font-bold text-violet-400 hover:text-orange-800 transition-colors">
             Iniciar sesión
           </Link>

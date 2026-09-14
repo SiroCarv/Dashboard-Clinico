@@ -117,6 +117,11 @@ const OPCIONES_INSTRUMENTO = [
   { valor: 'ANSIEDAD', etiqueta: 'Ansiedad' },
   { valor: 'DEPRESION', etiqueta: 'Depresión' },
   { valor: 'APGAR_FAMILIAR', etiqueta: 'Cuidado Primario De Salud Familiar' },
+  // NUEVO — historia "Visibilidad de resultados de Riesgo Suicida para
+  // Psicólogo y Superadmin": antes no existía como opción de filtro, así
+  // que el superadministrador no podía aislar estos resultados aunque ya
+  // existieran en la tabla (Persona Particular).
+  { valor: 'RIESGO_SUICIDA', etiqueta: 'Riesgo Suicida' },
   // Placeholder visual a pedido del cliente: sin instrumento real detrás
   // todavía. Filtrar por esta opción siempre deja la tabla de resultados
   // vacía (ningún resultado tiene tipo_instrumento = 'BULLYING') —
@@ -406,6 +411,17 @@ export default function PanelConsolidadoSuperadmin() {
                   graficoAnsiedad={resumenGraficas.graficoAnsiedad}
                   graficoDepresion={resumenGraficas.graficoDepresion}
                   graficoApgarFamiliar={resumenGraficas.graficoApgarFamiliar}
+                  // Bug reportado: pantalla en blanco al abrir la pestaña
+                  // "Riesgo Suicida" en Gráficas — el hook ya calculaba
+                  // este dato (useResumenFormularios.js), pero nunca se
+                  // pasaba acá. ResumenFormularios.jsx sí declara esta
+                  // pestaña desde antes y espera esta prop; sin ella,
+                  // SeccionGraficoInstrumento.jsx intenta hacer
+                  // `datos.map(...)` sobre `undefined` y el render entero
+                  // se cae sin ningún mensaje de error (no hay error
+                  // boundary). Dashboard.jsx (psicólogo) sí la pasaba —
+                  // acá simplemente faltaba.
+                  graficoRiesgoSuicida={resumenGraficas.graficoRiesgoSuicida}
                   hayFiltrosActivos={resumenGraficas.hayFiltrosActivos}
                   hayPersonasFiltradas={resumenGraficas.hayPersonasFiltradas}
                   modulosGshs={modulosGshs}

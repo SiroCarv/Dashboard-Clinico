@@ -16,11 +16,26 @@ import LeyendaClimaAula from './LeyendaClimaAula';
 const ETIQUETA_INSTRUMENTO = {
   CLIMA_AULA: 'Cuestionario de Clima de Aula',
   GSHS: 'Encuesta Mundial de Salud a Escolares (GSHS)',
+  // Agregados junto con la historia "Visibilidad de resultados de Riesgo
+  // Suicida para Psicólogo y Superadmin": estos 4 ya se completaban y se
+  // guardaban bien, pero esta tarjeta no tenía ni etiqueta larga ni acento
+  // propio — mismo texto que ya usa InformePersonaParticular.jsx, para no
+  // tener dos nombres distintos del mismo instrumento en la app.
+  ESTRES: 'Estrés',
+  ANSIEDAD: 'Ansiedad',
+  DEPRESION: 'Depresión',
+  APGAR_FAMILIAR: 'Cuidado Primario De Salud Familiar',
+  RIESGO_SUICIDA: 'Riesgo Suicida',
 };
 
 const ACENTO_INSTRUMENTO = {
   CLIMA_AULA: COLOR_MARCA.tealAzulado,
   GSHS: COLOR_MARCA.verdeMenta,
+  ESTRES: COLOR_MARCA.celeste,
+  ANSIEDAD: COLOR_MARCA.indigo,
+  DEPRESION: COLOR_MARCA.fucsia,
+  APGAR_FAMILIAR: COLOR_MARCA.rosa,
+  RIESGO_SUICIDA: COLOR_MARCA.purpura,
 };
 
 const PUNTAJE_MAXIMO_CLIMA_AULA = 20;
@@ -89,9 +104,12 @@ function Dato({ etiqueta, valor }) {
   );
 }
 
-// Resumen visible sin expandir la tarjeta: puntaje+categoría para Clima
-// de Aula, o el estado de la alerta puntual para GSHS (que no tiene
-// puntaje ni diagnóstico, ver nota en gshsData.js).
+// Resumen visible sin expandir la tarjeta: puntaje+categoría con estilo
+// propio para Clima de Aula; solo el estado de la alerta puntual para GSHS
+// (que no tiene puntaje ni diagnóstico, ver nota en gshsData.js);
+// puntaje+categoría con el acento de color del instrumento, más una
+// insignia de alerta aparte si corresponde, para el resto (Estrés,
+// Ansiedad, Depresión, Apgar Familiar, Riesgo Suicida).
 function ResumenInstrumento({ registro }) {
   if (registro.tipo_instrumento === 'CLIMA_AULA' && registro.resultado_json) {
     const { puntaje_total: puntaje, categoria } = registro.resultado_json;
@@ -112,6 +130,37 @@ function ResumenInstrumento({ registro }) {
       <span className="px-2.5 py-1 bg-gray-100 border border-gray-300 text-gray-600 rounded-full text-xs font-semibold">
         Sin alertas puntuales
       </span>
+    );
+  }
+
+  // NUEVO — historia "Visibilidad de resultados de Riesgo Suicida para
+  // Psicólogo y Superadmin": Estrés/Ansiedad/Depresión/Apgar Familiar/
+  // Riesgo Suicida ya se completaban y se guardaban bien, pero esta
+  // tarjeta no mostraba ningún resumen para ellos (solo CLIMA_AULA y GSHS
+  // tenían rama propia acá arriba) — el psicólogo tenía que abrir "Ver
+  // respuestas" y calcular el puntaje a mano. Se usa el mismo acento de
+  // color que ya identifica a cada instrumento en toda la app (Encuesta,
+  // etc.) en vez de inventar un esquema de severidad no confirmado por el
+  // responsable clínico (mismo criterio que ya explica paletaColores.js
+  // para estos instrumentos). La insignia de alerta es aparte y genérica
+  // por `alerta_activada` — no solo para Riesgo Suicida ("Riesgo Alto"),
+  // también cubre a Depresión cuando la respuesta de ideación suicida del
+  // PHQ-9 la activa (ver rama DEPRESION del trigger en Supabase).
+  if (registro.resultado_json) {
+    const { puntaje_total: puntaje, categoria } = registro.resultado_json;
+    const acentoInstrumento = ACENTO_INSTRUMENTO[registro.tipo_instrumento];
+    const estiloBadge = acentoInstrumento?.suave ?? 'bg-gray-100 border-gray-300 text-gray-800';
+    return (
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <span className={`px-3 py-1 border rounded-full text-sm font-semibold ${estiloBadge}`}>
+          {puntaje} — {categoria}
+        </span>
+        {registro.alerta_activada && (
+          <span className="px-2.5 py-1 bg-red-50 border border-red-200 text-red-800 rounded-full text-xs font-bold uppercase tracking-wide">
+            ⚠️ Alerta
+          </span>
+        )}
+      </div>
     );
   }
 

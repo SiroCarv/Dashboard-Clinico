@@ -99,6 +99,18 @@ const TABS = [
     instrumento: INSTRUMENTO_APGAR_FAMILIAR,
     acento: COLOR_MARCA.rosa,
   },
+  // NUEVO — historia "Cuestionario de Riesgo Suicida para Estudiantes":
+  // mismo instrumento que ya usa Persona Particular (TABS_PERSONA_PARTICULAR
+  // más abajo), mismo color de acento en toda la app. OJO: requiere que la
+  // migración SQL de esta misma sesión (ampliar el CHECK de tipo_instrumento
+  // en evaluaciones_instrumento) ya se haya corrido — si no, el envío falla.
+  {
+    id: 'riesgo_suicida',
+    tipoInstrumento: 'RIESGO_SUICIDA',
+    etiqueta: 'Riesgo Suicida',
+    instrumento: INSTRUMENTO_RIESGO_SUICIDA,
+    acento: COLOR_MARCA.purpura,
+  },
 ];
 
 // NUEVO — los 5 formularios exclusivos de Persona Particular (historia

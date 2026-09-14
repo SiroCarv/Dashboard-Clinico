@@ -115,9 +115,17 @@ export default function LoginPersonaParticular() {
       )}
 
       <div className="relative z-10 max-w-md w-full bg-white p-8 border-t-8 border-violet-400 rounded-lg shadow-xl">
-        <div className="mb-4">
+        {/* Simétrico al botón agregado en Login.jsx (historia "Acceso
+            directo a Persona Particular desde Inicio de Sesión"): mismo
+            lugar, misma idea, en la dirección inversa — de acá se vuelve
+            al inicio de sesión con correo (Estudiante/Docente/Psicólogo/
+            Superadmin), no a "Soy Persona Particular" otra vez. */}
+        <div className="mb-4 flex items-center justify-between">
           <Link to="/" className="text-sm font-bold text-gray-500 hover:text-orange-700 transition-colors inline-flex items-center gap-1">
             ← Volver al inicio
+          </Link>
+          <Link to="/login" className="text-sm font-bold text-gray-500 hover:text-orange-700 transition-colors">
+            Iniciar sesión con correo
           </Link>
         </div>
 

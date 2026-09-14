@@ -104,10 +104,21 @@ export default function Registro() {
 
     const timeoutId = setTimeout(async () => {
       try {
+        // Historia "Restricción de código para registro de Estudiante":
+        // este formulario es solo para Unidad Educativa — un código de
+        // Centro de Salud o de Institución genérica debe tratarse igual
+        // que un código inexistente (ver mensaje de "Código no
+        // encontrado" más abajo, que ya cubre este caso sin cambios).
+        // Se incluye tipo_institucion IS NULL a propósito: las
+        // instituciones creadas antes de que existiera esa columna no
+        // tienen tipo guardado y, por convención ya establecida en
+        // tiposInstitucion.js, se tratan como Unidad Educativa (hay 1
+        // institución real así en la base al momento de este cambio).
         const { data, error: supaError } = await supabase
           .from('instituciones')
           .select('id, nombre')
           .eq('codigo_registro', codigoLimpio)
+          .or('tipo_institucion.eq.unidad_educativa,tipo_institucion.is.null')
           .maybeSingle();
 
         if (supaError) {

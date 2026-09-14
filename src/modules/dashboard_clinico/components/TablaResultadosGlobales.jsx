@@ -56,6 +56,14 @@ const ETIQUETA_INSTRUMENTO = {
   ESTRES: 'Estrés',
   ANSIEDAD: 'Ansiedad',
   DEPRESION: 'Depresión',
+  // Agregados junto con la historia "Visibilidad de resultados de Riesgo
+  // Suicida para Psicólogo y Superadmin": esta tabla ya recibía filas de
+  // estos 2 instrumentos (Apgar Familiar desde antes, Riesgo Suicida en
+  // cuanto se habilite para Estudiante) sin ninguna etiqueta ni acento
+  // propio — se mostraban con el tipo técnico crudo. Mismo texto que
+  // InformePersonaParticular.jsx.
+  APGAR_FAMILIAR: 'Cuidado Primario De Salud Familiar',
+  RIESGO_SUICIDA: 'Riesgo Suicida',
 };
 
 // Mismo criterio de color que InformeConsolidadoPaciente.jsx: cada
@@ -69,6 +77,8 @@ const ACENTO_INSTRUMENTO = {
   ESTRES: COLOR_MARCA.celeste,
   ANSIEDAD: COLOR_MARCA.indigo,
   DEPRESION: COLOR_MARCA.fucsia,
+  APGAR_FAMILIAR: COLOR_MARCA.rosa,
+  RIESGO_SUICIDA: COLOR_MARCA.purpura,
 };
 
 function formatearFecha(fecha) {
@@ -115,10 +125,24 @@ function ResumenResultado({ resultado }) {
       ? (ESTILOS_CATEGORIA_CLIMA_AULA[categoria] ?? 'bg-gray-100 border-gray-300 text-gray-800')
       : 'bg-gray-100 border-gray-300 text-gray-800';
 
+  // NUEVO — historia "Visibilidad de resultados de Riesgo Suicida para
+  // Psicólogo y Superadmin": antes solo GSHS mostraba una insignia de
+  // alerta aparte (arriba); Riesgo Suicida ("Riesgo Alto") y Depresión
+  // (cuando la respuesta de ideación suicida del PHQ-9 la activa, ver
+  // trigger en Supabase) también encienden `alerta_activada`, pero acá
+  // quedaban ocultas dentro del texto de la categoría sin ningún
+  // distintivo visual — se agrega la misma insignia roja que ya usa GSHS.
   return (
-    <span className={`px-3 py-1 border rounded-full text-sm font-semibold ${estilo}`}>
-      {puntaje} — {categoria}
-    </span>
+    <div className="flex flex-wrap items-center gap-2">
+      <span className={`px-3 py-1 border rounded-full text-sm font-semibold ${estilo}`}>
+        {puntaje} — {categoria}
+      </span>
+      {resultado.alerta_activada && (
+        <span className="px-2.5 py-1 bg-red-50 border border-red-200 text-red-800 rounded-full text-xs font-bold uppercase tracking-wide">
+          ⚠️ Alerta
+        </span>
+      )}
+    </div>
   );
 }
 
