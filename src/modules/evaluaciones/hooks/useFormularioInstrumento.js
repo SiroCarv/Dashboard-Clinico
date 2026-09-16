@@ -17,7 +17,14 @@ const PREGUNTAS_POR_PAGINA = 10;
 // preguntas de GSHS son obligatorias (decisión del cliente, documentada
 // en gshsData.js) — este helper es la única fuente de verdad de qué
 // cuenta como "contestada" en todo el formulario.
+//
+// NUEVO — historia "Cuestionario de Bullying para Estudiantes": las
+// preguntas de selección múltiple (item.multiple, ver bullyingData.js)
+// guardan un array en vez de un string. Mismo criterio que el resto: un
+// array vacío (ninguna opción marcada todavía) tampoco cuenta como
+// contestada.
 function estaRespondida(valor) {
+  if (Array.isArray(valor)) return valor.length > 0;
   return valor !== undefined && valor !== null && valor !== '';
 }
 

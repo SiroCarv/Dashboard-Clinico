@@ -137,8 +137,25 @@ export const COLOR_MARCA = {
     suave: 'bg-purple-50 text-purple-700 border-purple-200',
     accent: 'accent-purple-500',
   },
-  // Placeholder visual para instrumentos aún no implementados (hoy:
-  // Bullying) — ver nota de reglas de uso más arriba.
+  // NUEVO — historia "Cuestionario de Bullying para Estudiantes". Tono
+  // propio para el instrumento ya real, sin pisar ningún acento
+  // existente (mismo criterio que celeste/indigo/fucsia/rosa/purpura).
+  // Usado hoy solo en TABS de evaluaciones/pages/Encuesta.jsx (la
+  // pestaña del estudiante). OJO: ResumenFormularios.jsx (psicólogo) y
+  // PanelConsolidadoSuperadmin.jsx todavía usan grisNeutro para su
+  // pestaña placeholder de Bullying — pendiente de definir qué muestra
+  // esa pestaña ahora que el instrumento es "solo informativo" (sin
+  // categoría calculada) antes de moverla a este tono.
+  cian: {
+    franja: 'border-cyan-500',
+    tabActivo: 'border-cyan-500 text-cyan-600',
+    tituloSeccion: 'text-cyan-600',
+    botonPrimario: 'bg-cyan-500 hover:bg-cyan-600 text-white',
+    suave: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+    accent: 'accent-cyan-500',
+  },
+  // Placeholder visual para instrumentos aún no implementados — ver nota
+  // de reglas de uso más arriba.
   grisNeutro: {
     franja: 'border-gray-400',
     tabActivo: 'border-gray-400 text-gray-600',

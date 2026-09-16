@@ -1,9 +1,12 @@
-// Renderiza el formulario real de un instrumento (Clima de Aula o GSHS):
-// una página de hasta 10 preguntas por vez, con 3 tipos de campo posibles
-// (Verdadero/Falso, opción múltiple, o texto libre para estatura/peso).
-// Toda la lógica de estado, validación y envío vive en
-// useFormularioInstrumento — este archivo solo decide qué se ve en
-// pantalla según lo que ese hook devuelve.
+// Renderiza el formulario real de un instrumento (Clima de Aula, GSHS,
+// Bullying, etc.): una página de hasta 10 preguntas por vez, con 4 tipos
+// de campo posibles: Verdadero/Falso, opción múltiple de respuesta única
+// (CampoOpciones — elegís UNA entre varias, ej. GSHS), opción múltiple de
+// selección múltiple (CampoOpcionesMultiples — NUEVO, podés marcar MÁS DE
+// UNA, hoy solo en preguntas puntuales de Bullying vía item.multiple), o
+// texto libre para estatura/peso. Toda la lógica de estado, validación y
+// envío vive en useFormularioInstrumento — este archivo solo decide qué
+// se ve en pantalla según lo que ese hook devuelve.
 import { useEffect, useRef } from 'react';
 import { useFormularioInstrumento } from '../hooks/useFormularioInstrumento';
 
@@ -50,6 +53,45 @@ function CampoOpciones({ nombre, opciones, valor, onCambiar, acento }) {
   );
 }
 
+// NUEVO — historia "Cuestionario de Bullying para Estudiantes": primer
+// instrumento que necesita selección múltiple, y solo en ALGUNAS de sus
+// preguntas (ver item.multiple en bullyingData.js), nunca en el
+// instrumento completo. Por eso este campo se activa por ítem (ver
+// Pregunta() más abajo), no por tipoRespuesta como los otros dos campos.
+// `valor` guarda un array de opciones marcadas (nunca un string) — ver
+// el ajuste de estaRespondida() en useFormularioInstrumento.js para que
+// un array vacío siga contando como "sin responder".
+function CampoOpcionesMultiples({ nombre, opciones, valor, onCambiar, acento }) {
+  const seleccionadas = Array.isArray(valor) ? valor : [];
+
+  const alternar = (opcion) => {
+    const nuevaLista = seleccionadas.includes(opcion)
+      ? seleccionadas.filter((v) => v !== opcion)
+      : [...seleccionadas, opcion];
+    onCambiar(nuevaLista);
+  };
+
+  return (
+    <div className="mt-2 space-y-2">
+      {opciones.map((opcion, indice) => (
+        <label key={opcion} className="flex items-start gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            name={nombre}
+            checked={seleccionadas.includes(opcion)}
+            onChange={() => alternar(opcion)}
+            className={`mt-0.5 h-4 w-4 rounded ${acento.accent} border-gray-300 flex-none`}
+          />
+          <span className="text-gray-700">
+            <span className="font-bold text-gray-500 mr-1">{LETRAS[indice]}.</span>
+            {opcion}
+          </span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
 // Único uso hoy: estatura y peso (Módulo sobre Conductas Alimentarias,
 // GSHS). Admite dígitos y UN separador decimal (coma o punto, cualquiera
 // de los dos — común que alguien tipee "65,5" y otra persona "65.5").
@@ -82,8 +124,12 @@ function Pregunta({ item, valor, onCambiar, tipoRespuesta, acento, marcarSiFalta
   // Mismo criterio que useFormularioInstrumento.estaRespondida(): un campo
   // de texto vacío ('') no cuenta como contestado, para no mostrar
   // inconsistencia entre esta etiqueta visual y lo que realmente bloquea
-  // el avance/envío.
-  const respondida = valor !== undefined && valor !== null && valor !== '';
+  // el avance/envío. NUEVO — Bullying: un array vacío (pregunta de
+  // selección múltiple sin ninguna opción marcada todavía) tampoco
+  // cuenta como contestada.
+  const respondida = Array.isArray(valor)
+    ? valor.length > 0
+    : valor !== undefined && valor !== null && valor !== '';
   const marcar = marcarSiFalta && !respondida;
 
   return (
@@ -101,7 +147,9 @@ function Pregunta({ item, valor, onCambiar, tipoRespuesta, acento, marcarSiFalta
       </div>
       {item.nota && <p className="text-gray-500 italic text-sm mt-1">{item.nota}</p>}
 
-      {tipoRespuesta === 'verdadero_falso' ? (
+      {item.multiple ? (
+        <CampoOpcionesMultiples nombre={item.clave} opciones={item.opciones} valor={valor} onCambiar={onCambiar} acento={acento} />
+      ) : tipoRespuesta === 'verdadero_falso' ? (
         <CampoVerdaderoFalso nombre={item.clave} valor={valor} onCambiar={onCambiar} acento={acento} />
       ) : item.opciones && item.opciones.length > 0 ? (
         <CampoOpciones nombre={item.clave} opciones={item.opciones} valor={valor} onCambiar={onCambiar} acento={acento} />

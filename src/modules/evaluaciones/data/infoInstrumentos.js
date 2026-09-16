@@ -59,4 +59,13 @@ export const INFO_INSTRUMENTO = {
       'Identificar a tiempo situaciones de riesgo para tu bienestar emocional, para poder ofrecerte el apoyo adecuado.',
     deQueTrata: '25 preguntas sobre distintos aspectos de tu vida, respondidas según su frecuencia.',
   },
+  // NUEVO — historia "Cuestionario de Bullying para Estudiantes". Tiempo
+  // estimado con el mismo criterio que el resto (12 preguntas, algunas de
+  // selección múltiple), pendiente de confirmación clínica.
+  bullying: {
+    tiempoEstimado: '5 a 8 minutos',
+    objetivo: 'Conocer cómo percibís la convivencia y el trato entre compañeros/as en tu colegio.',
+    deQueTrata:
+      '12 preguntas de opción múltiple sobre situaciones de intimidación entre estudiantes; algunas te dejan elegir más de una respuesta.',
+  },
 };

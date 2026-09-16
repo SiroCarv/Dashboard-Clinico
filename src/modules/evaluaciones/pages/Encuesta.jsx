@@ -46,6 +46,7 @@ import { INSTRUMENTO_ANSIEDAD } from '../data/ansiedadData';
 import { INSTRUMENTO_DEPRESION } from '../data/depresionData';
 import { INSTRUMENTO_APGAR_FAMILIAR } from '../data/apgarFamiliarData';
 import { INSTRUMENTO_RIESGO_SUICIDA } from '../data/riesgoSuicidaData';
+import { INSTRUMENTO_BULLYING } from '../data/bullyingData';
 import { INFO_INSTRUMENTO } from '../data/infoInstrumentos';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
@@ -110,6 +111,16 @@ const TABS = [
     etiqueta: 'Riesgo Suicida',
     instrumento: INSTRUMENTO_RIESGO_SUICIDA,
     acento: COLOR_MARCA.purpura,
+  },
+  // NUEVO — historia "Cuestionario de Bullying para Estudiantes". Nunca
+  // se agrega a TABS_PERSONA_PARTICULAR más abajo (ver nota del comentario
+  // de archivo, arriba).
+  {
+    id: 'bullying',
+    tipoInstrumento: 'BULLYING',
+    etiqueta: 'Bullying',
+    instrumento: INSTRUMENTO_BULLYING,
+    acento: COLOR_MARCA.cian,
   },
 ];
 
