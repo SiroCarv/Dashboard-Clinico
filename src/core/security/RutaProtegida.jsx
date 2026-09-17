@@ -70,6 +70,25 @@ export default function RutaProtegida({ children, rolRequerido }) {
     };
 
     verificarAcceso();
+
+    // Si la sesión se cierra DESPUÉS de que esta pantalla ya se mostró —
+    // ej.: otra pestaña de la misma cuenta abrió "sesión única"
+    // (GuardianDeSesion.jsx) y disparó signOut() ahí — Supabase
+    // sincroniza ese cierre acá porque ambas pestañas comparten el mismo
+    // localStorage. Antes esta pantalla se quedaba mostrada igual, y
+    // cada acción fallaba en silencio con un error de permisos confuso
+    // en vez de sacar a la persona a Login. Esta suscripción detecta ese
+    // cierre y fuerza la redirección (ver el chequeo de rolUsuario más
+    // abajo, que ya sabe mandar a "/" cuando no hay rol).
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') {
+        setRolUsuario(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   // Pantalla de carga mientras lee la base de datos
