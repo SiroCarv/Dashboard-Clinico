@@ -110,10 +110,14 @@ export default function PanelMaestro() {
       await cargarInstituciones();
       setInstitucionAEliminar(null);
     } catch (err) {
-      // El error más común acá es la FK sin ON DELETE CASCADE: no se
-      // puede borrar una institución con psicólogos o pacientes
-      // vinculados, a propósito, para no dejar registros huérfanos.
-      alert('Error al eliminar. Puede que haya psicólogos o pacientes asignados a esta institución.');
+      // Desde la extensión de "Gestión de instituciones" (set. 2026) el
+      // borrado ya NO debería fallar por psicólogos/pacientes/reportes
+      // vinculados: las FKs hacen cascada a nivel de base de datos (ver
+      // SQL de esa sesión). Si esto igual dispara, es un error real
+      // (permisos, red, etc.) y se muestra con el banner del sistema
+      // visual en vez del alert() nativo que se usaba antes.
+      setInstitucionAEliminar(null);
+      setError('No se pudo eliminar la institución. Intentá de nuevo.');
       console.error(err);
     }
   };
@@ -214,7 +218,7 @@ export default function PanelMaestro() {
           titulo="¿Eliminar esta institución?"
           mensaje={
             institucionAEliminar
-              ? `Esta acción no se puede deshacer. Se eliminará "${institucionAEliminar.nombre}" y su código de acceso dejará de funcionar.`
+              ? `Esta acción no se puede deshacer. Se eliminará "${institucionAEliminar.nombre}" y su código de acceso dejará de funcionar. Se quitarán las asignaciones de psicólogos a esta institución, y los pacientes y reportes vinculados quedarán sin institución (conservan su cuenta y su historial).`
               : ''
           }
           onConfirm={confirmarEliminarInstitucion}

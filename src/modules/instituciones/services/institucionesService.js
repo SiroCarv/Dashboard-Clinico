@@ -47,7 +47,11 @@ export const institucionesService = {
   },
 
   async deleteInstitucion(id) {
+    // Las FKs que apuntan a instituciones (usuarios, psicologo_institucion,
+    // reportes_docente) hacen borrado en cascada a nivel de base de datos
+    // desde la extensión de set. 2026. Si esto igual lanza error, no es
+    // por personal/pacientes/reportes vinculados — ver el error real.
     const { error } = await supabase.from(TABLA).delete().eq('id', id);
-    if (error) throw error; // 23503 si tiene psicólogos/pacientes vinculados (FK sin ON DELETE CASCADE, a propósito)
+    if (error) throw error;
   },
 };
