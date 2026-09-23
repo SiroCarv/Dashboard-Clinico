@@ -83,9 +83,13 @@ function App() {
             institución que Registro.jsx, sin campos de estudiante. */}
         <Route path="/registro-docente" element={<RutaPublica><RegistroDocente /></RutaPublica>} />
 
-        {/* Registro e inicio de sesión de Persona Particular (NUEVO):
-            código de Centro de Salud + carnet/PIN, sin correo — ver
-            personasParticularesService.js. */}
+        {/* Registro e inicio de sesión de Persona Particular: código de
+            Centro de Salud + carnet/PIN, sin correo — ver
+            personasParticularesService.js. Ruta dinámica con :codigo
+            (igual que /registro/:codigo) para que el enlace que copia
+            "Copiar Enlace" en el Panel Maestro, para una institución
+            tipo Centro de Salud, llegue con el código ya precargado. */}
+        <Route path="/registro-particular/:codigo" element={<RutaPublica><RegistroPersonaParticular /></RutaPublica>} />
         <Route path="/registro-particular" element={<RutaPublica><RegistroPersonaParticular /></RutaPublica>} />
         <Route path="/login-particular" element={<RutaPublica><LoginPersonaParticular /></RutaPublica>} />
 

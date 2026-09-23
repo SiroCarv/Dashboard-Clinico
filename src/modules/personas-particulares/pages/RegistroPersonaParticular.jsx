@@ -5,8 +5,21 @@
 // RegistroDocente.jsx (verificación en vivo, debounce de 500ms, todo el
 // resto del formulario deshabilitado hasta tener un código válido), con
 // una diferencia: acá el código DEBE pertenecer a una institución tipo
-// Centro de Salud — un código de colegio se trata como inválido, con un
-// mensaje propio (ver personasParticularesService.buscarCentroDeSalud).
+// Centro de Salud — un código de colegio (u otro tipo) se trata como
+// inválido, con un mensaje propio (ver
+// personasParticularesService.buscarCentroDeSalud).
+//
+// Entrada al formulario, dos formas (igual que Registro.jsx):
+//   - /registro-particular/:codigo -> viene del botón "Copiar Enlace"
+//     del Panel Maestro (InstitucionList.jsx) para una institución tipo
+//     Centro de Salud. El código llega precargado y se valida
+//     automáticamente (esCodigoDeEnlace), sin el delay de 500ms.
+//   - /registro-particular a secas -> la persona escribe el código a
+//     mano (llegando desde Bienvenida, "Soy Persona Particular").
+// Antes de este cambio esta pantalla no soportaba código por URL, y el
+// botón "Copiar Enlace" del Panel Maestro armaba SIEMPRE el enlace de
+// Estudiante (/registro/:codigo), que filtra por Unidad Educativa — el
+// enlace copiado para un Centro de Salud nunca podía resolverse.
 //
 // Sin correo, sin contraseña: en su lugar, Carnet de Identidad (queda
 // como identificador de acceso) + PIN de 6 dígitos (ver
@@ -22,7 +35,7 @@
 // nombre, y la columna `usuarios.nombre` ya existe y la usan el resto de
 // roles.
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useParams } from 'react-router-dom';
 import { personasParticularesService, LONGITUD_PIN } from '../services/personasParticularesService';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 import logo from '../../../shared/assets/logo.webp';
@@ -43,10 +56,19 @@ const IconoOjoCerrado = () => (
 );
 
 export default function RegistroPersonaParticular() {
-  const [codigoIngresado, setCodigoIngresado] = useState('');
+  const { codigo: codigoDeRuta } = useParams();
+
+  // Soporta tanto /registro-particular/:codigo como /registro-particular a secas.
+  const codigoInicial = (codigoDeRuta || '').trim().toUpperCase();
+
+  const [codigoIngresado, setCodigoIngresado] = useState(codigoInicial);
   const [institucion, setInstitucion] = useState(null);
   const [codigoTipoIncorrecto, setCodigoTipoIncorrecto] = useState(false);
   const [buscandoCodigo, setBuscandoCodigo] = useState(false);
+  const [validandoEnlace, setValidandoEnlace] = useState(!!codigoInicial);
+
+  const esCodigoDeEnlace =
+    !!codigoInicial && codigoIngresado.trim().toUpperCase() === codigoInicial;
 
   const [nombre, setNombre] = useState('');
   const [telefono, setTelefono] = useState('');
@@ -71,14 +93,25 @@ export default function RegistroPersonaParticular() {
 
   const pinValido = new RegExp(`^\\d{${LONGITUD_PIN}}$`).test(pin);
 
-  // Verificación en vivo del código, igual patrón que RegistroDocente.jsx.
+  // Verificación en vivo del código de Centro de Salud: espera 500ms
+  // desde la última tecla (para no pegarle a Supabase en cada carácter)
+  // salvo la primera vez que llega un código desde la URL, que se valida
+  // sin demora (delay = 0) para no mostrar la pantalla de "verificando"
+  // más tiempo del necesario — mismo patrón que Registro.jsx.
   useEffect(() => {
     const codigoLimpio = codigoIngresado.trim().toUpperCase();
 
     if (!codigoLimpio) {
+      // El reseteo visible (institucion/buscandoCodigo/validandoEnlace) ya
+      // se hizo de forma inmediata en handleCodigoChange cuando el usuario
+      // borra el campo. Acá solo queda marcar que ya pasó el primer render
+      // para que la próxima búsqueda real no tenga el delay de 500ms.
       primerRenderRef.current = false;
       return;
     }
+
+    const delay = primerRenderRef.current ? 0 : 500;
+    primerRenderRef.current = false;
 
     const timeoutId = setTimeout(async () => {
       try {
@@ -92,8 +125,9 @@ export default function RegistroPersonaParticular() {
         setCodigoTipoIncorrecto(false);
       } finally {
         setBuscandoCodigo(false);
+        setValidandoEnlace(false);
       }
-    }, 500);
+    }, delay);
 
     return () => clearTimeout(timeoutId);
   }, [codigoIngresado]);
@@ -103,10 +137,14 @@ export default function RegistroPersonaParticular() {
     setCodigoIngresado(nuevoValor);
 
     if (!nuevoValor.trim()) {
+      // Código borrado: reseteamos de inmediato (sin esperar al debounce
+      // del efecto) desde el propio evento, igual que Registro.jsx.
       setInstitucion(null);
       setCodigoTipoIncorrecto(false);
       setBuscandoCodigo(false);
+      setValidandoEnlace(false);
     } else {
+      // Feedback inmediato de "verificando" apenas el usuario escribe algo.
       setBuscandoCodigo(true);
     }
   };
@@ -170,6 +208,14 @@ export default function RegistroPersonaParticular() {
     }
   };
 
+  if (validandoEnlace) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-violet-50">
+        <p className="text-gray-600 font-bold">Verificando enlace del Centro de Salud...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-violet-50 p-4 relative overflow-hidden">
       <div
@@ -194,6 +240,30 @@ export default function RegistroPersonaParticular() {
         {error && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-center text-sm font-semibold">
             {error}
+          </div>
+        )}
+
+        {/* Código inválido: o bien vino de un enlace roto (URL), o la
+            persona ya escribió algo que, una vez verificado contra
+            Supabase, no corresponde a ningún Centro de Salud. Igual que
+            Registro.jsx, a propósito no se muestra solo porque el campo
+            esté vacío al entrar sin enlace. */}
+        {!institucion && !buscandoCodigo && (esCodigoDeEnlace || codigoIngresado.trim().length > 0) && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-center shadow-sm">
+            <p className="font-bold">
+              ⚠️ {esCodigoDeEnlace
+                ? 'Enlace de registro inválido'
+                : codigoTipoIncorrecto
+                  ? 'Código de otro tipo de institución'
+                  : 'Código no encontrado'}
+            </p>
+            <p className="text-sm mt-1">
+              {esCodigoDeEnlace
+                ? 'El código de este enlace no es válido. Verifica con tu Centro de Salud o corrígelo abajo.'
+                : codigoTipoIncorrecto
+                  ? 'Ese código pertenece a un colegio, no a un Centro de Salud.'
+                  : 'El código que escribiste no corresponde a ningún Centro de Salud registrado. Verifica que esté bien escrito.'}
+            </p>
           </div>
         )}
 

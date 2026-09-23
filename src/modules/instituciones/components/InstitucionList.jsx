@@ -1,11 +1,21 @@
 // Pestaña "Instituciones" del Panel Maestro: tabla con búsqueda por
 // nombre/código, filtro por tipo de institución, badge de tipo, botón
-// para copiar el enlace de registro (`/registro/:codigo`) al
-// portapapeles, badge de código clickeable para copiar solo el código,
-// y las acciones de editar/eliminar que delegan en el padre
-// (PanelMaestro.jsx) vía props. Este componente no habla con Supabase
-// directamente — solo recibe `instituciones` ya cargadas y notifica
-// intenciones (onEdit, onDelete).
+// para copiar el enlace de registro al portapapeles, badge de código
+// clickeable para copiar solo el código, y las acciones de editar/
+// eliminar que delegan en el padre (PanelMaestro.jsx) vía props. Este
+// componente no habla con Supabase directamente — solo recibe
+// `instituciones` ya cargadas y notifica intenciones (onEdit, onDelete).
+//
+// El enlace de registro NO es el mismo para todos los tipos de
+// institución: Centro de Salud usa el flujo de Persona Particular
+// (/registro-particular/:codigo), y todo lo demás (Unidad Educativa,
+// "Institución" genérica sin flujo propio todavía, o instituciones
+// antiguas sin tipo guardado) usa el flujo de Estudiante
+// (/registro/:codigo). Antes de este cambio SIEMPRE se armaba el
+// enlace de Estudiante, que filtra explícitamente por
+// tipo_institucion = 'unidad_educativa' — el enlace copiado para
+// cualquier Centro de Salud nunca podía resolverse, sin importar qué
+// tan bien estuviera escrito el código (ver historia de corrección).
 import { useState, useMemo } from 'react';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 import { TIPOS_INSTITUCION, TIPO_POR_DEFECTO, obtenerLabelTipo } from '../data/tiposInstitucion';
@@ -24,7 +34,12 @@ export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
   const [filtroTipo, setFiltroTipo] = useState(FILTRO_TIPO_TODOS);
 
   const copiarEnlace = async (inst) => {
-    const enlace = `${window.location.origin}/registro/${inst.codigo_registro}`;
+    // "Institución" genérica todavía no tiene su propio flujo de
+    // registro de paciente (ver dashboard-clinico.md, pendientes) —
+    // comparte el de Estudiante por ahora, igual que antes de este
+    // cambio, hasta que exista una historia para ese tipo.
+    const rutaBase = inst.tipo_institucion === 'centro_salud' ? '/registro-particular' : '/registro';
+    const enlace = `${window.location.origin}${rutaBase}/${inst.codigo_registro}`;
     try {
       await navigator.clipboard.writeText(enlace);
       setEnlaceCopiadoId(inst.id);
