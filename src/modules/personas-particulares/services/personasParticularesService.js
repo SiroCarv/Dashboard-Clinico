@@ -118,6 +118,17 @@ export const personasParticularesService = {
     ]);
 
     if (userError) throw userError;
+
+    // Sin este signOut, la cuenta recién creada queda autenticada en el
+    // navegador (signUp con confirmación de email desactivada inicia
+    // sesión de inmediato — necesario acá porque el email es sintético y
+    // jamás podría confirmarse por correo real). Como esta pantalla se
+    // usa en la recepción de un Centro de Salud, registrando a varios
+    // pacientes seguidos en el mismo equipo, esa sesión colgada hacía que
+    // RutaPublica mandara al próximo paciente directo al panel del
+    // paciente anterior en vez de dejarlo ver el formulario de registro o
+    // de login — bug reportado por un Centro de Salud real, sept. 2026.
+    await supabase.auth.signOut();
   },
 
   /**

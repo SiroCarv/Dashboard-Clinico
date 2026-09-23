@@ -162,6 +162,15 @@ export default function RegistroDocente() {
 
       if (userError) throw userError;
 
+      // Sin este signOut, la cuenta recién creada queda autenticada en el
+      // navegador (signUp inicia sesión de inmediato) y RutaPublica
+      // bloquea el próximo registro/login en el mismo equipo, mandándolo
+      // al panel de esta cuenta en vez de la pantalla pública que
+      // corresponde. Ver comentario extendido en
+      // personasParticularesService.js (registrar) — mismo bug, mismo
+      // arreglo, distinto rol.
+      await supabase.auth.signOut();
+
       navigate('/login', {
         state: { mensajeRegistro: '¡Cuenta registrada exitosamente! Ya puedes iniciar sesión.' },
       });
