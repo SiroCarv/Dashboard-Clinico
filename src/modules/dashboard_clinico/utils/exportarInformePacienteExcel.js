@@ -5,10 +5,17 @@
 // pantalla de Informe Consolidado.
 import { exportarAExcel } from '../../../shared/utils/exportarExcel';
 import { obtenerNombreMostrado } from '../../../shared/utils/identidadUsuario';
+import { obtenerTextoPregunta, formatearRespuesta } from './respuestasInforme';
 
 const ETIQUETA_INSTRUMENTO = {
   CLIMA_AULA: 'Cuestionario de Clima de Aula',
   GSHS: 'Encuesta Mundial de Salud a Escolares (GSHS)',
+  ESTRES: 'Estrés',
+  ANSIEDAD: 'Ansiedad',
+  DEPRESION: 'Depresión',
+  APGAR_FAMILIAR: 'Cuidado Primario De Salud Familiar',
+  RIESGO_SUICIDA: 'Riesgo Suicida',
+  BULLYING: 'Bullying',
 };
 
 function formatearFecha(fechaIso) {
@@ -55,12 +62,8 @@ export async function exportarInformePacienteAExcel(paciente, instrumentos) {
       'Fecha de envío': formatearFecha(registro.fecha_registro),
       Módulo: respuesta.modulo,
       'N° pregunta': respuesta.numero,
-      Respuesta:
-        typeof respuesta.valor === 'boolean'
-          ? respuesta.valor
-            ? 'Verdadero'
-            : 'Falso'
-          : respuesta.valor,
+      Pregunta: obtenerTextoPregunta(registro.tipo_instrumento, respuesta.modulo, respuesta.numero),
+      Respuesta: formatearRespuesta(respuesta.valor, '; '),
     }))
   );
 

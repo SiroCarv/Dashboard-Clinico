@@ -10,7 +10,7 @@
 import { useState } from 'react';
 import { COLOR_MARCA, ESTILOS_CATEGORIA_CLIMA_AULA } from '../../../shared/theme/paletaColores';
 import { obtenerNombreMostrado } from '../../../shared/utils/identidadUsuario';
-import { INSTRUMENTO_CLIMA_AULA, INSTRUMENTO_GSHS } from '../../evaluaciones';
+import { obtenerTextoPregunta, formatearRespuesta } from '../utils/respuestasInforme';
 import LeyendaClimaAula from './LeyendaClimaAula';
 
 const ETIQUETA_INSTRUMENTO = {
@@ -26,6 +26,7 @@ const ETIQUETA_INSTRUMENTO = {
   DEPRESION: 'Depresión',
   APGAR_FAMILIAR: 'Cuidado Primario De Salud Familiar',
   RIESGO_SUICIDA: 'Riesgo Suicida',
+  BULLYING: 'Bullying',
 };
 
 const ACENTO_INSTRUMENTO = {
@@ -36,32 +37,10 @@ const ACENTO_INSTRUMENTO = {
   DEPRESION: COLOR_MARCA.fucsia,
   APGAR_FAMILIAR: COLOR_MARCA.rosa,
   RIESGO_SUICIDA: COLOR_MARCA.purpura,
+  BULLYING: COLOR_MARCA.cian,
 };
 
 const PUNTAJE_MAXIMO_CLIMA_AULA = 20;
-
-// `respuestas_json` solo guarda { modulo, numero, valor } por cada
-// respuesta — nunca el enunciado de la pregunta (ver el comentario sobre
-// el trigger de alerta en evaluaciones/data/gshsData.js: el cálculo
-// compara por texto exacto de módulo/número/valor, no busca el
-// enunciado). Para mostrar la pregunta real en el informe hay que
-// volver a buscarla en la definición del instrumento correspondiente,
-// cruzando por módulo + número.
-const INSTRUMENTOS_POR_TIPO = {
-  CLIMA_AULA: INSTRUMENTO_CLIMA_AULA,
-  GSHS: INSTRUMENTO_GSHS,
-};
-
-// Si no encuentra la pregunta (ej. el instrumento cambió de contenido
-// después de que este paciente respondió), cae de vuelta a "Pregunta N"
-// en lugar de romper el informe — nunca deja el valor de la respuesta
-// sin una etiqueta al lado.
-function obtenerTextoPregunta(tipoInstrumento, modulo, numero) {
-  const instrumento = INSTRUMENTOS_POR_TIPO[tipoInstrumento];
-  const seccion = instrumento?.secciones.find((s) => s.titulo === modulo);
-  const item = seccion?.items.find((i) => i.numero === numero);
-  return item?.texto ?? `Pregunta ${numero}`;
-}
 
 // Agrupa las respuestas planas (una fila por pregunta) en bloques
 // consecutivos por módulo, para mostrar el encabezado de tema solo
@@ -70,7 +49,7 @@ function obtenerTextoPregunta(tipoInstrumento, modulo, numero) {
 function agruparPorModulo(respuestas) {
   const grupos = [];
   (respuestas ?? []).forEach((r) => {
-    const valorMostrado = typeof r.valor === 'boolean' ? (r.valor ? 'Verdadero' : 'Falso') : r.valor;
+    const valorMostrado = formatearRespuesta(r.valor);
     const ultimo = grupos[grupos.length - 1];
     if (ultimo && ultimo.modulo === r.modulo) {
       ultimo.items.push({ ...r, valorMostrado });
