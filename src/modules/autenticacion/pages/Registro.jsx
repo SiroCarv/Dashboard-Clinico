@@ -9,29 +9,27 @@
 //
 // El código de institución se verifica en vivo contra Supabase con un
 // debounce de 500ms (no en cada tecla) mientras el usuario escribe, y
-// TODO el resto del formulario (curso, paralelo, turno, género, correo,
+// TODO el resto del formulario (nombre, curso, paralelo, turno, género,
 // contraseña) queda deshabilitado hasta que el código sea válido —así
 // nunca se puede armar una cuenta a medias sin institución real detrás.
 //
-// Requisitos de composición (mayúscula/minúscula/número/símbolo + 8
-// caracteres mínimo): política única para TODA la plataforma, ver
-// shared/utils/validarPasswordSegura.js. Es la única validación de
-// contraseña de esta pantalla — el chequeo contra bases de datos de
-// contraseñas filtradas (HaveIBeenPwned) que existía antes se retiró
-// por decisión del cliente, al considerar suficiente esta política de
-// composición + longitud mínima.
+// El estudiante NO usa correo: se registra con su nombre completo, el
+// código de institución y una contraseña que él elige (mínimo 6
+// caracteres, sin exigencias de composición: es la única pantalla con
+// esta política más simple, por decisión del cliente). Al terminar, el
+// sistema le asigna su CÓDIGO DE ESTUDIANTE (UNI-000123), que es con lo
+// que inicia sesión; se le muestra una sola vez en pantalla para que lo
+// anote. No hay recuperación de contraseña para estudiantes por ahora.
 //
-// Al enviar: crea el usuario en Supabase Auth y, en el mismo flujo,
-// inserta su fila en `usuarios` con institucion_id ya resuelto.
-// codigo_estudiante NUNCA se manda desde acá: lo asigna el trigger
-// `asignar_codigo_estudiante()` en el servidor (ver migración SCRUM-33),
-// para que el cliente no pueda inventarse ni repetir un código.
-import { useState, useEffect, useMemo, useRef } from 'react';
+// Todo el alta (verificación del código, creación de la cuenta y
+// asignación del código de estudiante) ocurre en el servidor, en la Edge
+// Function `registrar-estudiante` — ver registroEstudianteService.js.
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
-import { validarPasswordSegura, LONGITUD_MINIMA_PASSWORD } from '../../../shared/utils/validarPasswordSegura';
-import { ChecklistPasswordSegura } from '../../../shared/components/ChecklistPasswordSegura';
+import { registrarEstudiante } from '../services/registroEstudianteService';
+import { LONGITUD_MINIMA_PASSWORD_ESTUDIANTE } from '../data/accesoEstudiante';
 
 const OPCIONES_CURSO = [
   '1ro de Secundaria',
@@ -63,7 +61,7 @@ export default function Registro() {
 
   const primerRenderRef = useRef(true);
 
-  const [email, setEmail] = useState('');
+  const [nombre, setNombre] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -77,10 +75,11 @@ export default function Registro() {
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [codigoCreado, setCodigoCreado] = useState('');
 
   const navigate = useNavigate();
 
-  const validacionPassword = useMemo(() => validarPasswordSegura(password), [password]);
+  const passwordValida = password.length >= LONGITUD_MINIMA_PASSWORD_ESTUDIANTE;
 
   // Verificación en vivo del código de institución: espera 500ms desde la
   // última tecla (para no pegarle a Supabase en cada carácter) salvo la
@@ -164,95 +163,47 @@ export default function Registro() {
       return;
     }
 
-    // Respaldo en JS del required nativo de los 4 selects nuevos,
+    const nombreLimpio = nombre.trim().replace(/\s+/g, ' ');
+    if (nombreLimpio.length < 3) {
+      setError('Escribe tu nombre completo.');
+      return;
+    }
+
+    // Respaldo en JS del required nativo de los 4 selects,
     // por si el navegador no lo aplica antes del submit.
     if (!curso || !paralelo || !turno || !genero) {
       setError('Por favor, completa curso, paralelo, turno y género.');
       return;
     }
 
-    setLoading(true);
-    setError('');
-
-    const cleanedEmail = email.trim().replace(/\s+/g, '');
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRegex.test(cleanedEmail)) {
-      setError('Por favor, ingresa un correo electrónico válido (ej. usuario@gmail.com).');
-      setLoading(false);
-      return;
-    }
-
-    if (!validarPasswordSegura(password).esValida) {
-      setError(
-        `La contraseña debe tener al menos ${LONGITUD_MINIMA_PASSWORD} caracteres e incluir mayúscula, minúscula, número y símbolo.`
-      );
-      setLoading(false);
+    if (!passwordValida) {
+      setError(`La contraseña debe tener al menos ${LONGITUD_MINIMA_PASSWORD_ESTUDIANTE} caracteres.`);
       return;
     }
 
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden. Por favor, verifica.');
-      setLoading(false);
       return;
     }
 
+    setLoading(true);
+    setError('');
+
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: cleanedEmail,
-        password: password,
+      const { codigo_estudiante: codigo } = await registrarEstudiante({
+        nombre: nombreLimpio,
+        codigoInstitucion: codigoIngresado.trim().toUpperCase(),
+        password,
+        curso,
+        paralelo,
+        turno,
+        genero,
       });
-
-      if (authError) {
-        const esCorreoDuplicado =
-          authError.message?.toLowerCase().includes('already registered') ||
-          authError.code === 'user_already_exists';
-
-        if (esCorreoDuplicado) {
-          throw new Error('Este correo ya está registrado');
-        }
-        throw authError;
-      }
-
-      if (!authData.user) {
-        throw new Error('Error al crear el usuario. Intente nuevamente.');
-      }
-
-      // Vinculamos al paciente con la institución detectada. codigo_estudiante
-      // NO se envía: lo asigna el trigger asignar_codigo_estudiante() en el
-      // servidor (ver migración SCRUM-33), nunca el cliente.
-      const { error: userError } = await supabase
-        .from('usuarios')
-        .insert([
-          {
-            id: authData.user.id,
-            rol: 'paciente',
-            institucion_id: institucion.id,
-            email: cleanedEmail,
-            curso,
-            paralelo,
-            turno,
-            genero,
-          },
-        ]);
-
-      if (userError) throw userError;
-
-      // Sin este signOut, la cuenta recién creada queda autenticada en el
-      // navegador (signUp inicia sesión de inmediato) y RutaPublica
-      // bloquea el próximo registro/login en el mismo equipo, mandándolo
-      // al panel de esta cuenta en vez de la pantalla pública que
-      // corresponde. Ver comentario extendido en
-      // personasParticularesService.js (registrar) — mismo bug, mismo
-      // arreglo, distinto rol.
-      await supabase.auth.signOut();
-
-      navigate('/login', {
-        state: { mensajeRegistro: '¡Cuenta registrada exitosamente! Ya puedes iniciar sesión.' },
-      });
+      setCodigoCreado(codigo);
     } catch (err) {
       console.error('Error en el registro:', err.message);
-      setError(err.message === 'Este correo ya está registrado' ? err.message : 'Ocurrió un error al registrar la cuenta.');
+      setError(err.message || 'Ocurrió un error al registrar la cuenta.');
+    } finally {
       setLoading(false);
     }
   };
@@ -261,6 +212,45 @@ export default function Registro() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-violet-50">
         <p className="text-gray-600 font-bold">Verificando enlace institucional...</p>
+      </div>
+    );
+  }
+
+  if (codigoCreado) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-violet-50 p-4 relative overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-40"
+          style={{ backgroundImage: `url(${FONDO_PLATAFORMA})` }}
+          aria-hidden="true"
+        />
+        <div className="relative z-10 max-w-md w-full bg-white p-8 border-t-8 border-violet-400 rounded-lg shadow-xl">
+          <div className="text-center mb-6">
+            <h2 className="text-3xl font-extrabold text-black">¡Cuenta creada!</h2>
+            <p className="text-gray-500 mt-2 font-medium">Este es tu código de estudiante</p>
+          </div>
+
+          <div className="p-4 bg-green-50 border border-green-200 text-green-800 rounded-md text-center shadow-sm">
+            <p className="text-3xl font-extrabold tracking-widest">{codigoCreado}</p>
+          </div>
+
+          <div className="mt-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-center shadow-sm">
+            <p className="font-bold">⚠️ Anótalo ahora</p>
+            <p className="text-sm mt-1">
+              Con este código y tu contraseña vas a iniciar sesión. Si lo pierdes o olvidas tu contraseña, no podrás recuperar la cuenta.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => navigate('/login', {
+              state: { mensajeRegistro: '¡Cuenta registrada exitosamente! Ingresa con tu código de estudiante.' },
+            })}
+            className="mt-6 w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide flex justify-center items-center bg-orange-700 hover:bg-orange-800"
+          >
+            Ir a iniciar sesión
+          </button>
+        </div>
       </div>
     );
   }
@@ -361,6 +351,23 @@ export default function Registro() {
             </div>
           )}
 
+          <div>
+            <label className="block text-sm font-bold text-black mb-1">
+              Nombre Completo
+            </label>
+            <input
+              type="text"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              required
+              disabled={!institucion}
+              maxLength={120}
+              autoComplete="name"
+              placeholder="Ej. María Pérez Gómez"
+              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold text-black mb-1">
@@ -437,23 +444,6 @@ export default function Registro() {
 
           <div>
             <label className="block text-sm font-bold text-black mb-1">
-              Correo Electrónico
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={!institucion}
-              pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
-              title="Debe incluir un dominio válido (ej. .com, .es)"
-              placeholder="usuario@gmail.com"
-              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 disabled:bg-gray-100 disabled:text-gray-400"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-black mb-1">
               Contraseña
             </label>
             <div className="relative">
@@ -462,11 +452,11 @@ export default function Registro() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={LONGITUD_MINIMA_PASSWORD}
+                minLength={LONGITUD_MINIMA_PASSWORD_ESTUDIANTE}
                 disabled={!institucion}
                 placeholder="••••••••"
                 className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800 pr-12 disabled:bg-gray-100 ${
-                  validacionPassword.esValida ? 'border-green-500 bg-green-50' : 'border-gray-300'
+                  passwordValida ? 'border-green-500 bg-green-50' : 'border-gray-300'
                 }`}
               />
               <button
@@ -483,7 +473,7 @@ export default function Registro() {
                 )}
               </button>
             </div>
-            {password.length > 0 && <ChecklistPasswordSegura requisitos={validacionPassword.requisitos} />}
+            <p className="text-xs mt-1 text-gray-400">Mínimo {LONGITUD_MINIMA_PASSWORD_ESTUDIANTE} caracteres.</p>
           </div>
 
           <div>
@@ -523,9 +513,9 @@ export default function Registro() {
 
           <button
             type="submit"
-            disabled={loading || !institucion || !validacionPassword.esValida}
+            disabled={loading || !institucion || !passwordValida}
             className={`w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide flex justify-center items-center ${
-              loading || !institucion || !validacionPassword.esValida
+              loading || !institucion || !passwordValida
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-orange-700 hover:bg-orange-800'
             }`}

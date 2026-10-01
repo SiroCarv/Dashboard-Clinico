@@ -2,8 +2,16 @@
 // (si ya hay sesión activa, nunca llega a mostrarse).
 //
 // Flujo de handleLogin, en orden:
-//   1. Valida formato de correo en el cliente (respaldo del `pattern`
-//      nativo del input).
+//   1. Identifica qué escribió la persona: un correo (psicólogo, docente,
+//      superadmin, estudiantes antiguos con correo) o un CÓDIGO DE
+//      ESTUDIANTE (UNI-000123, estudiantes registrados sin correo). Un
+//      código se convierte en el correo interno con el que Supabase Auth
+//      conoce a ese estudiante (ver data/accesoEstudiante.js); un correo
+//      se valida por formato. Los ESTUDIANTES solo entran con código: el
+//      correo interno con el que Auth los conoce no se acepta escrito a
+//      mano, y si una cuenta de estudiante llegara a autenticarse con un
+//      correo (cuenta antigua sin migrar), se cierra la sesión y se le
+//      indica que use su código (paso 3b).
 //   2. Autentica contra Supabase Auth (`signInWithPassword`).
 //   3. Busca el rol en `usuarios` — si no tiene un rol reconocido,
 //      corta acá con un error explícito (nunca asume "paciente" por
@@ -28,6 +36,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 import { RUTA_POR_DEFECTO } from '../../../core/security/rutasPorDefecto';
+import { esCodigoEstudiante, correoInternoDeCodigo, esCorreoInternoEstudiante } from '../data/accesoEstudiante';
 import logo from '../../../shared/assets/logo.webp';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
@@ -74,13 +83,19 @@ export default function Login() {
     setLoading(true);
     setError('');
 
-    const cleanedEmail = email.trim().replace(/\s+/g, '');
+    const identificador = email.trim().replace(/\s+/g, '');
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(cleanedEmail)) {
-      setError('Por favor, ingresa un correo electrónico válido (ej. usuario@gmail.com).');
-      setLoading(false);
-      return;
+    let cleanedEmail;
+    if (esCodigoEstudiante(identificador)) {
+      cleanedEmail = correoInternoDeCodigo(identificador);
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(identificador) || esCorreoInternoEstudiante(identificador)) {
+        setError('Ingresa un correo válido (ej. usuario@gmail.com) o tu código de estudiante (ej. UNI-000123).');
+        setLoading(false);
+        return;
+      }
+      cleanedEmail = identificador;
     }
 
     try {
@@ -98,6 +113,13 @@ export default function Login() {
         .single();
 
       if (userError) throw userError;
+
+      // Los estudiantes solo entran con su código de estudiante.
+      if (userData?.rol === 'paciente' && !esCodigoEstudiante(identificador)) {
+        await supabase.auth.signOut();
+        setError('Los estudiantes ingresan con su código de estudiante (ej. UNI-000123), no con correo.');
+        return;
+      }
 
       const rutaDestino = RUTA_POR_DEFECTO[userData?.rol];
 
@@ -257,18 +279,19 @@ export default function Login() {
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label className="block text-sm font-bold text-black mb-1">
-              Correo Electrónico
+              Correo o Código de Estudiante
             </label>
             <input 
-              type="email" 
+              type="text" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
-              title="Debe incluir un dominio válido (ej. .com, .es)"
-              placeholder="usuario@gmail.com"
+              autoComplete="username"
+              autoCapitalize="none"
+              placeholder="usuario@gmail.com o UNI-000123"
               className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-700 focus:border-orange-700 outline-none transition-all text-gray-800"
             />
+            <p className="text-xs mt-1 text-gray-400">Estudiantes: ingresa tu código de estudiante.</p>
           </div>
           
           <div>
