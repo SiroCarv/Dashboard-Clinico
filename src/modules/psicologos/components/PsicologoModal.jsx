@@ -19,6 +19,7 @@
 import { useState, useMemo } from 'react';
 import { validarPasswordSegura, LONGITUD_MINIMA_PASSWORD } from '../../../shared/utils/validarPasswordSegura';
 import { ChecklistPasswordSegura } from '../../../shared/components/ChecklistPasswordSegura';
+import { OPCIONES_TURNO_PSICOLOGO } from '../data/turnosPsicologo';
 
 export const PsicologoModal = ({ isOpen, onClose, onSave, psicologoEditado }) => {
   if (!isOpen) return null;
@@ -37,6 +38,7 @@ function PsicologoModalContenido({ onClose, onSave, psicologoEditado }) {
 
   const [nombre, setNombre] = useState(psicologoEditado?.nombre || '');
   const [correo, setCorreo] = useState(psicologoEditado?.email || '');
+  const [turnoPsicologo, setTurnoPsicologo] = useState(psicologoEditado?.turno_psicologo || '');
   const [passwordTemporal, setPasswordTemporal] = useState('');
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -56,7 +58,7 @@ function PsicologoModalContenido({ onClose, onSave, psicologoEditado }) {
     }
 
     setLoading(true);
-    await onSave({ nombre, correo, passwordTemporal });
+    await onSave({ nombre, correo, passwordTemporal, turnoPsicologo });
     setLoading(false);
   };
 
@@ -104,6 +106,23 @@ function PsicologoModalContenido({ onClose, onSave, psicologoEditado }) {
                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
                 placeholder="psicologo@clinica.com"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-black mb-1">Turno / Cargo</label>
+              <select
+                required
+                value={turnoPsicologo}
+                onChange={(e) => setTurnoPsicologo(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800 bg-white"
+              >
+                <option value="" disabled>Selecciona una opción</option>
+                {OPCIONES_TURNO_PSICOLOGO.map((opcion) => (
+                  <option key={opcion.valor} value={opcion.valor}>
+                    {opcion.etiqueta}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {!enEdicion && (

@@ -46,16 +46,22 @@ async function invocarFuncion(nombre, body) {
 }
 
 export const psicologosService = {
-  async crear({ nombre, correo, passwordTemporal }) {
+  async crear({ nombre, correo, passwordTemporal, turnoPsicologo }) {
     return invocarFuncion('crear-psicologo', {
       nombre,
       email: correo,
       password: passwordTemporal,
+      turno_psicologo: turnoPsicologo,
     });
   },
 
-  async editar(id, { nombre, correo }) {
-    return invocarFuncion('editar-psicologo', { id, nombre, email: correo });
+  async editar(id, { nombre, correo, turnoPsicologo }) {
+    return invocarFuncion('editar-psicologo', {
+      id,
+      nombre,
+      email: correo,
+      turno_psicologo: turnoPsicologo,
+    });
   },
 
   async eliminar(id) {
@@ -72,7 +78,7 @@ export const psicologosService = {
   async listarTodos() {
     const { data, error } = await supabase
       .from('usuarios')
-      .select('id, nombre, email')
+      .select('id, nombre, email, turno_psicologo')
       .eq('rol', 'psicologo')
       .order('nombre', { ascending: true });
 
