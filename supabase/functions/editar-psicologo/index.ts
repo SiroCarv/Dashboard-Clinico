@@ -5,6 +5,8 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
+const TURNOS_VALIDOS = ['coordinador', 'manana', 'tarde'];
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -62,9 +64,13 @@ Deno.serve(async (req: Request) => {
     const id = body?.id;
     const nombre = (body?.nombre ?? '').trim();
     const email = (body?.email ?? '').trim().toLowerCase();
+    const turnoPsicologo = body?.turno_psicologo ?? '';
 
     if (!id || !nombre || !email) {
       return respuestaError(400, 'Id, nombre y correo son obligatorios.');
+    }
+    if (!TURNOS_VALIDOS.includes(turnoPsicologo)) {
+      return respuestaError(400, 'Selecciona un turno / cargo válido para el psicólogo.');
     }
 
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
@@ -95,9 +101,9 @@ Deno.serve(async (req: Request) => {
 
     const { data: perfilActualizado, error: updateError } = await supabaseAdmin
       .from('usuarios')
-      .update({ nombre, email })
+      .update({ nombre, email, turno_psicologo: turnoPsicologo })
       .eq('id', id)
-      .select('id, email, nombre, created_at')
+      .select('id, email, nombre, turno_psicologo, created_at')
       .single();
 
     if (updateError) {

@@ -5,6 +5,8 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
+const TURNOS_VALIDOS = ['coordinador', 'manana', 'tarde'];
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -63,9 +65,13 @@ Deno.serve(async (req: Request) => {
     const nombre = (body?.nombre ?? '').trim();
     const email = (body?.email ?? '').trim().toLowerCase();
     const password = body?.password ?? '';
+    const turnoPsicologo = body?.turno_psicologo ?? '';
 
     if (!nombre || !email || !password) {
       return respuestaError(400, 'Nombre, correo y contraseña temporal son obligatorios.');
+    }
+    if (!TURNOS_VALIDOS.includes(turnoPsicologo)) {
+      return respuestaError(400, 'Selecciona un turno / cargo válido para el psicólogo.');
     }
     if (password.length < 6) {
       return respuestaError(400, 'La contraseña temporal debe tener al menos 6 caracteres.');
@@ -91,8 +97,8 @@ Deno.serve(async (req: Request) => {
 
     const { data: perfil, error: perfilInsertError } = await supabaseAdmin
       .from('usuarios')
-      .insert([{ id: nuevoId, rol: 'psicologo', email, nombre }])
-      .select('id, email, nombre, created_at')
+      .insert([{ id: nuevoId, rol: 'psicologo', email, nombre, turno_psicologo: turnoPsicologo }])
+      .select('id, email, nombre, turno_psicologo, created_at')
       .single();
 
     if (perfilInsertError) {
