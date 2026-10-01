@@ -4,7 +4,9 @@
 //
 //   - 'paciente' (Estudiante): EXACTAMENTE el mismo flujo de siempre,
 //     sin ningún cambio — consentimiento/asentimiento
-//     (useConsentimiento), los 6 formularios de siempre (TABS).
+//     (useConsentimiento), y luego SOLO los formularios de TABS que su
+//     psicólogo/a habilitó para su institución (useFormulariosHabilitados).
+//     Mientras no haya ninguno habilitado, ve una pantalla de espera.
 //   - 'persona_particular': flujo NUEVO y más simple —
 //       1. Sin consentimiento/asentimiento. Decisión deliberada de esta
 //          historia: el registro de Persona Particular pide "edad"
@@ -39,6 +41,7 @@ import DocumentoConsentimiento from '../components/consentimiento/DocumentoConse
 import ConsentimientoDenegado from '../components/consentimiento/ConsentimientoDenegado';
 import { useConsentimiento } from '../hooks/useConsentimiento';
 import { useRolEvaluacion } from '../hooks/useRolEvaluacion';
+import { useFormulariosHabilitados } from '../hooks/useFormulariosHabilitados';
 import { INSTRUMENTO_CLIMA_AULA } from '../data/climaAulaData';
 import { INSTRUMENTO_GSHS } from '../data/gshsData';
 import { INSTRUMENTO_ESTRES } from '../data/estresData';
@@ -221,7 +224,7 @@ function ContenidoTabs({ tabs, idPaciente, tabActiva, setTabActiva, avisosAcepta
               type="button"
               onClick={() => setTabActiva(id)}
               className={`px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors ${
-                tabActiva === id ? acento.tabActivo : 'border-transparent text-gray-700 hover:text-gray-900'
+                tab.id === id ? acento.tabActivo : 'border-transparent text-gray-700 hover:text-gray-900'
               }`}
             >
               {etiqueta}
@@ -259,7 +262,16 @@ export default function Encuesta() {
     decidirDocumento,
   } = useConsentimiento();
 
-  const [tabActivaEstudiante, setTabActivaEstudiante] = useState(TABS[0].id);
+  // Solo se consulta para estudiantes; Persona Particular no depende de
+  // habilitación.
+  const {
+    habilitados,
+    cargando: cargandoHabilitados,
+    error: errorHabilitados,
+    recargar: recargarHabilitados,
+  } = useFormulariosHabilitados(rol === 'paciente');
+
+  const [tabActivaEstudiante, setTabActivaEstudiante] = useState(null);
   const [avisosAceptadosEstudiante, setAvisosAceptadosEstudiante] = useState(() => new Set());
   const [enviosConocidosEstudiante, setEnviosConocidosEstudiante] = useState({});
 
@@ -349,9 +361,50 @@ export default function Encuesta() {
     );
   }
 
+  if (cargandoHabilitados) {
+    return (
+      <PantallaCentrada>
+        <div className="flex flex-col items-center gap-3 text-gray-700 font-semibold">
+          <svg className="animate-spin h-8 w-8 text-violet-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Cargando...
+        </div>
+      </PantallaCentrada>
+    );
+  }
+
+  const tabsEstudiante = TABS.filter((t) => habilitados.has(t.tipoInstrumento));
+
+  if (tabsEstudiante.length === 0) {
+    return (
+      <PantallaCentrada>
+        <div className="max-w-md w-full bg-white p-8 border-t-8 border-violet-400 rounded-lg shadow-xl text-center">
+          {errorHabilitados && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-center text-sm font-semibold">
+              {errorHabilitados}
+            </div>
+          )}
+          <h2 className="text-3xl font-extrabold text-black">Todo listo</h2>
+          <p className="text-gray-500 mt-2 font-medium">
+            Tu psicólogo/a aún no habilitó ningún formulario. Cuando lo haga, aparecerá aquí.
+          </p>
+          <button
+            type="button"
+            onClick={recargarHabilitados}
+            className="mt-6 w-full text-white font-bold py-3 rounded-md transition-colors duration-300 shadow-md uppercase tracking-wide bg-violet-400 hover:bg-violet-500"
+          >
+            Actualizar
+          </button>
+        </div>
+      </PantallaCentrada>
+    );
+  }
+
   return (
     <ContenidoTabs
-      tabs={TABS}
+      tabs={tabsEstudiante}
       idPaciente={idPacienteConsentimiento}
       tabActiva={tabActivaEstudiante}
       setTabActiva={setTabActivaEstudiante}

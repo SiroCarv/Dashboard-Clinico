@@ -87,6 +87,7 @@ import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 // Pestaña "Reportes" (reemplazo de SCRUM-51): siempre a través de la API
 // pública de casos_docente, nunca de una ruta interna del módulo.
 import { PanelReportesInstitucion, useReportesInstitucion } from '../../casos_docente';
+import { PanelHabilitacionFormularios } from '../../evaluaciones';
 
 const FILTRO_ESCOLAR_TODOS = 'todos';
 
@@ -94,6 +95,7 @@ const PESTANA_GRAFICAS = 'graficas';
 const PESTANA_ESTUDIANTES = 'estudiantes';
 const PESTANA_PERSONAS_PARTICULARES = 'personas_particulares';
 const PESTANA_REPORTES = 'reportes';
+const PESTANA_FORMULARIOS = 'formularios';
 
 export default function Dashboard() {
   const { pacientes, loading, error } = useListaPacientes();
@@ -149,6 +151,18 @@ export default function Dashboard() {
       (p) => texto === '' || p.nombre?.toLowerCase().includes(texto)
     );
   }, [personasParticulares, busqueda]);
+
+  // Cuántos estudiantes ya respondieron cada formulario (para la pestaña
+  // "Formularios"), calculado con los datos que ya están cargados.
+  const respuestasPorTipo = useMemo(() => {
+    const conteo = {};
+    estudiantes.forEach((estudiante) => {
+      new Set(estudiante.evaluaciones.map((e) => e.tipo_instrumento)).forEach((tipo) => {
+        conteo[tipo] = (conteo[tipo] ?? 0) + 1;
+      });
+    });
+    return conteo;
+  }, [estudiantes]);
 
   const hayFiltrosActivos =
     busqueda.trim() !== '' ||
@@ -249,6 +263,19 @@ export default function Dashboard() {
               >
                 Reportes
               </button>
+              {tipoInstitucion !== 'centro_salud' && (
+                <button
+                  type="button"
+                  onClick={() => setPestanaActiva(PESTANA_FORMULARIOS)}
+                  className={`px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors ${
+                    pestanaActiva === PESTANA_FORMULARIOS
+                      ? COLOR_MARCA.violetaSuave.tabActivo
+                      : 'border-transparent text-gray-700 hover:text-gray-900'
+                  }`}
+                >
+                  Formularios
+                </button>
+              )}
             </div>
 
             {pestanaActiva === PESTANA_GRAFICAS && (
@@ -440,6 +467,13 @@ export default function Dashboard() {
 
             {pestanaActiva === PESTANA_REPORTES && (
               <PanelReportesInstitucion reportes={reportesDocente} cargando={loadingReportes} error={errorReportes} />
+            )}
+
+            {pestanaActiva === PESTANA_FORMULARIOS && (
+              <PanelHabilitacionFormularios
+                totalEstudiantes={estudiantes.length}
+                respuestasPorTipo={respuestasPorTipo}
+              />
             )}
           </>
         )}

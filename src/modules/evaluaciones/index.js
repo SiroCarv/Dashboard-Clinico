@@ -9,3 +9,7 @@ export { INSTRUMENTO_GSHS } from './data/gshsData';
 // SCRUM-31) para leer los envíos de un paciente — mismo patrón cruzado
 // de módulos que ya usa `pacientesService` desde `usuarios`.
 export { evaluacionesInstrumentoService } from './services/evaluacionesInstrumentoService';
+
+// Habilitación de formularios por institución (pestaña "Formularios" del
+// psicólogo en dashboard_clinico/pages/Dashboard.jsx).
+export { default as PanelHabilitacionFormularios } from './components/PanelHabilitacionFormularios';
