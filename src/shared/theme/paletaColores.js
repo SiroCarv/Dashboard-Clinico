@@ -37,11 +37,11 @@
 //    marca con códigos HEX, esos valores se ajustan en este único
 //    archivo — no hace falta tocar ninguna pantalla.
 //
-// Nota: por convención del proyecto no se agregan tokens custom en
-// tailwind.config.js — cada entrada de este archivo es una cadena de
-// clases de Tailwind ya existentes, tal como ya lo hacía el mapa de
-// diagnóstico original. Las clases se escriben siempre completas (nunca
-// `bg-${color}-500`) para que el escaneo de Tailwind las detecte.
+// Nota: por convención del proyecto no se agregan tokens de color custom
+// (el único @theme de index.css redefine solo la fuente) — cada entrada de
+// este archivo es una cadena de clases de Tailwind ya existentes. Las
+// clases se escriben siempre completas (nunca `bg-${color}-500`) para que
+// el escaneo de Tailwind las detecte.
 //
 // Cada bloque de color sigue la misma forma (franja / tabActivo /
 // tituloSeccion / botonPrimario / suave / accent) para que cualquier
@@ -157,21 +157,14 @@ export const COLOR_MARCA = {
   },
 };
 
-// Reservado EXCLUSIVAMENTE para severidad / alertas clínicas.
-// No reutilizar rojo ni amarillo fuera de este archivo.
-export const ESTILOS_DIAGNOSTICO = {
-  Leve: 'bg-green-50 border-green-200 text-green-800',
-  Moderado: 'bg-gray-100 border-gray-300 text-gray-800',
-  Severo: 'bg-red-50 border-red-200 text-red-800',
-};
-
 // Clima de Aula calcula, del lado de la base de datos (trigger
-// calcular_resultado_instrumento), 5 categorías en vez de las 3 que
-// usaba el antiguo PHQ-9. Mismo criterio de color que ESTILOS_DIAGNOSTICO
-// (verde = bien, gris = neutro, amarillo/rojo = atención), reservando
-// amarillo y rojo para las dos categorías más bajas. Pendiente de que el
-// cliente confirme si este esquema de color le sirve tal cual (ítem
-// abierto documentado desde Sprint 4).
+// calcular_resultado_instrumento), 5 categorías. Reservado EXCLUSIVAMENTE
+// para severidad / alertas clínicas: no reutilizar rojo ni amarillo fuera
+// de este archivo. Criterio de color: verde = bien, gris = neutro,
+// amarillo/rojo = atención, reservando amarillo y rojo para las dos
+// categorías más bajas. Pendiente de que el cliente confirme si este
+// esquema de color le sirve tal cual (ítem abierto documentado desde
+// Sprint 4).
 export const ESTILOS_CATEGORIA_CLIMA_AULA = {
   'Muy positivo': 'bg-green-50 border-green-200 text-green-800',
   Positivo: 'bg-green-50 border-green-200 text-green-800',
