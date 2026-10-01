@@ -1,0 +1,330 @@
+// Renderiza el formulario real de un instrumento (Clima de Aula, GSHS,
+// Bullying, etc.): una página de hasta 10 preguntas por vez, con 4 tipos
+// de campo posibles: Verdadero/Falso, opción múltiple de respuesta única
+// (CampoOpciones — elegís UNA entre varias, ej. GSHS), opción múltiple de
+// selección múltiple (CampoOpcionesMultiples — NUEVO, podés marcar MÁS DE
+// UNA, hoy solo en preguntas puntuales de Bullying vía item.multiple), o
+// texto libre para estatura/peso. Toda la lógica de estado, validación y
+// envío vive en useFormularioInstrumento — este archivo solo decide qué
+// se ve en pantalla según lo que ese hook devuelve.
+import { useEffect, useRef } from 'react';
+import { useFormularioInstrumento } from '../hooks/useFormularioInstrumento';
+
+const LETRAS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+
+function CampoVerdaderoFalso({ nombre, valor, onCambiar, acento }) {
+  return (
+    <div className="flex items-center gap-6 mt-2">
+      {['Verdadero', 'Falso'].map((opcion) => (
+        <label key={opcion} className="flex items-center gap-2 text-gray-700 cursor-pointer">
+          <input
+            type="radio"
+            name={nombre}
+            checked={valor === opcion}
+            onChange={() => onCambiar(opcion)}
+            className={`h-4 w-4 ${acento.accent} border-gray-300`}
+          />
+          {opcion}
+        </label>
+      ))}
+    </div>
+  );
+}
+
+function CampoOpciones({ nombre, opciones, valor, onCambiar, acento }) {
+  return (
+    <div className="mt-2 space-y-2">
+      {opciones.map((opcion, indice) => (
+        <label key={opcion} className="flex items-start gap-2 cursor-pointer">
+          <input
+            type="radio"
+            name={nombre}
+            checked={valor === opcion}
+            onChange={() => onCambiar(opcion)}
+            className={`mt-0.5 h-4 w-4 ${acento.accent} border-gray-300 flex-none`}
+          />
+          <span className="text-gray-700">
+            <span className="font-bold text-gray-500 mr-1">{LETRAS[indice]}.</span>
+            {opcion}
+          </span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
+// NUEVO — historia "Cuestionario de Bullying para Estudiantes": primer
+// instrumento que necesita selección múltiple, y solo en ALGUNAS de sus
+// preguntas (ver item.multiple en bullyingData.js), nunca en el
+// instrumento completo. Por eso este campo se activa por ítem (ver
+// Pregunta() más abajo), no por tipoRespuesta como los otros dos campos.
+// `valor` guarda un array de opciones marcadas (nunca un string) — ver
+// el ajuste de estaRespondida() en useFormularioInstrumento.js para que
+// un array vacío siga contando como "sin responder".
+function CampoOpcionesMultiples({ nombre, opciones, valor, onCambiar, acento }) {
+  const seleccionadas = Array.isArray(valor) ? valor : [];
+
+  const alternar = (opcion) => {
+    const nuevaLista = seleccionadas.includes(opcion)
+      ? seleccionadas.filter((v) => v !== opcion)
+      : [...seleccionadas, opcion];
+    onCambiar(nuevaLista);
+  };
+
+  return (
+    <div className="mt-2 space-y-2">
+      {opciones.map((opcion, indice) => (
+        <label key={opcion} className="flex items-start gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            name={nombre}
+            checked={seleccionadas.includes(opcion)}
+            onChange={() => alternar(opcion)}
+            className={`mt-0.5 h-4 w-4 rounded ${acento.accent} border-gray-300 flex-none`}
+          />
+          <span className="text-gray-700">
+            <span className="font-bold text-gray-500 mr-1">{LETRAS[indice]}.</span>
+            {opcion}
+          </span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
+// Único uso hoy: estatura y peso (Módulo sobre Conductas Alimentarias,
+// GSHS). Admite dígitos y UN separador decimal (coma o punto, cualquiera
+// de los dos — común que alguien tipee "65,5" y otra persona "65.5").
+// Filtra cualquier otra tecla (letras, símbolos) y colapsa un segundo
+// separador si se llega a tipear, para no terminar con algo como "65,5,2".
+function CampoTexto({ valor, onCambiar }) {
+  const limpiar = (texto) => {
+    let limpio = texto.replace(/[^0-9.,]/g, '');
+    const indiceSeparador = limpio.search(/[.,]/);
+    if (indiceSeparador !== -1) {
+      limpio =
+        limpio.slice(0, indiceSeparador + 1) +
+        limpio.slice(indiceSeparador + 1).replace(/[.,]/g, '');
+    }
+    return limpio;
+  };
+
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      value={valor ?? ''}
+      onChange={(e) => onCambiar(limpiar(e.target.value))}
+      className="mt-2 w-full sm:w-48 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-400 focus:border-violet-400 outline-none transition-all text-gray-800"
+    />
+  );
+}
+
+function Pregunta({ item, valor, onCambiar, tipoRespuesta, acento, marcarSiFalta }) {
+  // Mismo criterio que useFormularioInstrumento.estaRespondida(): un campo
+  // de texto vacío ('') no cuenta como contestado, para no mostrar
+  // inconsistencia entre esta etiqueta visual y lo que realmente bloquea
+  // el avance/envío. NUEVO — Bullying: un array vacío (pregunta de
+  // selección múltiple sin ninguna opción marcada todavía) tampoco
+  // cuenta como contestada.
+  const respondida = Array.isArray(valor)
+    ? valor.length > 0
+    : valor !== undefined && valor !== null && valor !== '';
+  const marcar = marcarSiFalta && !respondida;
+
+  return (
+    <div className={`py-4 ${marcar ? 'bg-orange-50/40 -mx-6 px-6' : ''}`}>
+      {item.notaPrevia && <p className="text-gray-500 italic text-sm mb-2">{item.notaPrevia}</p>}
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-black font-bold">
+          {item.numero}. {item.texto}
+        </p>
+        {marcar && (
+          <span className="flex-none px-2 py-0.5 bg-orange-100 border border-orange-300 text-orange-800 rounded-full text-xs font-bold uppercase tracking-wide">
+            Falta responder
+          </span>
+        )}
+      </div>
+      {item.nota && <p className="text-gray-500 italic text-sm mt-1">{item.nota}</p>}
+
+      {item.multiple ? (
+        <CampoOpcionesMultiples nombre={item.clave} opciones={item.opciones} valor={valor} onCambiar={onCambiar} acento={acento} />
+      ) : tipoRespuesta === 'verdadero_falso' ? (
+        <CampoVerdaderoFalso nombre={item.clave} valor={valor} onCambiar={onCambiar} acento={acento} />
+      ) : item.opciones && item.opciones.length > 0 ? (
+        <CampoOpciones nombre={item.clave} opciones={item.opciones} valor={valor} onCambiar={onCambiar} acento={acento} />
+      ) : (
+        <CampoTexto valor={valor} onCambiar={onCambiar} />
+      )}
+    </div>
+  );
+}
+
+export default function FormularioInstrumento({ idPaciente, tipoInstrumento, instrumento, acento, onEstadoListo }) {
+  const {
+    cargando,
+    yaEnviado,
+    fechaEnvioPrevio,
+    preguntasDePagina,
+    pagina,
+    totalPaginas,
+    respuestas,
+    responder,
+    paginaCompleta,
+    esUltimaPagina,
+    mostrarFaltantes,
+    mensajeValidacion,
+    intentarSiguiente,
+    irAnterior,
+    intentarEnviar,
+    enviando,
+    error,
+  } = useFormularioInstrumento({ idPaciente, tipoInstrumento, instrumento });
+
+  const inicioRef = useRef(null);
+
+  // Le avisa a Encuesta.jsx, en cuanto se sabe con certeza, si este
+  // instrumento ya fue enviado antes — lo usa para decidir si corresponde
+  // mostrar el aviso de "Tiempo estimado" (no tiene sentido mostrarlo
+  // para algo que el paciente ya completó). No se dispara mientras
+  // `cargando` sigue en true, para no reportar un yaEnviado=false
+  // provisorio que después cambie.
+  useEffect(() => {
+    if (!cargando) onEstadoListo?.({ yaEnviado });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cargando, yaEnviado]);
+
+  // Al cambiar de página (Siguiente o Anterior), vuelve al principio del
+  // formulario. Sin esto, si quedaba scrolleado hacia abajo en la página
+  // anterior, la nueva página podía renderizar más corta y dejar el botón
+  // "Siguiente"/"Enviar" fuera de la vista, dando la sensación de que el
+  // formulario "no dejaba avanzar".
+  useEffect(() => {
+    inicioRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [pagina]);
+
+  if (cargando) {
+    return (
+      <div className="flex justify-center items-center py-16">
+        <svg className={`animate-spin h-8 w-8 ${acento.tituloSeccion}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
+    );
+  }
+
+  if (yaEnviado) {
+    return (
+      <div className={`bg-white rounded-lg shadow-xl border-t-8 ${acento.franja} p-8 text-center`}>
+        <div className="mb-4 p-4 bg-green-100 border border-green-500 text-green-800 rounded-lg shadow-sm font-bold">
+          Ya enviaste este formulario
+        </div>
+        {fechaEnvioPrevio && (
+          <p className="text-gray-500 text-sm">
+            Registrado el {new Date(fechaEnvioPrevio).toLocaleDateString('es-BO')}.
+          </p>
+        )}
+        <p className="text-gray-500 text-sm mt-1">Tu psicólogo/a revisará tus respuestas.</p>
+      </div>
+    );
+  }
+
+  // Agrupa las preguntas de la página actual por sección, para mostrar el
+  // encabezado de tema solo cuando cambia (igual que en la vista previa).
+  const bloques = [];
+  preguntasDePagina.forEach((item) => {
+    const ultimo = bloques[bloques.length - 1];
+    if (ultimo && ultimo.seccionTitulo === item.seccionTitulo) {
+      ultimo.items.push(item);
+    } else {
+      bloques.push({ seccionTitulo: item.seccionTitulo, seccionIntro: item.seccionIntro, items: [item] });
+    }
+  });
+
+  const respondidasEnPagina = preguntasDePagina.filter(
+    (p) => respuestas[p.clave] !== undefined && respuestas[p.clave] !== null && respuestas[p.clave] !== ''
+  ).length;
+
+  return (
+    <div ref={inicioRef} className={`bg-white rounded-lg shadow-xl border-t-8 ${acento.franja} overflow-hidden scroll-mt-20`}>
+      <div className="px-6 py-5 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <h3 className="text-xl font-extrabold text-black">{instrumento.titulo}</h3>
+          {instrumento.subtitulo && <p className="text-gray-500 text-sm mt-1">{instrumento.subtitulo}</p>}
+        </div>
+        <span className="px-2.5 py-1 bg-gray-100 border border-gray-300 rounded-full text-xs font-bold uppercase tracking-wide text-gray-600 flex-none">
+          Página {pagina + 1} de {totalPaginas}
+        </span>
+      </div>
+
+      <div className="px-6 pb-6">
+        {bloques.map((bloque) => (
+          <div key={bloque.seccionTitulo} className="mt-6 first:mt-4">
+            <h4 className={`text-base font-extrabold ${acento.tituloSeccion} uppercase tracking-wide mb-1`}>
+              {bloque.seccionTitulo}
+            </h4>
+            {bloque.seccionIntro && <p className="text-gray-500 italic text-sm mb-2">{bloque.seccionIntro}</p>}
+
+            <div className="divide-y divide-gray-100">
+              {bloque.items.map((item) => (
+                <Pregunta
+                  key={item.clave}
+                  item={item}
+                  valor={respuestas[item.clave]}
+                  onCambiar={(valor) => responder(item.clave, valor)}
+                  tipoRespuesta={instrumento.tipoRespuesta}
+                  acento={acento}
+                  marcarSiFalta={mostrarFaltantes}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+
+        {error && (
+          <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-center text-sm font-semibold">
+            {error}
+          </div>
+        )}
+
+        {mostrarFaltantes && !paginaCompleta && (
+          <p className="mt-4 text-sm text-orange-800 font-semibold">
+            {mensajeValidacion} Respondiste {respondidasEnPagina} de {preguntasDePagina.length} preguntas de esta
+            página.
+          </p>
+        )}
+
+        <div className="mt-6 pt-4 border-t border-gray-200 flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={irAnterior}
+            disabled={pagina === 0}
+            className="px-4 py-2.5 border border-gray-300 rounded-md font-semibold text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Anterior
+          </button>
+
+          {esUltimaPagina ? (
+            <button
+              type="button"
+              onClick={intentarEnviar}
+              disabled={enviando}
+              className={`px-6 py-2.5 rounded-md font-bold text-white uppercase tracking-wide shadow-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${acento.botonPrimario}`}
+            >
+              {enviando ? 'Enviando...' : 'Enviar respuestas'}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={intentarSiguiente}
+              className={`px-6 py-2.5 rounded-md font-bold text-white uppercase tracking-wide shadow-md transition-colors ${acento.botonPrimario}`}
+            >
+              Siguiente
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
