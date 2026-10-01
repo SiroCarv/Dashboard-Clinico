@@ -1,7 +1,8 @@
-// Panel principal del psicólogo: pestaña "Gráficas", pestaña
-// "Estudiantes" y —NUEVO, sprint "Persona Particular"— pestaña "Personas
-// Particulares" (listado separado, mismo criterio que ya separaba
-// Estudiantes de Reportes de Docente).
+// Panel principal del psicólogo. Pestañas, en este orden: "Formularios"
+// (habilitación de formularios para sus estudiantes; es la que se abre
+// primero y no aparece en centros de salud), "Gráficas", "Estudiantes",
+// "Personas Particulares" (listado separado, mismo criterio que ya
+// separaba Estudiantes de Reportes de Docente) y "Reportes".
 //
 // Pestañas (corrección posterior): antes las gráficas y el listado
 // convivían en una sola pantalla larga, uno debajo del otro. Se separó
@@ -109,7 +110,12 @@ export default function Dashboard() {
   } = useIndicadoresGSHS();
   const { reportes: reportesDocente, loading: loadingReportes, error: errorReportes } = useReportesInstitucion();
   const { tipoInstitucion } = useTipoInstitucionPropia();
-  const [pestanaActiva, setPestanaActiva] = useState(PESTANA_GRAFICAS);
+  // Pestaña elegida por la persona; mientras no elija ninguna se abre
+  // "Formularios" (la primera), salvo en centros de salud, donde esa
+  // pestaña no existe y se abre "Gráficas".
+  const [pestanaElegida, setPestanaActiva] = useState(null);
+  const pestanaActiva =
+    pestanaElegida ?? (tipoInstitucion === 'centro_salud' ? PESTANA_GRAFICAS : PESTANA_FORMULARIOS);
   const [busqueda, setBusqueda] = useState('');
   const [filtroCurso, setFiltroCurso] = useState(FILTRO_ESCOLAR_TODOS);
   const [filtroParalelo, setFiltroParalelo] = useState(FILTRO_ESCOLAR_TODOS);
@@ -219,6 +225,19 @@ export default function Dashboard() {
         ) : (
           <>
             <div className="flex gap-2 mb-6 border-b border-gray-200 flex-wrap">
+              {tipoInstitucion !== 'centro_salud' && (
+                <button
+                  type="button"
+                  onClick={() => setPestanaActiva(PESTANA_FORMULARIOS)}
+                  className={`px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors ${
+                    pestanaActiva === PESTANA_FORMULARIOS
+                      ? COLOR_MARCA.violetaSuave.tabActivo
+                      : 'border-transparent text-gray-700 hover:text-gray-900'
+                  }`}
+                >
+                  Formularios
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setPestanaActiva(PESTANA_GRAFICAS)}
@@ -263,19 +282,6 @@ export default function Dashboard() {
               >
                 Reportes
               </button>
-              {tipoInstitucion !== 'centro_salud' && (
-                <button
-                  type="button"
-                  onClick={() => setPestanaActiva(PESTANA_FORMULARIOS)}
-                  className={`px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors ${
-                    pestanaActiva === PESTANA_FORMULARIOS
-                      ? COLOR_MARCA.violetaSuave.tabActivo
-                      : 'border-transparent text-gray-700 hover:text-gray-900'
-                  }`}
-                >
-                  Formularios
-                </button>
-              )}
             </div>
 
             {pestanaActiva === PESTANA_GRAFICAS && (
