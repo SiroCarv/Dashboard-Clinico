@@ -1,11 +1,8 @@
 // Obtiene el rol real del usuario autenticado, para que Encuesta.jsx
 // decida entre 2 caminos:
-//   - 'paciente' (Estudiante): flujo completo existente, con
-//     consentimiento/asentimiento (useConsentimiento.js) y los 6
-//     formularios de siempre.
-//   - 'persona_particular': flujo simplificado — sin consentimiento (ver
-//     nota en Encuesta.jsx sobre por qué se excluye a propósito de esta
-//     historia) y solo sus 5 formularios propios.
+//   - 'paciente' (Estudiante): solo los formularios que su psicólogo/a
+//     habilitó para su institución.
+//   - 'persona_particular': sus 5 formularios propios.
 //
 // Deliberadamente NO se reutiliza RutaProtegida.jsx para esto: esa pieza
 // ya resuelve "¿puede esta persona entrar a esta ruta?" y redirige si no

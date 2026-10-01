@@ -1,45 +1,21 @@
-// Pantalla principal de quien responde formularios. A partir de esta
-// historia, se bifurca según el ROL real (useRolEvaluacion), leído una
-// sola vez al montar:
+// Pantalla principal de quien responde formularios. Se bifurca según el ROL
+// real (useRolEvaluacion), leído una sola vez al montar:
 //
-//   - 'paciente' (Estudiante): EXACTAMENTE el mismo flujo de siempre,
-//     sin ningún cambio — consentimiento/asentimiento
-//     (useConsentimiento), y luego SOLO los formularios de TABS que su
+//   - 'paciente' (Estudiante): ve SOLO los formularios de TABS que su
 //     psicólogo/a habilitó para su institución (useFormulariosHabilitados).
 //     Mientras no haya ninguno habilitado, ve una pantalla de espera.
-//   - 'persona_particular': flujo NUEVO y más simple —
-//       1. Sin consentimiento/asentimiento. Decisión deliberada de esta
-//          historia: el registro de Persona Particular pide "edad"
-//          directamente (no fecha de nacimiento), que es justamente el
-//          dato del que depende toda la lógica de useConsentimiento
-//          (calcularEdad a partir de fecha_nacimiento); y ninguna de las
-//          8 historias de este sprint pidió generar un documento de
-//          consentimiento propio para este rol. Pendiente: si el
-//          responsable clínico/legal considera que Persona Particular sí
-//          debe firmar un consentimiento propio, es una historia nueva,
-//          no una extensión de esta.
-//       2. Solo sus 5 formularios (TABS_PERSONA_PARTICULAR): Estrés,
-//          Ansiedad, Depresión, Cuidado Primario De Salud Familiar y
-//          Riesgo Suicida — nunca Clima de Aula, GSHS ni Bullying.
+//   - 'persona_particular': ve sus 5 formularios propios
+//     (TABS_PERSONA_PARTICULAR) — nunca Clima de Aula, GSHS ni Bullying.
 //
-// Por qué useConsentimiento() se sigue llamando siempre, aunque su
-// resultado se ignore para Persona Particular: las Reglas de los Hooks
-// exigen el mismo número de hooks en cada render de esta misma
-// instancia — no se puede llamar condicionalmente según `rol`, que
-// además solo se conoce después de la carga inicial (null -> valor).
-// OJO: no se verificó en esta sesión que useConsentimiento() se
-// comporte bien ante un usuario sin fecha_nacimiento (persona_particular
-// nunca la tiene, ver arriba) — su resultado no se usa para este rol,
-// pero conviene confirmar en consola que no tira ningún error de fondo
-// antes de dar esta historia por cerrada.
+// Ninguno de los dos roles pasa ya por consentimiento/asentimiento: la
+// prueba se aplica de forma presencial en aula, con el/la psicólogo/a, y
+// esa autorización se gestiona fuera del sistema (decisión del cliente,
+// 2026-10-01). El código anterior quedó solo en la rama de Git
+// `backup/consentimiento-v1`, por si hay que restituirlo.
 import { useState } from 'react';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
 import FormularioInstrumento from '../components/FormularioInstrumento';
 import AvisoInstrumento from '../components/AvisoInstrumento';
-import CapturaFechaNacimiento from '../components/consentimiento/CapturaFechaNacimiento';
-import DocumentoConsentimiento from '../components/consentimiento/DocumentoConsentimiento';
-import ConsentimientoDenegado from '../components/consentimiento/ConsentimientoDenegado';
-import { useConsentimiento } from '../hooks/useConsentimiento';
 import { useRolEvaluacion } from '../hooks/useRolEvaluacion';
 import { useFormulariosHabilitados } from '../hooks/useFormulariosHabilitados';
 import { INSTRUMENTO_CLIMA_AULA } from '../data/climaAulaData';
@@ -248,20 +224,6 @@ function ContenidoTabs({ tabs, idPaciente, tabActiva, setTabActiva, avisosAcepta
 export default function Encuesta() {
   const { rol, idUsuario, cargando: cargandoRol } = useRolEvaluacion();
 
-  // Se sigue llamando siempre (ver nota de archivo sobre Reglas de los
-  // Hooks); su resultado solo se usa cuando rol === 'paciente'.
-  const {
-    cargando: cargandoConsentimiento,
-    error: errorConsentimiento,
-    idPaciente: idPacienteConsentimiento,
-    faltaFechaNacimiento,
-    documentoRechazado,
-    documentoPendiente,
-    consentimientoCompleto,
-    confirmarFechaNacimiento,
-    decidirDocumento,
-  } = useConsentimiento();
-
   // Solo se consulta para estudiantes; Persona Particular no depende de
   // habilitación.
   const {
@@ -293,7 +255,7 @@ export default function Encuesta() {
     );
   }
 
-  // ---- Rama PERSONA PARTICULAR: sin consentimiento, 5 formularios propios ----
+  // ---- Rama PERSONA PARTICULAR: 5 formularios propios ----
   if (rol === 'persona_particular') {
     return (
       <ContenidoTabs
@@ -309,58 +271,7 @@ export default function Encuesta() {
     );
   }
 
-  // ---- Rama ESTUDIANTE (rol 'paciente'): EXACTAMENTE el flujo de siempre ----
-  if (cargandoConsentimiento) {
-    return (
-      <PantallaCentrada>
-        <div className="flex flex-col items-center gap-3 text-gray-700 font-semibold">
-          <svg className="animate-spin h-8 w-8 text-violet-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          Cargando...
-        </div>
-      </PantallaCentrada>
-    );
-  }
-
-  if (errorConsentimiento) {
-    return (
-      <PantallaCentrada>
-        <div className="max-w-md w-full p-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-center shadow-sm">
-          {errorConsentimiento}
-        </div>
-      </PantallaCentrada>
-    );
-  }
-
-  if (faltaFechaNacimiento) {
-    return (
-      <PantallaCentrada>
-        <CapturaFechaNacimiento onConfirmar={confirmarFechaNacimiento} />
-      </PantallaCentrada>
-    );
-  }
-
-  if (documentoRechazado) {
-    return (
-      <PantallaCentrada>
-        <ConsentimientoDenegado />
-      </PantallaCentrada>
-    );
-  }
-
-  if (!consentimientoCompleto && documentoPendiente) {
-    return (
-      <PantallaCentrada>
-        <DocumentoConsentimiento
-          contenido={documentoPendiente}
-          onDecidir={(aceptado) => decidirDocumento(documentoPendiente.tipo, aceptado)}
-        />
-      </PantallaCentrada>
-    );
-  }
-
+  // ---- Rama ESTUDIANTE (rol 'paciente'): solo formularios habilitados ----
   if (cargandoHabilitados) {
     return (
       <PantallaCentrada>
@@ -405,7 +316,7 @@ export default function Encuesta() {
   return (
     <ContenidoTabs
       tabs={tabsEstudiante}
-      idPaciente={idPacienteConsentimiento}
+      idPaciente={idUsuario}
       tabActiva={tabActivaEstudiante}
       setTabActiva={setTabActivaEstudiante}
       avisosAceptados={avisosAceptadosEstudiante}
