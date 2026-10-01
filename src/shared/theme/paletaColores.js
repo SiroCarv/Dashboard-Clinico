@@ -21,12 +21,8 @@
 //    pisa ningún acento existente.
 //    grisNeutro es distinto a los anteriores: no identifica un
 //    instrumento real, es el acento reservado para pestañas/opciones
-//    "placeholder" — hoy solo Bullying (visual únicamente, a pedido del
-//    cliente, sin instrumento clínico detrás todavía). Se usa gris a
-//    propósito para no darle una identidad de color definitiva a un
-//    instrumento que todavía no existe; cuando Bullying se implemente de
-//    verdad, hay que asignarle acá un tono propio (no reutilizar
-//    grisNeutro) y actualizar ResumenFormularios.jsx.
+//    "placeholder" de un instrumento que todavía no existe. Hoy ninguna
+//    pantalla lo usa (Bullying ya tiene su propio tono, cian).
 // 2. Rojo y amarillo quedan reservados EXCLUSIVAMENTE para indicar
 //    severidad o riesgo clínico (diagnóstico, alertas). No deben usarse
 //    como acento de marca, botón genérico ni elemento puramente visual.
@@ -137,15 +133,10 @@ export const COLOR_MARCA = {
     suave: 'bg-purple-50 text-purple-700 border-purple-200',
     accent: 'accent-purple-500',
   },
-  // NUEVO — historia "Cuestionario de Bullying para Estudiantes". Tono
-  // propio para el instrumento ya real, sin pisar ningún acento
+  // Tono propio del instrumento Bullying, sin pisar ningún acento
   // existente (mismo criterio que celeste/indigo/fucsia/rosa/purpura).
-  // Usado hoy solo en TABS de evaluaciones/pages/Encuesta.jsx (la
-  // pestaña del estudiante). OJO: ResumenFormularios.jsx (psicólogo) y
-  // PanelConsolidadoSuperadmin.jsx todavía usan grisNeutro para su
-  // pestaña placeholder de Bullying — pendiente de definir qué muestra
-  // esa pestaña ahora que el instrumento es "solo informativo" (sin
-  // categoría calculada) antes de moverla a este tono.
+  // Lo usan la Encuesta del estudiante, las gráficas del psicólogo y del
+  // superadmin, y el Informe Consolidado.
   cian: {
     franja: 'border-cyan-500',
     tabActivo: 'border-cyan-500 text-cyan-600',
@@ -302,4 +293,15 @@ export const COLOR_CATEGORIA_RIESGO_SUICIDA = {
   'Riesgo Leve': { fill: 'fill-purple-300', stroke: 'stroke-purple-300', bg: 'bg-purple-300' },
   'Riesgo Moderado': { fill: 'fill-purple-500', stroke: 'stroke-purple-500', bg: 'bg-purple-500' },
   'Riesgo Alto': { fill: 'fill-purple-800', stroke: 'stroke-purple-800', bg: 'bg-purple-800' },
+};
+
+// Mismos 3 textos exactos que arma la rama BULLYING del trigger
+// calcular_resultado_instrumento. Mismo criterio que el resto de los
+// COLOR_CATEGORIA_*: 3 tonos del color del instrumento (cian), de más
+// claro (mejor) a más oscuro (peor), sin rojo/amarillo — la alerta de
+// "Bullying alto" ya se resalta aparte.
+export const COLOR_CATEGORIA_BULLYING = {
+  'Sin indicios': { fill: 'fill-cyan-300', stroke: 'stroke-cyan-300', bg: 'bg-cyan-300' },
+  'Bullying moderado': { fill: 'fill-cyan-500', stroke: 'stroke-cyan-500', bg: 'bg-cyan-500' },
+  'Bullying alto': { fill: 'fill-cyan-800', stroke: 'stroke-cyan-800', bg: 'bg-cyan-800' },
 };

@@ -6,35 +6,18 @@
 //
 // Orden de pestañas: igual al orden en que el paciente responde los
 // instrumentos en Encuesta.jsx (Clima de Aula, GSHS, Estrés, Ansiedad,
-// Depresión, Cuidado Primario De Salud Familiar) — mismo criterio en
-// ambas pantallas, para que "el orden de los formularios" se lea igual
-// seas psicólogo o estudiante. Bullying va al final, fuera de ese orden:
-// es una pestaña placeholder agregada a pedido del cliente (meramente
-// visual, sin instrumento real detrás) y NO existe todavía en
-// Encuesta.jsx, así que no le corresponde un lugar dentro del orden real
-// de la encuesta del estudiante. Riesgo Suicida (sprint "Persona
-// Particular") va después de Cuidado Primario y antes de Bullying, en el
-// mismo orden en que aparece en la Encuesta de Persona Particular.
-//
-// Bullying (placeholder visual): no tiene datos, servicio ni trigger de
-// Supabase detrás — a diferencia de los otros 6, esta pestaña no recibe
-// props de gráfico ni depende de `hayPersonasFiltradas`/GSHS. Solo
-// muestra un aviso de "aún no disponible", siempre igual sin importar
-// los filtros de perfil activos (mismo motivo por el que GSHS tampoco
-// respeta esos filtros, aunque la razón acá es que no hay ningún dato
-// que filtrar). Cuando el instrumento se implemente de verdad, esta
-// pestaña deja de ser un caso especial y pasa a construirse igual que
-// Clima de Aula/Estrés/Ansiedad/Depresión (props de gráfico + trigger de
-// Supabase).
+// Depresión, Cuidado Primario De Salud Familiar, Riesgo Suicida y
+// Bullying) — mismo criterio en ambas pantallas, para que "el orden de
+// los formularios" se lea igual seas psicólogo o estudiante.
 //
 // Por instrumento:
 //   - Clima de Aula, Estrés, Ansiedad, Depresión, Cuidado Primario De
-//     Salud Familiar y Riesgo Suicida sí calculan una categoría (trigger
+//     Salud Familiar, Riesgo Suicida y Bullying sí calculan una categoría (trigger
 //     calcular_resultado_instrumento en Supabase), así
 //     que su pestaña muestra el gráfico de barras + dona de
 //     SeccionGraficoInstrumento, extraído para reutilizarse también en
 //     la pestaña GSHS de IndicadoresGSHS.jsx (psicólogo) y en la pestaña
-//     Gráficas de PanelConsolidadoSuperadmin.jsx (superadmin). Estos 5
+//     Gráficas de PanelConsolidadoSuperadmin.jsx (superadmin). Estos
 //     dependen de `hayPersonasFiltradas` (los filtros de perfil de
 //     FiltrosResumen.jsx sí les aplican).
 //   - GSHS es distinto: es un instrumento de prevalencia sin categoría ni
@@ -96,7 +79,7 @@ const PESTANAS = [
   { id: TAB_DEPRESION, etiqueta: 'Depresión', color: COLOR_MARCA.fucsia },
   { id: TAB_APGAR_FAMILIAR, etiqueta: 'Cuidado Primario De Salud Familiar', color: COLOR_MARCA.rosa },
   { id: TAB_RIESGO_SUICIDA, etiqueta: 'Riesgo Suicida', color: COLOR_MARCA.purpura },
-  { id: TAB_BULLYING, etiqueta: 'Bullying', color: COLOR_MARCA.grisNeutro },
+  { id: TAB_BULLYING, etiqueta: 'Bullying', color: COLOR_MARCA.cian },
 ];
 
 export function ResumenFormularios({
@@ -106,6 +89,7 @@ export function ResumenFormularios({
   graficoDepresion,
   graficoApgarFamiliar,
   graficoRiesgoSuicida,
+  graficoBullying,
   hayFiltrosActivos,
   hayPersonasFiltradas,
   modulosGshs,
@@ -130,8 +114,6 @@ export function ResumenFormularios({
 
   // Solo bloquea a los instrumentos que sí dependen del perfil filtrado
   // (ver nota de archivo sobre por qué GSHS queda afuera de esta regla).
-  // Bullying tampoco respeta esta regla — no depende de ningún dato real
-  // (ver nota de archivo).
   const sinPersonasFiltradas = hayFiltrosActivos && !hayPersonasFiltradas;
 
   return (
@@ -153,17 +135,9 @@ export function ResumenFormularios({
         ))}
       </div>
 
-      {pestanaActivaValida !== TAB_GSHS && pestanaActivaValida !== TAB_BULLYING && sinPersonasFiltradas && (
+      {pestanaActivaValida !== TAB_GSHS && sinPersonasFiltradas && (
         <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
           <p className="text-gray-500 font-medium">No hay estudiantes con estas características.</p>
-        </div>
-      )}
-
-      {pestanaActivaValida === TAB_BULLYING && (
-        <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-          <p className="text-gray-500 font-medium">
-            El formulario de Bullying todavía no está disponible. Esta pestaña es un adelanto visual.
-          </p>
         </div>
       )}
 
@@ -192,6 +166,10 @@ export function ResumenFormularios({
 
       {pestanaActivaValida === TAB_RIESGO_SUICIDA && !sinPersonasFiltradas && (
         <SeccionGraficoInstrumento titulo="Riesgo Suicida — por nivel" datos={graficoRiesgoSuicida} />
+      )}
+
+      {pestanaActivaValida === TAB_BULLYING && !sinPersonasFiltradas && (
+        <SeccionGraficoInstrumento titulo="Bullying — por nivel" datos={graficoBullying} />
       )}
 
       {pestanaActivaValida === TAB_GSHS && (

@@ -42,6 +42,13 @@ const ACENTO_INSTRUMENTO = {
 
 const PUNTAJE_MAXIMO_CLIMA_AULA = 20;
 
+// Textos legibles de las 3 señales que guarda el trigger de Bullying.
+const NIVEL_BULLYING = {
+  alto: 'alto',
+  moderado: 'moderado',
+  sin_indicios: 'sin indicios',
+};
+
 // Agrupa las respuestas planas (una fila por pregunta) en bloques
 // consecutivos por módulo, para mostrar el encabezado de tema solo
 // cuando cambia — mismo patrón visual que usa FormularioInstrumento.jsx
@@ -88,7 +95,8 @@ function Dato({ etiqueta, valor }) {
 // (que no tiene puntaje ni diagnóstico, ver nota en gshsData.js);
 // puntaje+categoría con el acento de color del instrumento, más una
 // insignia de alerta aparte si corresponde, para el resto (Estrés,
-// Ansiedad, Depresión, Apgar Familiar, Riesgo Suicida).
+// Ansiedad, Depresión, Apgar Familiar, Riesgo Suicida; Bullying solo trae
+// categoría, sin puntaje).
 function ResumenInstrumento({ registro }) {
   if (registro.tipo_instrumento === 'CLIMA_AULA' && registro.resultado_json) {
     const { puntaje_total: puntaje, categoria } = registro.resultado_json;
@@ -132,7 +140,7 @@ function ResumenInstrumento({ registro }) {
     return (
       <div className="flex flex-wrap items-center justify-end gap-2">
         <span className={`px-3 py-1 border rounded-full text-sm font-semibold ${estiloBadge}`}>
-          {puntaje} — {categoria}
+          {puntaje != null ? `${puntaje} — ${categoria}` : categoria}
         </span>
         {registro.alerta_activada && (
           <span className="px-2.5 py-1 bg-red-50 border border-red-200 text-red-800 rounded-full text-xs font-bold uppercase tracking-wide">
@@ -182,6 +190,15 @@ function TarjetaInstrumento({ registro }) {
           La GSHS es un instrumento de prevalencia: no genera un puntaje único ni un diagnóstico
           automático. Cruzar estos datos con otros instrumentos es responsabilidad del
           profesional.
+        </p>
+      )}
+
+      {registro.tipo_instrumento === 'BULLYING' && registro.resultado_json && (
+        <p className="px-5 pb-3 -mt-2 text-xs text-gray-600">
+          Como víctima: {NIVEL_BULLYING[registro.resultado_json.victimizacion] ?? '—'} · Como agresor/a:{' '}
+          {NIVEL_BULLYING[registro.resultado_json.agresion] ?? '—'} · Bullying que observa en el colegio:{' '}
+          {NIVEL_BULLYING[registro.resultado_json.ambiente] ?? '—'}. Solo los dos primeros definen el nivel
+          general.
         </p>
       )}
 

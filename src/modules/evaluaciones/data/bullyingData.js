@@ -11,21 +11,19 @@
 // useFormularioInstrumento.js). Las demás son de opción única, como
 // siempre.
 //
-// Solo informativo (decisión del cliente, confirmada en esta historia):
-// NO genera ningún puntaje, categoría, ni dispara alerta_activada — a
-// propósito, el trigger calcular_resultado_instrumento en Supabase no
-// tiene ninguna rama para BULLYING. Es dato de referencia para que el
-// psicólogo lo cruce manualmente con el resto de los resultados, igual
-// que GSHS.
-//
-// OJO — pendiente, fuera del alcance de esta historia: el panel de
-// indicadores del psicólogo (ResumenFormularios.jsx) y el filtro del
-// superadministrador (PanelConsolidadoSuperadmin.jsx) ya tenían una
-// pestaña "Bullying" placeholder desde antes, con un comentario que
-// asumía que este instrumento SÍ iba a calcular una categoría (como
-// Clima de Aula/Estrés). Como terminó siendo "solo informativo" como
-// GSHS, ese supuesto ya no aplica — hace falta decidir qué mostrar ahí
-// antes de tocar esas dos pantallas (ver mensaje de la entrega).
+// Calificación (calcular_resultado_instrumento en Supabase, nunca en el
+// cliente): no hay puntaje, sino un nivel — "Sin indicios", "Bullying
+// moderado" o "Bullying alto" — que sale de la respuesta más alta entre:
+//   - victimización: pregunta 2 (cuántas veces lo intimidaron) y 3
+//     (desde cuándo);
+//   - agresión: pregunta 7 (cuánto intimida a otros).
+// La pregunta 11 (cuánto bullying observa en el colegio) se guarda como
+// dato de "ambiente" pero NO sube el nivel de la persona. "Bullying alto"
+// activa alerta_activada, igual que "Riesgo Alto" en Riesgo Suicida.
+// ⚠️ El trigger compara el TEXTO EXACTO de las opciones de las preguntas
+// 2, 3, 7 y 11: si cambian acá, hay que actualizarlo en la base a la vez.
+// Los umbrales los propuso el equipo técnico y están pendientes de
+// validación clínica de la Licenciada.
 
 const ITEMS = [
   {

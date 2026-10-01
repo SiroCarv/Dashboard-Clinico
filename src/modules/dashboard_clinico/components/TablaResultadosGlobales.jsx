@@ -64,6 +64,7 @@ const ETIQUETA_INSTRUMENTO = {
   // InformePersonaParticular.jsx.
   APGAR_FAMILIAR: 'Cuidado Primario De Salud Familiar',
   RIESGO_SUICIDA: 'Riesgo Suicida',
+  BULLYING: 'Bullying',
 };
 
 // Mismo criterio de color que InformeConsolidadoPaciente.jsx: cada
@@ -79,6 +80,7 @@ const ACENTO_INSTRUMENTO = {
   DEPRESION: COLOR_MARCA.fucsia,
   APGAR_FAMILIAR: COLOR_MARCA.rosa,
   RIESGO_SUICIDA: COLOR_MARCA.purpura,
+  BULLYING: COLOR_MARCA.cian,
 };
 
 function formatearFecha(fecha) {
@@ -91,8 +93,9 @@ function formatearFecha(fecha) {
   });
 }
 
-// Resumen visible del resultado: puntaje + categoría para los 4
-// instrumentos que sí lo calculan (ver trigger
+// Resumen visible del resultado: puntaje + categoría para los
+// instrumentos que sí lo calculan (Bullying solo trae categoría, sin
+// puntaje) (ver trigger
 // calcular_resultado_instrumento en la base real), o solo el estado de
 // la alerta para GSHS, que nunca expone su `resultado_json` (ver nota
 // de archivo). Las categorías de Estrés/Ansiedad/Depresión todavía no
@@ -135,7 +138,7 @@ function ResumenResultado({ resultado }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <span className={`px-3 py-1 border rounded-full text-sm font-semibold ${estilo}`}>
-        {puntaje} — {categoria}
+        {puntaje != null ? `${puntaje} — ${categoria}` : categoria}
       </span>
       {resultado.alerta_activada && (
         <span className="px-2.5 py-1 bg-red-50 border border-red-200 text-red-800 rounded-full text-xs font-bold uppercase tracking-wide">

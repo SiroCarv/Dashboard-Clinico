@@ -122,10 +122,6 @@ const OPCIONES_INSTRUMENTO = [
   // que el superadministrador no podía aislar estos resultados aunque ya
   // existieran en la tabla (Persona Particular).
   { valor: 'RIESGO_SUICIDA', etiqueta: 'Riesgo Suicida' },
-  // Placeholder visual a pedido del cliente: sin instrumento real detrás
-  // todavía. Filtrar por esta opción siempre deja la tabla de resultados
-  // vacía (ningún resultado tiene tipo_instrumento = 'BULLYING') —
-  // comportamiento esperado, no un bug.
   { valor: 'BULLYING', etiqueta: 'Bullying' },
 ];
 
@@ -422,6 +418,7 @@ export default function PanelConsolidadoSuperadmin() {
                   // boundary). Dashboard.jsx (psicólogo) sí la pasaba —
                   // acá simplemente faltaba.
                   graficoRiesgoSuicida={resumenGraficas.graficoRiesgoSuicida}
+                  graficoBullying={resumenGraficas.graficoBullying}
                   hayFiltrosActivos={resumenGraficas.hayFiltrosActivos}
                   hayPersonasFiltradas={resumenGraficas.hayPersonasFiltradas}
                   modulosGshs={modulosGshs}

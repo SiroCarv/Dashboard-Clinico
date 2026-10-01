@@ -62,6 +62,9 @@
 // pedido del cliente. El dato queda calculado pero sin ningún consumidor
 // visual por ahora.
 //
+// Bullying: `graficoBullying` con el mismo helper — 3 categorías (Sin
+// indicios / Bullying moderado / Bullying alto) que calcula el trigger.
+//
 // Riesgo Suicida (sprint "Persona Particular"): se agrega
 // `graficoRiesgoSuicida` con el mismo helper `contarPorCategoria` que ya
 // usan Estrés/Ansiedad/Depresión/Cuidado Primario — el instrumento
@@ -80,6 +83,7 @@ import {
   COLOR_CATEGORIA_DEPRESION,
   COLOR_CATEGORIA_APGAR_FAMILIAR,
   COLOR_CATEGORIA_RIESGO_SUICIDA,
+  COLOR_CATEGORIA_BULLYING,
 } from '../../../shared/theme/paletaColores';
 import { OPCIONES_CURSO, OPCIONES_PARALELO, OPCIONES_TURNO, OPCIONES_GENERO } from '../data/opcionesEscolares';
 
@@ -148,6 +152,14 @@ const CATEGORIAS_RIESGO_SUICIDA = [
   { etiqueta: 'Riesgo Leve', lineas: ['Riesgo', 'Leve'] },
   { etiqueta: 'Riesgo Moderado', lineas: ['Riesgo', 'Moderado'] },
   { etiqueta: 'Riesgo Alto', lineas: ['Riesgo', 'Alto'] },
+];
+
+// Mismos 3 textos exactos que arma la rama BULLYING del trigger. Orden de
+// mejor a peor.
+const CATEGORIAS_BULLYING = [
+  { etiqueta: 'Sin indicios', lineas: ['Sin', 'indicios'] },
+  { etiqueta: 'Bullying moderado', lineas: ['Bullying', 'moderado'] },
+  { etiqueta: 'Bullying alto', lineas: ['Bullying', 'alto'] },
 ];
 
 // Mismos tramos de edad que la pregunta 1 del módulo demográfico del
@@ -332,6 +344,11 @@ export function useResumenFormularios(pacientes) {
     [pacientesFiltrados]
   );
 
+  const graficoBullying = useMemo(
+    () => contarPorCategoria(pacientesFiltrados, 'BULLYING', CATEGORIAS_BULLYING, COLOR_CATEGORIA_BULLYING),
+    [pacientesFiltrados]
+  );
+
   return {
     filtros,
     actualizarFiltro,
@@ -348,6 +365,7 @@ export function useResumenFormularios(pacientes) {
     graficoDepresion,
     graficoApgarFamiliar,
     graficoRiesgoSuicida,
+    graficoBullying,
     hayPersonasFiltradas: pacientesFiltrados.length > 0,
   };
 }

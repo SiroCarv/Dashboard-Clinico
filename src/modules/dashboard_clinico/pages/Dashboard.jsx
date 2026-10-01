@@ -304,6 +304,7 @@ export default function Dashboard() {
                   graficoDepresion={resumen.graficoDepresion}
                   graficoApgarFamiliar={resumen.graficoApgarFamiliar}
                   graficoRiesgoSuicida={resumen.graficoRiesgoSuicida}
+                  graficoBullying={resumen.graficoBullying}
                   hayFiltrosActivos={resumen.hayFiltrosActivos}
                   hayPersonasFiltradas={resumen.hayPersonasFiltradas}
                   modulosGshs={modulosGshs}
