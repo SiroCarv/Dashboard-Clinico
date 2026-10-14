@@ -29,6 +29,7 @@ import { useNavigate, Link, useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../../core/api/supabaseClient';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 import { registrarEstudiante } from '../services/registroEstudianteService';
+import { mensajeDeError } from '../../../shared/utils/mensajeErrorConexion';
 import { LONGITUD_MINIMA_PASSWORD_ESTUDIANTE } from '../data/accesoEstudiante';
 
 const OPCIONES_CURSO = [
@@ -202,7 +203,7 @@ export default function Registro() {
       setCodigoCreado(codigo);
     } catch (err) {
       console.error('Error en el registro:', err.message);
-      setError(err.message || 'Ocurrió un error al registrar la cuenta.');
+      setError(mensajeDeError(err, 'Ocurrió un error al registrar la cuenta.'));
     } finally {
       setLoading(false);
     }

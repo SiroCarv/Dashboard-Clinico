@@ -22,6 +22,7 @@
 // Docente) — no hay un psicólogo puntual "asignado a mano" en este
 // flujo.
 import { supabase } from '../../../core/api/supabaseClient';
+import { esErrorDeConexion, MENSAJE_ERROR_CONEXION } from '../../../shared/utils/mensajeErrorConexion';
 
 const DOMINIO_SINTETICO = 'particular.sistema-clinico.local';
 export const LONGITUD_PIN = 6;
@@ -148,6 +149,14 @@ export const personasParticularesService = {
       password: pin,
     });
 
+    // Una falla de conexión NO es un PIN incorrecto: sin esta
+    // distinción, un equipo con la red bloqueando a Supabase veía
+    // "Carnet de identidad o PIN incorrectos" y reintentaba datos que en
+    // realidad estaban bien.
+    if (authError && esErrorDeConexion(authError)) {
+      throw new Error(MENSAJE_ERROR_CONEXION);
+    }
+
     // Supabase no distingue "carnet inexistente" de "PIN incorrecto" en
     // este error — perfecto para el criterio de no revelar cuál de los
     // dos datos falló.
@@ -158,6 +167,11 @@ export const personasParticularesService = {
       .select('rol')
       .eq('id', authData.user.id)
       .single();
+
+    if (userError && esErrorDeConexion(userError)) {
+      await supabase.auth.signOut();
+      throw new Error(MENSAJE_ERROR_CONEXION);
+    }
 
     if (userError || userData?.rol !== 'persona_particular') {
       await supabase.auth.signOut();

@@ -37,6 +37,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../../core/api/supabaseClient';
 import { RUTA_POR_DEFECTO } from '../../../core/security/rutasPorDefecto';
 import { esCodigoEstudiante, correoInternoDeCodigo, esCorreoInternoEstudiante } from '../data/accesoEstudiante';
+import { esErrorDeConexion, MENSAJE_ERROR_CONEXION } from '../../../shared/utils/mensajeErrorConexion';
 import logo from '../../../shared/assets/logo.webp';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
@@ -147,7 +148,7 @@ export default function Login() {
 
     } catch (err) {
       console.error('Error de login:', err.message);
-      setError('Credenciales incorrectas o error al conectar.');
+      setError(esErrorDeConexion(err) ? MENSAJE_ERROR_CONEXION : 'Credenciales incorrectas o error al conectar.');
     } finally {
       setLoading(false);
     }

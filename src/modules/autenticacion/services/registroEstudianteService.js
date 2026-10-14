@@ -2,6 +2,7 @@
 // institución, crear la cuenta, asignar el código de estudiante) lo hace la
 // Edge Function `registrar-estudiante` en el servidor.
 import { supabase } from '../../../core/api/supabaseClient';
+import { esErrorDeConexion, MENSAJE_ERROR_CONEXION } from '../../../shared/utils/mensajeErrorConexion';
 
 // Devuelve { codigo_estudiante } o lanza un Error con mensaje para mostrar.
 export async function registrarEstudiante({ nombre, codigoInstitucion, password, curso, paralelo, turno, genero }) {
@@ -12,6 +13,11 @@ export async function registrarEstudiante({ nombre, codigoInstitucion, password,
   // Cuando la función responde con un error HTTP, el mensaje útil viene en el
   // cuerpo de la respuesta (error.context), no en error.message.
   if (error) {
+    // Falla de conexión (la petición nunca llegó al servidor): antes caía en
+    // el mensaje genérico de abajo y la persona reintentaba sin saber que el
+    // problema era su red.
+    if (esErrorDeConexion(error)) throw new Error(MENSAJE_ERROR_CONEXION);
+
     let mensaje = 'No se pudo completar el registro. Intenta nuevamente.';
     try {
       const cuerpo = await error.context?.json?.();

@@ -29,6 +29,7 @@ import { supabase } from '../../../core/api/supabaseClient';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 import { validarPasswordSegura, LONGITUD_MINIMA_PASSWORD } from '../../../shared/utils/validarPasswordSegura';
 import { ChecklistPasswordSegura } from '../../../shared/components/ChecklistPasswordSegura';
+import { esErrorDeConexion, MENSAJE_ERROR_CONEXION } from '../../../shared/utils/mensajeErrorConexion';
 
 export default function RegistroDocente() {
   const [codigoIngresado, setCodigoIngresado] = useState('');
@@ -176,7 +177,11 @@ export default function RegistroDocente() {
       });
     } catch (err) {
       console.error('Error en el registro:', err.message);
-      setError(err.message === 'Este correo ya está registrado' ? err.message : 'Ocurrió un error al registrar la cuenta.');
+      if (esErrorDeConexion(err)) {
+        setError(MENSAJE_ERROR_CONEXION);
+      } else {
+        setError(err.message === 'Este correo ya está registrado' ? err.message : 'Ocurrió un error al registrar la cuenta.');
+      }
       setLoading(false);
     }
   };

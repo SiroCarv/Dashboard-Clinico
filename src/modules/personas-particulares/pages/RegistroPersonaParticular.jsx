@@ -37,6 +37,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useParams } from 'react-router-dom';
 import { personasParticularesService, LONGITUD_PIN } from '../services/personasParticularesService';
+import { mensajeDeError } from '../../../shared/utils/mensajeErrorConexion';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 import logo from '../../../shared/assets/logo.webp';
 
@@ -202,7 +203,7 @@ export default function RegistroPersonaParticular() {
       });
     } catch (err) {
       console.error('Error en el registro:', err.message);
-      setError(err.message || 'Ocurrió un error al registrar la cuenta.');
+      setError(mensajeDeError(err, 'Ocurrió un error al registrar la cuenta.'));
     } finally {
       setLoading(false);
     }
