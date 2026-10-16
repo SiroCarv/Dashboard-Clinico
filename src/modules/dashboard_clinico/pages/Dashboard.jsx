@@ -23,11 +23,19 @@
 // exportarPacientesAExcel con columnas que no le corresponden.
 //
 // Gráficas + tipo de psicólogo (NUEVO, historia "Filtrado de formularios
-// según el tipo de psicólogo/a"): useTipoInstitucionPropia() resuelve si
+// según el tipo de psicólogo/a"): useInstitucionPropia() resuelve si
 // el/la psicólogo/a atiende en un Centro de Salud; si es así,
 // ResumenFormularios.jsx recibe `soloPersonaParticular` y oculta Clima
 // de Aula/GSHS/Bullying, dejando solo los 5 formularios de Persona
 // Particular. Para colegio/otra institución/superadmin, no cambia nada.
+//
+// Institución asignada (NUEVO, pedido de la cliente): junto al título
+// "Dashboard Clínico" se muestra BadgeInstitucion con el nombre de la
+// institución del/la psicólogo/a, o "Sin institución asignada" si no
+// tiene ninguna. Sale de la misma consulta que ya resolvía el tipo de
+// institución (useInstitucionPropia), así que no se abre una segunda.
+// El badge tiene su propio estado de carga y de error, para no confundir
+// "no tiene institución" con "no se pudo consultar".
 //
 // El Dashboard dejó de tener 2 pestañas (Clima de Aula/GSHS + "Historial
 // anterior PHQ-9"). La pantalla de historial PHQ-9 y su ruta de detalle
@@ -76,7 +84,8 @@ import BarraSuperior from '../../../shared/components/BarraSuperior';
 import { useListaPacientes } from '../hooks/useListaPacientes';
 import { useResumenFormularios } from '../hooks/useResumenFormularios';
 import { useIndicadoresGSHS } from '../hooks/useIndicadoresGSHS';
-import { useTipoInstitucionPropia } from '../hooks/useTipoInstitucionPropia';
+import { useInstitucionPropia } from '../hooks/useInstitucionPropia';
+import { BadgeInstitucion } from '../components/BadgeInstitucion';
 import { TablaPacientes } from '../components/TablaPacientes';
 import { TablaPersonasParticulares } from '../components/TablaPersonasParticulares';
 import { ResumenFormularios } from '../components/ResumenFormularios';
@@ -109,7 +118,12 @@ export default function Dashboard() {
     error: errorGshs,
   } = useIndicadoresGSHS();
   const { reportes: reportesDocente, loading: loadingReportes, error: errorReportes } = useReportesInstitucion();
-  const { tipoInstitucion } = useTipoInstitucionPropia();
+  const {
+    institucion,
+    tipoInstitucion,
+    cargando: cargandoInstitucion,
+    error: errorInstitucion,
+  } = useInstitucionPropia();
   // Pestaña elegida por la persona; mientras no elija ninguna se abre
   // "Formularios" (la primera), salvo en centros de salud, donde esa
   // pestaña no existe y se abre "Gráficas".
@@ -205,7 +219,14 @@ export default function Dashboard() {
 
       <div className="relative z-10 p-6 md:p-10 max-w-6xl mx-auto">
         <div className="mb-6">
-          <h2 className="text-2xl font-extrabold text-black">Dashboard Clínico</h2>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <h2 className="text-2xl font-extrabold text-black">Dashboard Clínico</h2>
+            <BadgeInstitucion
+              nombre={institucion?.nombre ?? null}
+              cargando={cargandoInstitucion}
+              error={errorInstitucion}
+            />
+          </div>
           <p className="text-gray-700 mt-1 font-semibold">
             Seguimiento consolidado del estado clínico de tus estudiantes.
           </p>

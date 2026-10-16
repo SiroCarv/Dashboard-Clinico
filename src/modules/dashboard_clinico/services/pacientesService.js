@@ -173,24 +173,37 @@ export const pacientesService = {
   },
 
   /**
-   * NUEVO — para la historia "Filtrado de formularios según el tipo de
-   * psicólogo/a": determina si el/la psicólogo/a autenticado/a atiende
-   * en un Centro de Salud o en un colegio (Unidad Educativa/Institución),
-   * a partir de `psicologo_institucion` -> `instituciones.tipo_institucion`.
+   * Institución del/la psicólogo/a autenticado/a: nombre y tipo, en UNA
+   * sola consulta a `psicologo_institucion` -> `instituciones`. Sirve a
+   * dos cosas en Dashboard.jsx: (1) el tipo decide si se ocultan
+   * formularios en un Centro de Salud (historia "Filtrado de formularios
+   * según el tipo de psicólogo/a") y (2) el nombre se muestra junto al
+   * título del panel (BadgeInstitucion). Se traen juntos en una sola
+   * consulta en vez de dos separadas para la misma pregunta.
+   *
    * Un psicólogo solo puede estar vinculado a UNA institución (SCRUM-49),
-   * así que siempre hay a lo sumo 1 fila. Devuelve `null` si la persona
-   * autenticada no tiene ninguna institución asignada (ej. superadmin,
-   * que de todas formas nunca llega a llamar esto porque usa su propia
-   * pantalla) — Dashboard.jsx trata `null` como "mostrar todo", igual
-   * que "colegio", nunca como "ocultar todo" por accidente.
+   * así que siempre hay a lo sumo 1 fila — y la política RLS de lectura
+   * de esta tabla solo deja ver la fila propia, por eso acá no se filtra
+   * por usuario en el cliente. Devuelve `null` si no tiene ninguna
+   * institución asignada (ej. recién creado/a, o desvinculado/a):
+   * Dashboard.jsx trata `tipoInstitucion` nulo como "mostrar todo", igual
+   * que "colegio", nunca como "ocultar todo" por accidente, y el badge
+   * muestra "Sin institución asignada". `tipoInstitucion` puede ser nulo
+   * aunque haya institución (instituciones creadas antes de que existiera
+   * esa columna).
    */
-  async obtenerTipoInstitucionPropia() {
+  async obtenerInstitucionPropia() {
     const { data, error } = await supabase
       .from('psicologo_institucion')
-      .select('institucion:instituciones(tipo_institucion)')
+      .select('institucion:instituciones(nombre, tipo_institucion)')
       .maybeSingle();
 
     if (error) throw error;
-    return data?.institucion?.tipo_institucion ?? null;
+    if (!data?.institucion) return null;
+
+    return {
+      nombre: data.institucion.nombre,
+      tipoInstitucion: data.institucion.tipo_institucion ?? null,
+    };
   },
 };

@@ -49,7 +49,7 @@
 // (psicólogo/a de colegio, u otra institución, o superadmin), se ven
 // TODOS los formularios sin restricción — comportamiento idéntico al que
 // ya existía antes de esta historia. Quién decide ese booleano es
-// Dashboard.jsx, a partir de pacientesService.obtenerTipoInstitucionPropia().
+// Dashboard.jsx, a partir de pacientesService.obtenerInstitucionPropia().
 import { useState } from 'react';
 import { SeccionGraficoInstrumento } from './SeccionGraficoInstrumento';
 import { GraficoModulosGSHS } from './GraficoModulosGSHS';
