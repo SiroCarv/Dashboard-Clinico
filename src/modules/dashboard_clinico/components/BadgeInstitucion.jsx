@@ -7,12 +7,16 @@
 //   - cargando: gris con spinner
 //   - error: rojo, mismo estilo que el resto de avisos de error de esta
 //     pantalla (no es un riesgo clínico, es un fallo de carga)
-//   - con institución: violeta suave, el acento de esta pantalla
+//   - con institución: fondo y borde violeta suave (el acento de esta
+//     pantalla) con texto negro, a pedido de la cliente. Se escriben las
+//     clases directo en vez de usar COLOR_MARCA.violetaSuave.suave porque
+//     ese bloque ya trae su propio color de texto (violeta), y dos
+//     clases de color de texto en el mismo elemento se resuelven por el
+//     orden del CSS de Tailwind, no por el orden en que se escriben.
 //   - sin institución: gris, mismo estilo de "sin dato" que ya usan
 //     TablaResultadosGlobales.jsx e InformeConsolidadoPaciente.jsx
 // Los nombres largos se recortan con "…" y se ven completos al pasar el
 // mouse (title), para no romper el encabezado en pantallas angostas.
-import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 
 const CLASES_BASE =
   'inline-flex items-center max-w-full px-3 py-1 border rounded-full text-sm font-semibold';
@@ -45,7 +49,7 @@ export function BadgeInstitucion({ nombre, cargando, error }) {
 
   if (nombre) {
     return (
-      <span className={`${CLASES_BASE} gap-1 ${COLOR_MARCA.violetaSuave.suave}`} title={nombre}>
+      <span className={`${CLASES_BASE} gap-1 bg-violet-50 border-violet-200 text-black`} title={nombre}>
         <span className="shrink-0">Institución:</span>
         <span className="truncate font-bold">{nombre}</span>
       </span>
