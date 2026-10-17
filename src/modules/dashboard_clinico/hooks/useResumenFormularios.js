@@ -49,9 +49,9 @@
 // Institución (corrección posterior): se retiró el filtro de
 // institución de acá y de Dashboard.jsx — un psicólogo solo puede estar
 // vinculado a una institución (SCRUM-49), así que filtrar por
-// institución nunca reduce nada para quien usa esta pantalla. La
-// columna Institución sigue visible en la tabla (TablaPacientes.jsx),
-// solo se quitó el control de filtro.
+// institución nunca reduce nada para quien usa esta pantalla. Después
+// también se quitó la columna Institución de la tabla (TablaPacientes.jsx),
+// por el mismo motivo.
 //
 // Tipo de persona (corrección posterior): se retiró también este filtro
 // de acá y de Dashboard.jsx, a pedido del cliente. `tipoPersona` sigue

@@ -1,6 +1,12 @@
-// Tabla del Dashboard: una fila por estudiante, con su institución y un
-// link al Informe Consolidado. La fila entera es clickeable (rol="button"
-// + onKeyDown) para navegar, no solo el texto "Ver informe →".
+// Tabla del Dashboard: una fila por estudiante, con un link al Informe
+// Consolidado. La fila entera es clickeable (rol="button" + onKeyDown)
+// para navegar, no solo el texto "Ver informe →".
+//
+// Sin columna Institución (retirada a pedido del cliente): cada
+// psicólogo está asignado a una sola institución (SCRUM-49), así que
+// todas las filas mostraban lo mismo — y esa institución ya se ve junto
+// al título del Dashboard (BadgeInstitucion). El dato `institucion`
+// sigue llegando en cada paciente (lo usa exportarPacientesExcel.js).
 //
 // Etiqueta Estudiante/Docente (retirada de acá a pedido del cliente): la
 // tabla ya no muestra ninguna insignia de `tipoPersona` junto al nombre.
@@ -44,7 +50,6 @@ export function TablaPacientes({ pacientes, hayFiltrosActivos = false }) {
           <thead>
             <tr className="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider">
               <th className="p-4 font-bold border-b border-gray-200">Estudiante</th>
-              <th className="p-4 font-bold border-b border-gray-200">Institución</th>
               <th className="p-4 font-bold border-b border-gray-200"></th>
             </tr>
           </thead>
@@ -73,7 +78,6 @@ export function TablaPacientes({ pacientes, hayFiltrosActivos = false }) {
                     </span>
                   )}
                 </td>
-                <td className="p-4 text-gray-600">{persona.institucion?.nombre || '—'}</td>
                 <td className="p-4 text-right text-violet-400 font-bold text-sm">Ver informe →</td>
               </tr>
             ))}
