@@ -16,6 +16,15 @@
 // fecha, dentro de la última columna, junto a su formulario — ya no hay
 // una columna "Fecha" aparte, porque una persona tiene varias.
 //
+// Resultados alineados (a pedido, porque se veía amontonado): cada
+// resultado es una fila con 4 columnas fijas (formulario, resultado,
+// alerta, fecha). Antes eran etiquetas que se acomodaban solas según el
+// espacio, así que la fecha y la alerta caían en lugares distintos de un
+// resultado a otro. Con columnas de ancho fijo quedan una debajo de la
+// otra, aunque a un resultado le falte la alerta (esa columna queda
+// vacía, no se corre). Dentro de cada persona, los resultados con alerta
+// van primero (el orden por fecha se conserva dentro de cada grupo).
+//
 // "Registrado por" sigue siendo una línea chica, ahora debajo de cada
 // resultado que lo tenga (no debajo del nombre): el origen es un dato
 // de cada resultado, y una misma persona podría tener resultados de
@@ -86,14 +95,32 @@ const ACENTO_INSTRUMENTO = {
   BULLYING: COLOR_MARCA.cian,
 };
 
-function formatearFecha(fecha) {
-  return new Date(fecha).toLocaleString('es-BO', {
+// La fecha y la hora van en dos líneas (ver FechaResultado): así la
+// columna de fecha es angosta y deja más ancho al resultado.
+function formatearDia(fecha) {
+  return new Date(fecha).toLocaleDateString('es-BO', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
   });
+}
+
+function formatearHora(fecha) {
+  return new Date(fecha).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' });
+}
+
+// Columnas fijas de cada resultado: formulario | resultado | alerta |
+// fecha. Los anchos fijos son lo que mantiene todo alineado entre una fila
+// y la siguiente. El resultado tiene un ancho máximo (no se estira con la
+// pantalla) para que la alerta y la fecha queden pegadas a él en vez de
+// irse al borde derecho; si la pantalla es angosta, se encoge (minmax).
+const COLUMNAS_RESULTADO =
+  'grid grid-cols-[9rem_minmax(0,18rem)_5.5rem_4.5rem] items-center gap-x-3';
+
+// Pone primero los resultados con alerta. `sort` es estable: entre los que
+// empatan se conserva el orden original (más reciente primero).
+function ordenarAlertasPrimero(registros) {
+  return [...registros].sort((a, b) => Number(Boolean(b.alerta_activada)) - Number(Boolean(a.alerta_activada)));
 }
 
 // Resumen visible del resultado: puntaje + categoría para los
@@ -111,11 +138,11 @@ function formatearFecha(fecha) {
 function ResumenResultado({ resultado }) {
   if (resultado.tipo_instrumento === 'GSHS') {
     return resultado.alerta_activada ? (
-      <span className="px-2.5 py-1 bg-red-50 border border-red-200 text-red-800 rounded-full text-xs font-bold uppercase tracking-wide">
+      <span className="px-2.5 py-1 bg-red-50 border border-red-200 text-red-800 rounded-full text-xs font-bold uppercase tracking-wide whitespace-nowrap">
         ⚠️ Alerta activada
       </span>
     ) : (
-      <span className="px-2.5 py-1 bg-gray-100 border border-gray-300 text-gray-600 rounded-full text-xs font-semibold">
+      <span className="px-2.5 py-1 bg-gray-100 border border-gray-300 text-gray-600 rounded-full text-xs font-semibold whitespace-nowrap">
         Sin alertas puntuales
       </span>
     );
@@ -131,22 +158,42 @@ function ResumenResultado({ resultado }) {
       ? (ESTILOS_CATEGORIA_CLIMA_AULA[categoria] ?? 'bg-gray-100 border-gray-300 text-gray-800')
       : 'bg-gray-100 border-gray-300 text-gray-800';
 
-  // Historia "Visibilidad de resultados de Riesgo Suicida para Psicólogo
-  // y Superadmin": antes solo GSHS mostraba una insignia de alerta
-  // aparte; Riesgo Suicida ("Riesgo Alto") y Depresión (cuando la
-  // respuesta de ideación suicida del PHQ-9 la activa, ver trigger en
-  // Supabase) también encienden `alerta_activada`, así que se muestra la
-  // misma insignia roja que ya usa GSHS.
+  // La insignia de alerta de estos instrumentos ya no va dentro de este
+  // resumen: tiene su propia columna fija (ver InsigniaAlerta), para que
+  // quede alineada entre filas.
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className={`px-3 py-1 border rounded-full text-sm font-semibold ${estilo}`}>
-        {puntaje != null ? `${puntaje} — ${categoria}` : categoria}
-      </span>
-      {resultado.alerta_activada && (
-        <span className="px-2.5 py-1 bg-red-50 border border-red-200 text-red-800 rounded-full text-xs font-bold uppercase tracking-wide">
-          ⚠️ Alerta
-        </span>
-      )}
+    <span
+      className={`inline-block max-w-full px-3 py-1 border rounded-full text-sm font-semibold ${estilo}`}
+    >
+      {puntaje != null ? `${puntaje} — ${categoria}` : categoria}
+    </span>
+  );
+}
+
+// Historia "Visibilidad de resultados de Riesgo Suicida para Psicólogo y
+// Superadmin": antes solo GSHS mostraba una insignia de alerta aparte;
+// Riesgo Suicida ("Riesgo Alto") y Depresión (cuando la respuesta de
+// ideación suicida del PHQ-9 la activa, ver trigger en Supabase) también
+// encienden `alerta_activada`, así que se muestra la misma insignia roja
+// que ya usa GSHS. GSHS no la repite acá: su resumen ya dice "Alerta
+// activada" (ver ResumenResultado).
+function InsigniaAlerta({ resultado }) {
+  if (resultado.tipo_instrumento === 'GSHS' || !resultado.alerta_activada) {
+    return null;
+  }
+
+  return (
+    <span className="px-2.5 py-1 bg-red-50 border border-red-200 text-red-800 rounded-full text-xs font-bold uppercase tracking-wide whitespace-nowrap">
+      ⚠️ Alerta
+    </span>
+  );
+}
+
+function FechaResultado({ fecha }) {
+  return (
+    <div className="text-xs text-gray-500 leading-tight whitespace-nowrap">
+      <p>{formatearDia(fecha)}</p>
+      <p>{formatearHora(fecha)}</p>
     </div>
   );
 }
@@ -170,7 +217,14 @@ function OrigenRegistro({ resultado }) {
 }
 
 export function TablaResultadosGlobales({ resultados, hayFiltrosActivos = false }) {
-  const personas = useMemo(() => agruparResultadosPorPersona(resultados), [resultados]);
+  const personas = useMemo(
+    () =>
+      agruparResultadosPorPersona(resultados).map((persona) => ({
+        ...persona,
+        registros: ordenarAlertasPrimero(persona.registros),
+      })),
+    [resultados]
+  );
 
   if (personas.length === 0) {
     return (
@@ -222,17 +276,22 @@ export function TablaResultadosGlobales({ resultados, hayFiltrosActivos = false 
                       const acento = ACENTO_INSTRUMENTO[registro.tipo_instrumento] ?? COLOR_MARCA.violetaSuave;
 
                       return (
-                        <li key={registro.id_evaluacion} className="py-2">
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                            <span
-                              className={`px-2.5 py-1 border rounded-full text-xs font-semibold ${acento.suave}`}
-                            >
-                              {ETIQUETA_INSTRUMENTO[registro.tipo_instrumento] ?? registro.tipo_instrumento}
-                            </span>
-                            <ResumenResultado resultado={registro} />
-                            <span className="text-xs text-gray-500 whitespace-nowrap">
-                              {formatearFecha(registro.fecha_registro)}
-                            </span>
+                        <li key={registro.id_evaluacion} className="py-3">
+                          <div className={COLUMNAS_RESULTADO}>
+                            <div>
+                              <span
+                                className={`inline-block px-2.5 py-1 border rounded-full text-xs font-semibold ${acento.suave}`}
+                              >
+                                {ETIQUETA_INSTRUMENTO[registro.tipo_instrumento] ?? registro.tipo_instrumento}
+                              </span>
+                            </div>
+                            <div>
+                              <ResumenResultado resultado={registro} />
+                            </div>
+                            <div>
+                              <InsigniaAlerta resultado={registro} />
+                            </div>
+                            <FechaResultado fecha={registro.fecha_registro} />
                           </div>
                           <OrigenRegistro resultado={registro} />
                         </li>
