@@ -3,3 +3,5 @@
 // — nunca una ruta interna como '../../autenticacion/components/BotonCerrarSesion'.
 // Es la única forma permitida de consumo cruzado entre módulos.
 export { default as BotonCerrarSesion } from './components/BotonCerrarSesion';
+// Se monta una sola vez en App.jsx (no lo usa ningún otro módulo).
+export { default as CierrePorInactividad } from './components/CierrePorInactividad';

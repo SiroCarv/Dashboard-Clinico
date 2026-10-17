@@ -4,6 +4,12 @@
 // a la vez; ningún módulo se importa a sí mismo desde otro módulo.
 //
 // Capas de protección alrededor de <Routes>:
+//   - CierrePorInactividad: cierra la sesión de quien dejó de usar la
+//     plataforma (15 min psicólogo/superadmin/docente, 30 min estudiante/
+//     persona particular). Se monta FUERA de GuardianDeSesion a propósito:
+//     ese guardián no muestra a sus hijos hasta terminar su verificación
+//     inicial, y este debe estar activo desde el primer momento para
+//     enterarse también de los cierres que ese guardián hace al abrir.
 //   - GuardianDeSesion: cierra sesiones "abandonadas" (pestaña cerrada
 //     sin logout) antes de que se renderice cualquier ruta — excepto
 //     Inicio ("/"), que se muestra de inmediato mientras la verificación
@@ -34,6 +40,8 @@ import Registro from './modules/autenticacion/pages/Registro';
 import RegistroDocente from './modules/autenticacion/pages/RegistroDocente';
 import RecuperarPassword from './modules/autenticacion/pages/RecuperarPassword';
 import RestablecerPassword from './modules/autenticacion/pages/RestablecerPassword';
+// API pública del módulo (no una ruta interna): cierre automático por inactividad.
+import { CierrePorInactividad } from './modules/autenticacion';
 // Home (restaurado): landing pública con misión/visión -- ver conversación
 // de reunión. Épica "Observatorio de Salud Mental" reconfirmada con el
 // cliente.
@@ -63,148 +71,151 @@ import NoEncontrado from './shared/pages/NoEncontrado';
 
 function App() {
   return (
-    <GuardianDeSesion>
-      <Routes>
-        {/* Home restaurado (reemplaza al redirect de SCRUM-46): landing
-            pública con misión/visión, reconfirmada con el cliente. */}
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<RutaPublica><Login /></RutaPublica>} />
+    <>
+      <CierrePorInactividad />
+      <GuardianDeSesion>
+        <Routes>
+          {/* Home restaurado (reemplaza al redirect de SCRUM-46): landing
+              pública con misión/visión, reconfirmada con el cliente. */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<RutaPublica><Login /></RutaPublica>} />
 
-        {/* SCRUM-33: pantalla de bienvenida + selector de perfil,
-            previa a los tres flujos de registro ya existentes */}
-        <Route path="/registro-nuevo" element={<RutaPublica><Bienvenida /></RutaPublica>} />
+          {/* SCRUM-33: pantalla de bienvenida + selector de perfil,
+              previa a los tres flujos de registro ya existentes */}
+          <Route path="/registro-nuevo" element={<RutaPublica><Bienvenida /></RutaPublica>} />
 
-        {/* Ruta dinámica para atrapar el código de la institución */}
-        <Route path="/registro/:codigo" element={<RutaPublica><Registro /></RutaPublica>} />
-        {/* Dejamos la ruta normal por si alguien entra sin código, para mostrarle un mensaje de error */}
-        <Route path="/registro" element={<RutaPublica><Registro /></RutaPublica>} />
+          {/* Ruta dinámica para atrapar el código de la institución */}
+          <Route path="/registro/:codigo" element={<RutaPublica><Registro /></RutaPublica>} />
+          {/* Dejamos la ruta normal por si alguien entra sin código, para mostrarle un mensaje de error */}
+          <Route path="/registro" element={<RutaPublica><Registro /></RutaPublica>} />
 
-        {/* Registro de docentes (SCRUM-47): mismo patrón de código de
-            institución que Registro.jsx, sin campos de estudiante. */}
-        <Route path="/registro-docente" element={<RutaPublica><RegistroDocente /></RutaPublica>} />
+          {/* Registro de docentes (SCRUM-47): mismo patrón de código de
+              institución que Registro.jsx, sin campos de estudiante. */}
+          <Route path="/registro-docente" element={<RutaPublica><RegistroDocente /></RutaPublica>} />
 
-        {/* Registro e inicio de sesión de Persona Particular: código de
-            Centro de Salud + carnet/PIN, sin correo — ver
-            personasParticularesService.js. Ruta dinámica con :codigo
-            (igual que /registro/:codigo) para que el enlace que copia
-            "Copiar Enlace" en el Panel Maestro, para una institución
-            tipo Centro de Salud, llegue con el código ya precargado. */}
-        <Route path="/registro-particular/:codigo" element={<RutaPublica><RegistroPersonaParticular /></RutaPublica>} />
-        <Route path="/registro-particular" element={<RutaPublica><RegistroPersonaParticular /></RutaPublica>} />
-        <Route path="/login-particular" element={<RutaPublica><LoginPersonaParticular /></RutaPublica>} />
+          {/* Registro e inicio de sesión de Persona Particular: código de
+              Centro de Salud + carnet/PIN, sin correo — ver
+              personasParticularesService.js. Ruta dinámica con :codigo
+              (igual que /registro/:codigo) para que el enlace que copia
+              "Copiar Enlace" en el Panel Maestro, para una institución
+              tipo Centro de Salud, llegue con el código ya precargado. */}
+          <Route path="/registro-particular/:codigo" element={<RutaPublica><RegistroPersonaParticular /></RutaPublica>} />
+          <Route path="/registro-particular" element={<RutaPublica><RegistroPersonaParticular /></RutaPublica>} />
+          <Route path="/login-particular" element={<RutaPublica><LoginPersonaParticular /></RutaPublica>} />
 
-        <Route path="/recuperar-password" element={<RutaPublica><RecuperarPassword /></RutaPublica>} />
-        {/* /restablecer-password queda SIN RutaPublica a propósito: depende de la
-            sesión "oculta" que Supabase abre desde el link del correo de recuperación
-            (ver comentario en RestablecerPassword.jsx). Envolverla la rompería.
-            No existe un equivalente para Persona Particular — historia
-            "Eliminación de recuperación de acceso para Persona Particular". */}
-        <Route path="/restablecer-password" element={<RestablecerPassword />} />
+          <Route path="/recuperar-password" element={<RutaPublica><RecuperarPassword /></RutaPublica>} />
+          {/* /restablecer-password queda SIN RutaPublica a propósito: depende de la
+              sesión "oculta" que Supabase abre desde el link del correo de recuperación
+              (ver comentario en RestablecerPassword.jsx). Envolverla la rompería.
+              No existe un equivalente para Persona Particular — historia
+              "Eliminación de recuperación de acceso para Persona Particular". */}
+          <Route path="/restablecer-password" element={<RestablecerPassword />} />
       
-        <Route 
-          path="/encuesta" 
-          element={
-            <RutaProtegida rolRequerido="paciente">
-              <Encuesta />
-            </RutaProtegida>
-          } 
-        />
+          <Route 
+            path="/encuesta" 
+            element={
+              <RutaProtegida rolRequerido="paciente">
+                <Encuesta />
+              </RutaProtegida>
+            } 
+          />
 
-        {/* Persona Particular responde el mismo componente <Encuesta />
-            que Estudiante, en una ruta separada (ver nota de archivo
-            arriba) — Encuesta.jsx decide internamente, según el rol
-            real, qué formularios mostrar. */}
-        <Route
-          path="/encuesta-particular"
-          element={
-            <RutaProtegida rolRequerido="persona_particular">
-              <Encuesta />
-            </RutaProtegida>
-          }
-        />
+          {/* Persona Particular responde el mismo componente <Encuesta />
+              que Estudiante, en una ruta separada (ver nota de archivo
+              arriba) — Encuesta.jsx decide internamente, según el rol
+              real, qué formularios mostrar. */}
+          <Route
+            path="/encuesta-particular"
+            element={
+              <RutaProtegida rolRequerido="persona_particular">
+                <Encuesta />
+              </RutaProtegida>
+            }
+          />
       
-        <Route 
-          path="/dashboard" 
-          element={
-            <RutaProtegida rolRequerido="psicologo">
-              <Dashboard />
-            </RutaProtegida>
-          } 
-        />
+          <Route 
+            path="/dashboard" 
+            element={
+              <RutaProtegida rolRequerido="psicologo">
+                <Dashboard />
+              </RutaProtegida>
+            } 
+          />
 
-        <Route 
-          path="/dashboard/informe/:idPaciente" 
-          element={
-            <RutaProtegida rolRequerido="psicologo">
-              <InformeConsolidado />
-            </RutaProtegida>
-          } 
-        />
+          <Route 
+            path="/dashboard/informe/:idPaciente" 
+            element={
+              <RutaProtegida rolRequerido="psicologo">
+                <InformeConsolidado />
+              </RutaProtegida>
+            } 
+          />
 
-        {/* Informe individual de Persona Particular (NUEVO). */}
-        <Route
-          path="/dashboard/informe-particular/:idPersona"
-          element={
-            <RutaProtegida rolRequerido="psicologo">
-              <InformePersonaParticular />
-            </RutaProtegida>
-          }
-        />
+          {/* Informe individual de Persona Particular (NUEVO). */}
+          <Route
+            path="/dashboard/informe-particular/:idPersona"
+            element={
+              <RutaProtegida rolRequerido="psicologo">
+                <InformePersonaParticular />
+              </RutaProtegida>
+            }
+          />
 
-        {/* Resultados del GSHS por módulo (SCRUM-57), scopeado a la
-            institución del psicólogo por RLS. */}
-        <Route 
-          path="/dashboard/gshs" 
-          element={
-            <RutaProtegida rolRequerido="psicologo">
-              <IndicadoresGSHS />
-            </RutaProtegida>
-          } 
-        />
+          {/* Resultados del GSHS por módulo (SCRUM-57), scopeado a la
+              institución del psicólogo por RLS. */}
+          <Route 
+            path="/dashboard/gshs" 
+            element={
+              <RutaProtegida rolRequerido="psicologo">
+                <IndicadoresGSHS />
+              </RutaProtegida>
+            } 
+          />
 
-        <Route 
-          path="/panel-maestro" 
-          element={
-            <RutaProtegida rolRequerido="superadmin">
-              <PanelMaestro />
-            </RutaProtegida>
-          } 
-        />
+          <Route 
+            path="/panel-maestro" 
+            element={
+              <RutaProtegida rolRequerido="superadmin">
+                <PanelMaestro />
+              </RutaProtegida>
+            } 
+          />
 
-        {/* Panel Consolidado de Resultados (SCRUM-56): resultados de
-            evaluaciones de todas las instituciones y psicólogos, con
-            filtros. Vive en dashboard_clinico porque es la misma épica
-            "Monitoreo y Alertas" que ya cubre el Dashboard del
-            psicólogo, solo que sin restringir por institución. */}
-        <Route 
-          path="/panel-resultados" 
-          element={
-            <RutaProtegida rolRequerido="superadmin">
-              <PanelConsolidadoSuperadmin />
-            </RutaProtegida>
-          } 
-        />
+          {/* Panel Consolidado de Resultados (SCRUM-56): resultados de
+              evaluaciones de todas las instituciones y psicólogos, con
+              filtros. Vive en dashboard_clinico porque es la misma épica
+              "Monitoreo y Alertas" que ya cubre el Dashboard del
+              psicólogo, solo que sin restringir por institución. */}
+          <Route 
+            path="/panel-resultados" 
+            element={
+              <RutaProtegida rolRequerido="superadmin">
+                <PanelConsolidadoSuperadmin />
+              </RutaProtegida>
+            } 
+          />
 
-        {/* Registro de caso por Docente (SCRUM-51): el docente completa
-            el cuestionario a nombre de un alumno de su institución y
-            elige qué psicólogo lo revisará. */}
-        <Route 
-          path="/registro-caso" 
-          element={
-            <RutaProtegida rolRequerido="docente">
-              <RegistroCasoDocente />
-            </RutaProtegida>
-          } 
-        />
+          {/* Registro de caso por Docente (SCRUM-51): el docente completa
+              el cuestionario a nombre de un alumno de su institución y
+              elige qué psicólogo lo revisará. */}
+          <Route 
+            path="/registro-caso" 
+            element={
+              <RutaProtegida rolRequerido="docente">
+                <RegistroCasoDocente />
+              </RutaProtegida>
+            } 
+          />
 
-        {/* Comodín: cualquier URL que no coincida con ninguna ruta de
-            arriba (typo, enlace viejo, o un enlace tipo
-            /registro-docente/:codigo que todavía no existe -- ver
-            comentario en RegistroDocente.jsx) cae acá en vez de
-            renderizar una pantalla en blanco. */}
-        <Route path="*" element={<NoEncontrado />} />
-      </Routes>
-    </GuardianDeSesion>
+          {/* Comodín: cualquier URL que no coincida con ninguna ruta de
+              arriba (typo, enlace viejo, o un enlace tipo
+              /registro-docente/:codigo que todavía no existe -- ver
+              comentario en RegistroDocente.jsx) cae acá en vez de
+              renderizar una pantalla en blanco. */}
+          <Route path="*" element={<NoEncontrado />} />
+        </Routes>
+      </GuardianDeSesion>
+    </>
   );
 }
 

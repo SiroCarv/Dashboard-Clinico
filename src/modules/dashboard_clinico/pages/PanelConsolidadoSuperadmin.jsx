@@ -3,11 +3,13 @@
 //   - "Resultados": listado de TODOS los resultados de evaluaciones del
 //     sistema (todas las instituciones y psicólogos), con filtro por
 //     tipo de institución, institución, por psicólogo y por rango de
-//     fechas. A diferencia de
-//     Dashboard.jsx (el panel del psicólogo, que lista pacientes), acá
-//     cada fila es un resultado puntual — el criterio de aceptación pide
-//     identificar institución y psicólogo "por cada resultado", no por
-//     paciente.
+//     fechas. Los filtros se aplican acá sobre resultados sueltos; la
+//     tabla (TablaResultadosGlobales.jsx) los junta después en UNA fila
+//     por persona, con todos sus formularios y resultados dentro — antes
+//     cada fila era un resultado puntual y quien hacía varios formularios
+//     aparecía repetida (cambio a pedido del cliente). Sigue siendo
+//     distinto de Dashboard.jsx (el panel del psicólogo), que lista
+//     pacientes sin sus resultados en la tabla.
 //
 //   - "Gráficas" (agregada después de SCRUM-56, a pedido del cliente):
 //     mismos gráficos de Clima de Aula / GSHS / Estrés / Ansiedad /

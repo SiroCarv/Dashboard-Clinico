@@ -1,6 +1,11 @@
 // Acceso de solo lectura a `evaluaciones_instrumento` para el Panel
 // Consolidado del superadministrador (SCRUM-56): un resultado por fila,
 // con la institución y el psicólogo responsable del paciente embebidos.
+// Se devuelve plano (un resultado por elemento) a propósito: los filtros
+// del panel se aplican sobre resultados sueltos, y recién DESPUÉS
+// TablaResultadosGlobales.jsx los junta por persona (ver
+// utils/agruparResultadosPorPersona.js) — por eso cada fila trae
+// `id_paciente`, la clave para saber a quién pertenece.
 // Igual que pacientesService.js, este archivo nunca filtra "manualmente"
 // por institución/psicólogo en el cliente — depende enteramente de la
 // política RLS "instrumento_select" (que ya incluye `is_superadmin()`)
@@ -110,7 +115,7 @@ export const resultadosGlobalesService = {
     const { data, error } = await supabase
       .from('evaluaciones_instrumento')
       .select(
-        'id_evaluacion, tipo_instrumento, fecha_registro, resultado_json, alerta_activada, registrado_por_docente_id, paciente:usuarios!id_paciente(nombre, email, institucion_id, institucion:instituciones(nombre, psicologo_institucion(psicologo:usuarios!psicologo_id(nombre))), psicologo_asignado:usuarios!psicologo_asignado_id(nombre)), docente:usuarios!registrado_por_docente_id(nombre)'
+        'id_evaluacion, id_paciente, tipo_instrumento, fecha_registro, resultado_json, alerta_activada, registrado_por_docente_id, paciente:usuarios!id_paciente(nombre, email, institucion_id, institucion:instituciones(nombre, psicologo_institucion(psicologo:usuarios!psicologo_id(nombre))), psicologo_asignado:usuarios!psicologo_asignado_id(nombre)), docente:usuarios!registrado_por_docente_id(nombre)'
       )
       .order('fecha_registro', { ascending: false });
 
