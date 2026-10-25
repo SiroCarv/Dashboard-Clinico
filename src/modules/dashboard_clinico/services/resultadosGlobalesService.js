@@ -41,12 +41,16 @@
 // PanelConsolidadoSuperadmin.jsx (filtro) y TablaResultadosGlobales.jsx
 // (columna) — no usar `psicologo_asignado` directo en ningún lado nuevo.
 //
-// `psicologo_institucion` tiene restricción UNIQUE(institucion_id) (una
-// institución, a lo sumo un psicólogo — ver AsignacionPsicologos.jsx),
-// así que PostgREST embebe esa relación como objeto único; por las dudas
-// (versión de PostgREST, o una institución todavía sin psicólogo) el
-// resolver de abajo tolera que llegue como objeto, arreglo vacío o
-// `null` sin romper.
+// Una institución puede tener VARIOS psicólogos (los Centros de Salud; el
+// resto sigue con uno — ver AsignacionPsicologos.jsx), así que PostgREST
+// embebe `psicologo_institucion` como arreglo. El resolver de abajo
+// también tolera que llegue como objeto único, arreglo vacío o `null`
+// (institución todavía sin psicólogo) sin romper. Cuando hay más de un
+// psicólogo, `psicologoResponsable.nombre` es la lista unida con comas
+// ("Ana, Luis") — así la columna y el Excel la muestran tal cual — y
+// `psicologoResponsable.nombres` conserva cada nombre por separado, que
+// es lo que usa el filtro de psicólogo del panel (coincide con
+// cualquiera del equipo).
 //
 // SCRUM-60 — Detalle de casos registrados por docente: se agrega
 // `registrado_por_docente_id` en crudo (para que el panel decida
@@ -97,21 +101,23 @@ import { leerEnTandas } from '../../../shared/utils/leerEnTandas';
 const SELECT_RESULTADOS =
   'id_evaluacion, id_paciente, tipo_instrumento, fecha_registro, resultado_json, alerta_activada, registrado_por_docente_id, paciente:usuarios!id_paciente(nombre, email, institucion_id, institucion:instituciones(nombre, tipo_institucion, psicologo_institucion(psicologo:usuarios!psicologo_id(nombre))), psicologo_asignado:usuarios!psicologo_asignado_id(nombre)), docente:usuarios!registrado_por_docente_id(nombre)';
 
-// Devuelve { nombre } del psicólogo responsable de un paciente, o `null`
-// si todavía no tiene ninguno (institución sin psicólogo asignado, o
-// consultante particular sin asignación directa). Ver nota de cabecera:
-// institucional resuelve vía su institución, particular vía su propio
-// `psicologo_asignado_id`.
+// Devuelve { nombre, nombres } del/los psicólogo/s responsable/s de un
+// paciente, o `null` si todavía no tiene ninguno (institución sin
+// psicólogo asignado, o consultante particular sin asignación directa).
+// Ver nota de cabecera: institucional resuelve vía su institución (puede
+// ser más de uno), particular vía su propio `psicologo_asignado_id`.
 function resolverPsicologoResponsable(paciente) {
   if (!paciente) return null;
 
   if (paciente.institucion_id) {
     const asignacion = paciente.institucion?.psicologo_institucion;
-    const fila = Array.isArray(asignacion) ? asignacion[0] : asignacion;
-    return fila?.psicologo ?? null;
+    const filas = Array.isArray(asignacion) ? asignacion : asignacion ? [asignacion] : [];
+    const nombres = filas.map((fila) => fila?.psicologo?.nombre).filter(Boolean);
+    return nombres.length > 0 ? { nombre: nombres.join(', '), nombres } : null;
   }
 
-  return paciente.psicologo_asignado ?? null;
+  const asignado = paciente.psicologo_asignado;
+  return asignado?.nombre ? { nombre: asignado.nombre, nombres: [asignado.nombre] } : null;
 }
 
 export const resultadosGlobalesService = {
@@ -123,9 +129,10 @@ export const resultadosGlobalesService = {
    * PanelConsolidadoSuperadmin.jsx pueda distinguir entre autoenvío del
    * estudiante y registro hecho por un docente. También incluye
    * `paciente.psicologoResponsable`, ya resuelto (institucional o
-   * particular — ver `resolverPsicologoResponsable` arriba), para que el
-   * filtro y la columna de psicólogo de ese panel funcionen para
-   * cualquier paciente, no solo para consultantes particulares.
+   * particular — ver `resolverPsicologoResponsable` arriba, incluye a
+   * todos los psicólogos de un Centro de Salud), para que el filtro y la
+   * columna de psicólogo de ese panel funcionen para cualquier paciente,
+   * no solo para consultantes particulares.
    */
   async obtenerResultadosGlobales() {
     const data = await leerEnTandas(

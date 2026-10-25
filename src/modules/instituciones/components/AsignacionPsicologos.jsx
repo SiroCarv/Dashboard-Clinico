@@ -1,30 +1,36 @@
 // Pestaña "Psicólogos" del Panel Maestro: tabla de cuentas con rol
-// 'psicologo', un selector único de institución por fila (desde SCRUM
-// "Psicólogo en una sola institución" un psicólogo ya no puede estar en
-// más de una a la vez — restricción UNIQUE(psicologo_id) en la base), y
-// las acciones de crear/editar/eliminar la cuenta en sí.
+// 'psicologo', un selector único de institución por fila (un psicólogo
+// sigue sin poder estar en más de una institución a la vez — restricción
+// UNIQUE(psicologo_id) en la base), y las acciones de crear/editar/
+// eliminar la cuenta en sí.
+//
+// Varios psicólogos por Centro de Salud (historia nueva, a pedido de la
+// cliente para el rol de Jefe/a de Centro): los Centros de Salud ya
+// pueden tener más de un psicólogo; el resto de instituciones (unidades
+// educativas, etc.) mantiene el límite de UNO. Por eso la lógica de
+// "institución ocupada" de más abajo solo aplica a instituciones que NO
+// son Centro de Salud: en un centro, elegirlo suma al psicólogo al
+// equipo sin quitarle el lugar a nadie, así que no se rotula
+// "(asignada a …)" ni se pide confirmación por ese motivo. La regla real
+// vive en la base (un trigger rechaza un segundo psicólogo fuera de un
+// centro y el RPC asignar_psicologo_institucion libera la institución
+// ocupada solo si no es centro); lo de acá es la parte visible de esa
+// misma regla.
 //
 // Reasignación de institución entre psicólogos (corrige el bloqueo de
 // SCRUM-73 sin editar esa historia cerrada — ver historia nueva
-// "Reasignación de institución entre psicólogos"): una institución sigue
-// sin poder tener más de un psicólogo a la vez (restricción
-// UNIQUE(institucion_id) en la base, sin cambios), pero ya NO se
-// bloquea elegir en el select una institución ocupada por otro
-// psicólogo — antes esa opción quedaba `disabled` con la leyenda "(ya
-// asignada)" y no se podía tomar. Ahora el select sí la deja elegir (con
-// la leyenda "(asignada a [nombre])", calculada en
-// `psicologoPorInstitucion` para saber quién la ocupa), y
+// "Reasignación de institución entre psicólogos"): en una institución
+// que no es centro de salud, ya NO se bloquea elegir en el select una
+// ocupada por otro psicólogo — se la deja elegir (con la leyenda
+// "(asignada a [nombre])", calculada en `psicologoPorInstitucion`), y
 // `handleSeleccionInstitucion` decide si hace falta confirmar antes de
 // ejecutar el cambio: lo pide tanto si el psicólogo de esta fila ya
 // tenía otra institución (caso de SCRUM-49) como si la institución
-// elegida ya pertenece a OTRO psicólogo (caso nuevo) — cualquiera de los
-// dos motivos, o ambos a la vez, arma el mismo `cambioPendiente` con los
-// datos que necesita el mensaje. La ejecución real
-// (`handleCambiarInstitucion`) sigue pasando siempre por
-// `psicologoInstitucionService.asignar()`, que ahora en la base
-// desvincula a cualquier otro psicólogo que tuviera esa institución
-// antes de insertar la nueva fila (ver comentario de ese servicio) — ya
-// no hace falta desasignar manualmente antes de reasignar.
+// elegida ya pertenece a OTRO psicólogo (solo posible fuera de centros
+// de salud) — cualquiera de los dos motivos, o ambos a la vez, arma el
+// mismo `cambioPendiente` con los datos que necesita el mensaje. La
+// ejecución real (`handleCambiarInstitucion`) pasa siempre por
+// `psicologoInstitucionService.asignar()`.
 //
 // La creación/edición/eliminación real de la CUENTA (Supabase Auth +
 // fila en `usuarios`) pasa por `psicologosService`, que a su vez invoca
@@ -49,6 +55,7 @@ import { PsicologoModal, psicologosService, ETIQUETA_TURNO_PSICOLOGO } from '../
 import { ModalConfirmacion } from '../../../shared/components/ModalConfirmacion';
 import { BotonExportarExcel } from '../../../shared/components/BotonExportarExcel';
 import { exportarPsicologosAExcel } from '../utils/exportarPsicologosExcel';
+import { TIPO_CENTRO_SALUD } from '../data/tiposInstitucion';
 
 export const AsignacionPsicologos = ({ instituciones }) => {
   const [psicologos, setPsicologos] = useState([]);
@@ -68,12 +75,19 @@ export const AsignacionPsicologos = ({ instituciones }) => {
   //   - SCRUM-49, criterio 3: el psicólogo de esta fila ya tenía otra
   //     institución asignada.
   //   - Reasignación de institución entre psicólogos (corrige el bloqueo
-  //     de SCRUM-73): la institución elegida ya pertenece a OTRO
-  //     psicólogo.
+  //     de SCRUM-73): la institución elegida (que no es Centro de Salud)
+  //     ya pertenece a OTRO psicólogo.
   // Asignar por primera vez a una institución libre, o quitarle la
   // institución a un psicólogo (dejarlo "Sin institución asignada"), no
   // pasa por acá, se ejecuta directo.
   const [cambioPendiente, setCambioPendiente] = useState(null);
+
+  // Ids de las instituciones que son Centro de Salud: las únicas que
+  // admiten varios psicólogos (ver comentario de cabecera).
+  const idsCentrosSalud = useMemo(
+    () => new Set(instituciones.filter((i) => i.tipo_institucion === TIPO_CENTRO_SALUD).map((i) => i.id)),
+    [instituciones]
+  );
 
   // Solo hace las llamadas a Supabase, sin tocar ningún estado. La comparte
   // cargarDatos() (para los handlers) y el efecto de montaje de abajo, cada
@@ -154,16 +168,17 @@ export const AsignacionPsicologos = ({ instituciones }) => {
   //   - yaTeniaOtraInstitucion (SCRUM-49): el psicólogo de esta fila ya
   //     tenía una institución distinta a la elegida.
   //   - asignacionOcupante (nuevo): la institución elegida ya pertenece
-  //     a OTRO psicólogo.
-  // Asignar por primera vez a una institución libre, o dejar al
-  // psicólogo sin institución, no dispara ninguno de los dos y se
-  // ejecuta directo.
+  //     a OTRO psicólogo. Nunca aplica a un Centro de Salud: ahí varios
+  //     psicólogos conviven, así que tener otro adentro no es un conflicto.
+  // Asignar por primera vez a una institución libre (o a un Centro de
+  // Salud), o dejar al psicólogo sin institución, no dispara ninguno de
+  // los dos y se ejecuta directo.
   const handleSeleccionInstitucion = (psicologo, institucionIdSeleccionado) => {
     const asignacionActual = asignaciones.find((a) => a.psicologo_id === psicologo.id);
     const yaTeniaOtraInstitucion =
       asignacionActual && institucionIdSeleccionado && institucionIdSeleccionado !== asignacionActual.institucion_id;
 
-    const asignacionOcupante = institucionIdSeleccionado
+    const asignacionOcupante = institucionIdSeleccionado && !idsCentrosSalud.has(institucionIdSeleccionado)
       ? asignaciones.find(
           (a) => a.institucion_id === institucionIdSeleccionado && a.psicologo_id !== psicologo.id
         )
@@ -260,15 +275,19 @@ export const AsignacionPsicologos = ({ instituciones }) => {
 
   const limpiarFiltros = () => setTerminoBusqueda('');
 
-  // Institución -> id del psicólogo que ya la tiene asignada. Con esto,
-  // cada fila rotula en su select las instituciones que ya están tomadas
-  // por OTRO psicólogo ("asignada a [nombre]"), sin bloquearlas: elegirla
-  // pide confirmación y reasigna (ver comentario de cabecera).
+  // Institución -> id del psicólogo que ya la tiene asignada, solo para
+  // instituciones que NO son Centro de Salud (en un centro puede haber
+  // varios, no existe "el" psicólogo ocupante). Con esto, cada fila
+  // rotula en su select las instituciones que ya están tomadas por OTRO
+  // psicólogo ("asignada a [nombre]"), sin bloquearlas: elegirla pide
+  // confirmación y reasigna (ver comentario de cabecera).
   const psicologoPorInstitucion = useMemo(() => {
     const mapa = new Map();
-    asignaciones.forEach((a) => mapa.set(a.institucion_id, a.psicologo_id));
+    asignaciones
+      .filter((a) => !idsCentrosSalud.has(a.institucion_id))
+      .forEach((a) => mapa.set(a.institucion_id, a.psicologo_id));
     return mapa;
-  }, [asignaciones]);
+  }, [asignaciones, idsCentrosSalud]);
 
   return (
     <div className="space-y-6">
@@ -276,7 +295,7 @@ export const AsignacionPsicologos = ({ instituciones }) => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
         <div>
           <h2 className="text-lg font-bold text-black">Personal Clínico Autorizado</h2>
-          <p className="text-xs text-gray-700 font-medium">Vincula cada profesional de la salud mental a un único entorno operativo del Observatorio.</p>
+          <p className="text-xs text-gray-700 font-medium">Vincula cada profesional de la salud mental a un único entorno operativo del Observatorio. Los Centros de Salud pueden tener varios profesionales; el resto de instituciones, uno solo.</p>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-start gap-3 self-start sm:self-auto">
           <BotonExportarExcel

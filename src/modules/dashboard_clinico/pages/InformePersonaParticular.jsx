@@ -13,6 +13,12 @@
 // y "existe pero la RLS lo deniega en silencio" — no se distinguen a
 // propósito, mismo motivo (no revelarle a un psicólogo si un ID ajeno
 // existe o no).
+//
+// Reutilizada por el Panel de Supervisión del Jefe/a de Centro: la página
+// es la misma (los datos que ve cada rol los decide la base), solo cambian
+// el título de la barra superior y a dónde vuelve el link. App.jsx pasa
+// esos 3 textos/rutas para la ruta del jefe/a; sin props, queda el
+// comportamiento original del psicólogo.
 import { useParams, Link } from 'react-router-dom';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
 import { useInformePersonaParticular } from '../hooks/useInformePersonaParticular';
@@ -40,7 +46,11 @@ function Campo({ etiqueta, valor }) {
   );
 }
 
-export default function InformePersonaParticular() {
+export default function InformePersonaParticular({
+  tituloBarra = 'Panel de Administración (Psicólogo/a)',
+  rutaVolver = '/dashboard',
+  textoVolver = '← Volver al Dashboard',
+}) {
   const { idPersona } = useParams();
   const { persona, ultimaEvaluacion, loading, error } = useInformePersonaParticular(idPersona);
 
@@ -52,13 +62,13 @@ export default function InformePersonaParticular() {
         aria-hidden="true"
       />
 
-      <BarraSuperior titulo="Panel de Administración (Psicólogo/a)" />
+      <BarraSuperior titulo={tituloBarra} />
 
       <div className="relative z-10 p-6 md:p-10 max-w-3xl mx-auto">
         <div className="mb-6">
           <div className="mb-3">
-            <Link to="/dashboard" className="text-gray-500 hover:text-orange-700 font-bold transition-colors">
-              ← Volver al Dashboard
+            <Link to={rutaVolver} className="text-gray-500 hover:text-orange-700 font-bold transition-colors">
+              {textoVolver}
             </Link>
           </div>
 

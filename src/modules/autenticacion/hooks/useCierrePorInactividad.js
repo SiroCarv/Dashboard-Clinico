@@ -1,6 +1,6 @@
 // Cierra la sesión automáticamente cuando la persona deja de usar la
 // plataforma durante el tiempo que le corresponde a su rol (ver
-// data/limitesInactividad.js: 15 min psicólogo/superadmin/docente, 30 min
+// data/limitesInactividad.js: 15 min psicólogo/superadmin/docente/jefe de centro, 30 min
 // estudiante/persona particular). Se monta una sola vez para toda la app
 // desde <CierrePorInactividad /> (App.jsx).
 //

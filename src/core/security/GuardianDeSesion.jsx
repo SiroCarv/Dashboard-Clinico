@@ -36,9 +36,11 @@
 // cierre la pestaña sin cerrar sesión deja la cuenta abierta durante esa
 // ventana — por eso la ventana es acotada y fácil de ajustar.
 //
-// Sin ventana para psicólogo y superadmin (pedido del cliente, oct. 2026):
-// esas dos cuentas manejan información de otras personas y trabajan desde
-// equipos que pueden ser compartidos, así que para ellas NO existe la
+// Sin ventana para psicólogo, superadmin y jefe/a de centro (pedido del
+// cliente, oct. 2026; el jefe/a se sumó con su rol, porque ve a todo el
+// equipo y a las personas de su centro): esas cuentas manejan información
+// de otras personas y trabajan desde equipos que pueden ser compartidos,
+// así que para ellas NO existe la
 // reanudación: si la pestaña se cerró y se volvió a abrir, la sesión se
 // cierra siempre, sin importar cuánto tiempo pasó (ver
 // ROLES_SIN_REANUDACION). La ventana se conserva para el resto de los
@@ -50,8 +52,8 @@
 //
 // Complemento: el cierre por inactividad (autenticacion/hooks/
 // useCierrePorInactividad.js) acota además cuánto puede estar sin uso
-// cualquier sesión — 15 min psicólogo/superadmin/docente, 30 min
-// estudiante/persona particular. Ese cierre también corre al volver a
+// cualquier sesión — 15 min psicólogo/superadmin/docente/jefe de centro,
+// 30 min estudiante/persona particular. Ese cierre también corre al volver a
 // abrir la app (usa su propia marca de interacción, no la de este
 // archivo), así que en la práctica la reanudación de los roles que la
 // conservan dura como máximo ese límite, no las 2 horas completas.
@@ -93,7 +95,7 @@ const VENTANA_REANUDACION_MS = 2 * 60 * 60 * 1000;
 // Roles a los que NO se les aplica la ventana de reanudación: al volver a
 // abrir la pestaña, su sesión se cierra siempre. Agregar o quitar un rol
 // acá basta para cambiarlo (los nombres son los de `usuarios.rol`).
-const ROLES_SIN_REANUDACION = ['psicologo', 'superadmin'];
+const ROLES_SIN_REANUDACION = ['psicologo', 'superadmin', 'jefe_centro'];
 
 // Mientras la persona toca o desplaza la pantalla, la hora se actualiza
 // como máximo una vez por este intervalo — para no escribir en

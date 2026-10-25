@@ -81,7 +81,9 @@
 // particular vía asignación directa) — nunca comparar contra
 // `paciente.psicologo_asignado` directo en este archivo, ver el
 // comentario de ese servicio para el detalle completo del bug y la
-// corrección.
+// corrección. Un Centro de Salud puede tener varios psicólogos: el
+// filtro compara contra la lista `nombres` y coincide con cualquiera
+// del equipo (no solo con el primero).
 // Formulario / instrumento (corrección posterior): filtro de selección
 // múltiple nuevo, con FiltroSeleccionMultiple.jsx — no existía ningún
 // filtro por instrumento en esta pantalla. Selección vacía = todos los
@@ -241,7 +243,7 @@ export default function PanelConsolidadoSuperadmin() {
 
       const coincidePsicologo =
         filtroPsicologo === FILTRO_PSICOLOGO_TODOS ||
-        r.paciente?.psicologoResponsable?.nombre === filtroPsicologo;
+        r.paciente?.psicologoResponsable?.nombres?.includes(filtroPsicologo);
 
       const coincideInstrumento =
         filtroInstrumentos.size === 0 || filtroInstrumentos.has(r.tipo_instrumento);

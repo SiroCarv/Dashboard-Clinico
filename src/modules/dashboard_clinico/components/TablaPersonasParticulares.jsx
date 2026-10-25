@@ -7,13 +7,22 @@
 // TablaPacientes.jsx en vez de agregarle un prop condicional: son
 // columnas y un destino de navegación distintos, no una variación menor
 // del mismo componente.
+//
+// `rutaBaseInforme` (agregado para el Panel de Supervisión del Jefe/a de
+// Centro): la misma tabla la usan dos roles con rutas distintas — el
+// psicólogo va a /dashboard/informe-particular/:id (valor por defecto, sin
+// cambios para él) y el jefe/a a /supervision-centro/informe-particular/:id.
 import { useNavigate } from 'react-router-dom';
 import { FILA_ALERTA_ACTIVADA } from '../../../shared/theme/paletaColores';
 
-export function TablaPersonasParticulares({ personas, hayFiltrosActivos = false }) {
+export function TablaPersonasParticulares({
+  personas,
+  hayFiltrosActivos = false,
+  rutaBaseInforme = '/dashboard/informe-particular',
+}) {
   const navigate = useNavigate();
 
-  const irAInforme = (id) => navigate(`/dashboard/informe-particular/${id}`);
+  const irAInforme = (id) => navigate(`${rutaBaseInforme}/${id}`);
 
   if (personas.length === 0) {
     return (

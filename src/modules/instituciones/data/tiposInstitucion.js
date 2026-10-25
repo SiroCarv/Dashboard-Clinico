@@ -19,6 +19,11 @@ export const TIPOS_INSTITUCION = [
 
 export const TIPO_POR_DEFECTO = TIPOS_INSTITUCION[0].value;
 
+// Valor de `tipo_institucion` de los Centros de Salud, el único tipo que
+// admite varios psicólogos a la vez (el resto sigue con uno solo — ver
+// AsignacionPsicologos.jsx y el RPC asignar_psicologo_institucion).
+export const TIPO_CENTRO_SALUD = 'centro_salud';
+
 export const obtenerPrefijo = (tipo) =>
   TIPOS_INSTITUCION.find((t) => t.value === tipo)?.prefijo || TIPOS_INSTITUCION[0].prefijo;
 

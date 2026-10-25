@@ -5,8 +5,8 @@
 //
 // Capas de protección alrededor de <Routes>:
 //   - CierrePorInactividad: cierra la sesión de quien dejó de usar la
-//     plataforma (15 min psicólogo/superadmin/docente, 30 min estudiante/
-//     persona particular). Se monta FUERA de GuardianDeSesion a propósito:
+//     plataforma (15 min psicólogo/superadmin/docente/jefe de centro, 30
+//     min estudiante/persona particular). Se monta FUERA de GuardianDeSesion a propósito:
 //     ese guardián no muestra a sus hijos hasta terminar su verificación
 //     inicial, y este debe estar activo desde el primer momento para
 //     enterarse también de los cierres que ese guardián hace al abrir.
@@ -19,8 +19,8 @@
 //   - RutaPublica: pantallas de acceso libre (Login, Registro...); si ya
 //     hay sesión activa, redirige lejos de ellas.
 //   - RutaProtegida: pantallas privadas; exige un `rolRequerido` exacto
-//     (paciente / psicologo / superadmin / docente / persona_particular)
-//     o redirige.
+//     (paciente / psicologo / superadmin / docente / persona_particular /
+//     jefe_centro) o redirige.
 //
 // Persona Particular (sprint "Persona Particular"): usa rutas propias
 // (/registro-particular, /login-particular, /encuesta-particular)
@@ -30,6 +30,12 @@
 // pantalla (ver comentario completo en rutasPorDefecto.js). El informe
 // individual (/dashboard/informe-particular/:idPersona) es una página
 // nueva y propia, InformePersonaParticular, distinta de InformeConsolidado.
+//
+// Jefe/a de Centro de Salud (rol jefe_centro): tiene su propio panel
+// (/supervision-centro) y, para abrir el informe de una persona, una ruta
+// propia que reutiliza la misma página InformePersonaParticular con otro
+// título y otro link de "Volver" (el psicólogo y el jefe/a no comparten
+// rutas porque RutaProtegida exige un rol exacto por ruta).
 import { Routes, Route } from 'react-router-dom';
 
 // --- MÓDULOS ---
@@ -56,6 +62,7 @@ import Dashboard from './modules/dashboard_clinico/pages/Dashboard';
 import InformeConsolidado from './modules/dashboard_clinico/pages/InformeConsolidado';
 import InformePersonaParticular from './modules/dashboard_clinico/pages/InformePersonaParticular';
 import IndicadoresGSHS from './modules/dashboard_clinico/pages/IndicadoresGSHS';
+import PanelSupervisionCentro from './modules/dashboard_clinico/pages/PanelSupervisionCentro';
 // Instituciones
 import PanelMaestro from './modules/instituciones/pages/PanelMaestro';
 import PanelConsolidadoSuperadmin from './modules/dashboard_clinico/pages/PanelConsolidadoSuperadmin';
@@ -157,6 +164,33 @@ function App() {
             element={
               <RutaProtegida rolRequerido="psicologo">
                 <InformePersonaParticular />
+              </RutaProtegida>
+            }
+          />
+
+          {/* Panel de supervisión del Jefe/a de Centro de Salud: equipo,
+              gráficas y personas de su centro (scopeado por RLS). */}
+          <Route
+            path="/supervision-centro"
+            element={
+              <RutaProtegida rolRequerido="jefe_centro">
+                <PanelSupervisionCentro />
+              </RutaProtegida>
+            }
+          />
+
+          {/* Informe individual de Persona Particular para el Jefe/a de
+              Centro: misma página que la del psicólogo, con su propio
+              título y link de regreso. */}
+          <Route
+            path="/supervision-centro/informe-particular/:idPersona"
+            element={
+              <RutaProtegida rolRequerido="jefe_centro">
+                <InformePersonaParticular
+                  tituloBarra="Panel de Supervisión (Jefe/a de Centro)"
+                  rutaVolver="/supervision-centro"
+                  textoVolver="← Volver al panel"
+                />
               </RutaProtegida>
             }
           />

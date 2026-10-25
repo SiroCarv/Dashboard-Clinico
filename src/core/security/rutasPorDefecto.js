@@ -1,5 +1,6 @@
 // Mapa único de "a dónde pertenece cada rol": psicólogo -> Dashboard,
-// superadmin -> Panel Maestro, paciente -> Encuesta.
+// superadmin -> Panel Maestro, paciente -> Encuesta, jefe_centro -> Panel
+// de Supervisión del Centro.
 //
 // Es la ÚNICA fuente de verdad para esa decisión en toda la app. La
 // consumen 3 lugares con 3 propósitos distintos:
@@ -24,8 +25,15 @@
 // así que dos roles distintos necesitan dos rutas distintas para poder
 // entrar a la misma pantalla. Encuesta.jsx decide internamente, según el
 // rol real, qué formularios mostrar (ver evaluaciones/pages/Encuesta.jsx).
+//
+// jefe_centro -> /supervision-centro (NUEVO): panel de solo lectura del
+// Jefe/a o Director/a de un Centro de Salud (equipo de psicólogos,
+// gráficas y personas de su centro). Ruta propia porque RutaProtegida
+// exige un rol exacto por ruta y este rol no debe entrar al Dashboard
+// del psicólogo.
 export const RUTA_POR_DEFECTO = {
   psicologo: '/dashboard',
+  jefe_centro: '/supervision-centro',
   superadmin: '/panel-maestro',
   paciente: '/encuesta',
   docente: '/registro-caso',

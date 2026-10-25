@@ -1,8 +1,10 @@
-// Pantalla del superadmin: 2 pestañas — "Instituciones" (alta/edición/
-// borrado, código de acceso) y "Psicólogos" (alta/edición/borrado +
-// asignación a instituciones). Ambas pestañas comparten la lista de
-// `instituciones` cargada acá arriba (AsignacionPsicologos la necesita
-// para poder asignar psicólogos a cada una).
+// Pantalla del superadmin: 3 pestañas — "Instituciones" (alta/edición/
+// borrado, código de acceso), "Psicólogos" (alta/edición/borrado +
+// asignación a instituciones) y "Jefes de Centro" (cuentas de
+// supervisión de un Centro de Salud, módulo `jefes_centro`). Las tres
+// comparten la lista de `instituciones` cargada acá arriba
+// (AsignacionPsicologos la necesita para asignar psicólogos, y
+// GestionJefesCentro para elegir el centro de cada jefe/a).
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { institucionesService } from '../services/institucionesService';
@@ -10,6 +12,7 @@ import { InstitucionList } from '../components/InstitucionList';
 import { InstitucionModal } from '../components/InstitucionModal';
 import { AsignacionPsicologos } from '../components/AsignacionPsicologos';
 import { BotonCerrarSesion } from '../../autenticacion';
+import { GestionJefesCentro } from '../../jefes_centro';
 import { ModalConfirmacion } from '../../../shared/components/ModalConfirmacion';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
@@ -179,6 +182,16 @@ export default function PanelMaestro() {
           >
             Psicólogos
           </button>
+          <button
+            onClick={() => setTabActiva('jefes_centro')}
+            className={`px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors ${
+              tabActiva === 'jefes_centro'
+                ? COLOR_MARCA.naranja.tabActivo
+                : 'border-transparent text-gray-700 hover:text-gray-900'
+            }`}
+          >
+            Jefes de Centro
+          </button>
         </div>
 
         {/* Mensaje de Error */}
@@ -200,8 +213,10 @@ export default function PanelMaestro() {
             onEdit={handleOpenModal} 
             onDelete={handleDelete} 
           />
-        ) : (
+        ) : tabActiva === 'psicologos' ? (
           <AsignacionPsicologos instituciones={instituciones} />
+        ) : (
+          <GestionJefesCentro instituciones={instituciones} />
         )}
 
         {/* Modal de Creación/Edición */}
@@ -218,7 +233,7 @@ export default function PanelMaestro() {
           titulo="¿Eliminar esta institución?"
           mensaje={
             institucionAEliminar
-              ? `Esta acción no se puede deshacer. Se eliminará "${institucionAEliminar.nombre}" y su código de acceso dejará de funcionar. Se quitarán las asignaciones de psicólogos a esta institución, y los pacientes y reportes vinculados quedarán sin institución (conservan su cuenta y su historial).`
+              ? `Esta acción no se puede deshacer. Se eliminará "${institucionAEliminar.nombre}" y su código de acceso dejará de funcionar. Se quitarán las asignaciones de psicólogos a esta institución, y los pacientes, reportes y cuentas de jefe/a de centro vinculados quedarán sin institución (conservan su cuenta y su historial).`
               : ''
           }
           onConfirm={confirmarEliminarInstitucion}
