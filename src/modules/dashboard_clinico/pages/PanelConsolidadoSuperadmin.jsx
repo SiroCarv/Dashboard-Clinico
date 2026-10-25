@@ -86,6 +86,13 @@
 // múltiple nuevo, con FiltroSeleccionMultiple.jsx — no existía ningún
 // filtro por instrumento en esta pantalla. Selección vacía = todos los
 // instrumentos (sin filtrar), igual criterio que documenta ese archivo.
+//
+// "Exportar a Excel" (pestaña Resultados, a pedido del cliente): baja a un
+// archivo los resultados que están filtrados en pantalla
+// (`resultadosFiltrados`), un formulario completado por fila. Se arma en el
+// navegador con lo ya cargado. Ojo: el select "Tipo de Institución" solo
+// acota las opciones del select de Institución, no filtra resultados por sí
+// solo; el archivo respeta exactamente lo que muestra la tabla.
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useResultadosGlobales } from '../hooks/useResultadosGlobales';
@@ -103,6 +110,8 @@ import { TIPOS_INSTITUCION } from '../../instituciones';
 import { PanelReportesInstitucion, useReportesInstitucion } from '../../casos_docente';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
+import { BotonExportarExcel } from '../../../shared/components/BotonExportarExcel';
+import { exportarResultadosGlobalesAExcel } from '../utils/exportarResultadosGlobalesExcel';
 
 const FILTRO_INSTITUCION_TODAS = 'todas';
 const FILTRO_TIPO_INSTITUCION_TODOS = 'todos';
@@ -555,6 +564,11 @@ export default function PanelConsolidadoSuperadmin() {
                   </svg>
                   Limpiar filtros
                 </button>
+
+                <BotonExportarExcel
+                  onExportar={() => exportarResultadosGlobalesAExcel(resultadosFiltrados)}
+                  deshabilitado={resultadosFiltrados.length === 0}
+                />
               </div>
             )}
 

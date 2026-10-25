@@ -34,6 +34,11 @@
 // directa contra `psicologo_institucion` vía `psicologoInstitucionService`
 // (no requiere privilegios especiales, solo RLS de superadmin).
 //
+// "Exportar a Excel": baja a un archivo la lista que se está viendo (ya
+// filtrada por la búsqueda), con la institución asignada de cada
+// psicólogo. Se arma en el navegador con lo ya cargado, sin consultar de
+// nuevo la base.
+//
 // Importa PsicologoModal y psicologosService desde la API pública del
 // módulo `psicologos` (nunca una ruta interna) — es la única forma de
 // consumo cruzado entre módulos que permite la arquitectura del
@@ -42,6 +47,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { psicologoInstitucionService } from '../services/psicologoInstitucionService';
 import { PsicologoModal, psicologosService, ETIQUETA_TURNO_PSICOLOGO } from '../../psicologos';
 import { ModalConfirmacion } from '../../../shared/components/ModalConfirmacion';
+import { BotonExportarExcel } from '../../../shared/components/BotonExportarExcel';
+import { exportarPsicologosAExcel } from '../utils/exportarPsicologosExcel';
 
 export const AsignacionPsicologos = ({ instituciones }) => {
   const [psicologos, setPsicologos] = useState([]);
@@ -254,8 +261,9 @@ export const AsignacionPsicologos = ({ instituciones }) => {
   const limpiarFiltros = () => setTerminoBusqueda('');
 
   // Institución -> id del psicólogo que ya la tiene asignada. Con esto,
-  // cada fila puede deshabilitar en su select las instituciones que ya
-  // están tomadas por OTRO psicólogo (ver comentario de cabecera).
+  // cada fila rotula en su select las instituciones que ya están tomadas
+  // por OTRO psicólogo ("asignada a [nombre]"), sin bloquearlas: elegirla
+  // pide confirmación y reasigna (ver comentario de cabecera).
   const psicologoPorInstitucion = useMemo(() => {
     const mapa = new Map();
     asignaciones.forEach((a) => mapa.set(a.institucion_id, a.psicologo_id));
@@ -270,12 +278,18 @@ export const AsignacionPsicologos = ({ instituciones }) => {
           <h2 className="text-lg font-bold text-black">Personal Clínico Autorizado</h2>
           <p className="text-xs text-gray-700 font-medium">Vincula cada profesional de la salud mental a un único entorno operativo del Observatorio.</p>
         </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="bg-violet-400 hover:bg-orange-800 text-white font-bold uppercase tracking-wide text-sm px-4 py-2.5 rounded-md shadow-md transition-colors duration-300 flex items-center justify-center gap-2 self-start sm:self-auto"
-        >
-          <span>+ Agregar Psicólogo/a</span>
-        </button>
+        <div className="flex flex-col sm:flex-row sm:items-start gap-3 self-start sm:self-auto">
+          <BotonExportarExcel
+            onExportar={() => exportarPsicologosAExcel(psicologosFiltrados, asignaciones, instituciones)}
+            deshabilitado={loading || psicologosFiltrados.length === 0}
+          />
+          <button
+            onClick={() => handleOpenModal()}
+            className="bg-violet-400 hover:bg-orange-800 text-white font-bold uppercase tracking-wide text-sm px-4 py-2.5 rounded-md shadow-md transition-colors duration-300 flex items-center justify-center gap-2"
+          >
+            <span>+ Agregar Psicólogo/a</span>
+          </button>
+        </div>
       </div>
 
       {/* Barra de búsqueda: solo se muestra si existe al menos un psicólogo cargado */}

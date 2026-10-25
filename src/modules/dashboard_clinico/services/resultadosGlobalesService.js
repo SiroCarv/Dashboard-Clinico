@@ -63,6 +63,18 @@
 // cuentas reales sin `nombre` cargado todavía (verificado contra la
 // base real).
 //
+// LECTURA POR TANDAS (agregado con la exportación a Excel del superadmin):
+// PostgREST devuelve como máximo un tope de filas por respuesta (por
+// defecto 1,000 en Supabase) SIN avisar cuando corta, y esta tabla ya
+// tenía más de 3,700 evaluaciones. Antes la consulta era una sola, así
+// que tanto la tabla del panel como cualquier Excel armado desde ella
+// podían quedar incompletos en silencio. Ahora se lee con
+// shared/utils/leerEnTandas.js. Para que las tandas no se pisen, el orden
+// es fecha + id_evaluacion (desempate).
+//
+// `institucion` incluye también `tipo_institucion`, usado por la columna
+// "Tipo de institución" del Excel.
+//
 // GSHS — DECISIÓN DEL CLIENTE (actualizada en SCRUM-57): este servicio
 // SÍ trae `resultado_json` para todos los tipos de instrumento (es más
 // simple que excluirlo con una consulta condicional), pero para GSHS ese
@@ -80,6 +92,10 @@
 // este servicio; tiene el suyo propio (gshsIndicadoresService.js), que
 // trae `resultado_json` sin ningún dato identificable del paciente.
 import { supabase } from '../../../core/api/supabaseClient';
+import { leerEnTandas } from '../../../shared/utils/leerEnTandas';
+
+const SELECT_RESULTADOS =
+  'id_evaluacion, id_paciente, tipo_instrumento, fecha_registro, resultado_json, alerta_activada, registrado_por_docente_id, paciente:usuarios!id_paciente(nombre, email, institucion_id, institucion:instituciones(nombre, tipo_institucion, psicologo_institucion(psicologo:usuarios!psicologo_id(nombre))), psicologo_asignado:usuarios!psicologo_asignado_id(nombre)), docente:usuarios!registrado_por_docente_id(nombre)';
 
 // Devuelve { nombre } del psicólogo responsable de un paciente, o `null`
 // si todavía no tiene ninguno (institución sin psicólogo asignado, o
@@ -112,16 +128,18 @@ export const resultadosGlobalesService = {
    * cualquier paciente, no solo para consultantes particulares.
    */
   async obtenerResultadosGlobales() {
-    const { data, error } = await supabase
-      .from('evaluaciones_instrumento')
-      .select(
-        'id_evaluacion, id_paciente, tipo_instrumento, fecha_registro, resultado_json, alerta_activada, registrado_por_docente_id, paciente:usuarios!id_paciente(nombre, email, institucion_id, institucion:instituciones(nombre, psicologo_institucion(psicologo:usuarios!psicologo_id(nombre))), psicologo_asignado:usuarios!psicologo_asignado_id(nombre)), docente:usuarios!registrado_por_docente_id(nombre)'
-      )
-      .order('fecha_registro', { ascending: false });
+    const data = await leerEnTandas(
+      (desde, hasta) =>
+        supabase
+          .from('evaluaciones_instrumento')
+          .select(SELECT_RESULTADOS)
+          .order('fecha_registro', { ascending: false })
+          .order('id_evaluacion', { ascending: false })
+          .range(desde, hasta),
+      { claveUnica: (fila) => fila.id_evaluacion }
+    );
 
-    if (error) throw error;
-
-    return (data ?? []).map((fila) => ({
+    return data.map((fila) => ({
       ...fila,
       paciente: fila.paciente
         ? { ...fila.paciente, psicologoResponsable: resolverPsicologoResponsable(fila.paciente) }

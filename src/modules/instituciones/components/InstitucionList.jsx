@@ -6,6 +6,10 @@
 // componente no habla con Supabase directamente — solo recibe
 // `instituciones` ya cargadas y notifica intenciones (onEdit, onDelete).
 //
+// "Exportar a Excel": baja a un archivo la lista que se está viendo (ya
+// filtrada por la búsqueda y el tipo), no la tabla completa. Se arma en el
+// navegador con lo que ya está cargado; no vuelve a consultar la base.
+//
 // El enlace de registro NO es el mismo para todos los tipos de
 // institución: Centro de Salud usa el flujo de Persona Particular
 // (/registro-particular/:codigo), y todo lo demás (Unidad Educativa,
@@ -18,7 +22,9 @@
 // tan bien estuviera escrito el código (ver historia de corrección).
 import { useState, useMemo } from 'react';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
+import { BotonExportarExcel } from '../../../shared/components/BotonExportarExcel';
 import { TIPOS_INSTITUCION, TIPO_POR_DEFECTO, obtenerLabelTipo } from '../data/tiposInstitucion';
+import { exportarInstitucionesAExcel } from '../utils/exportarInstitucionesExcel';
 
 // Valor especial del filtro (no es un tipo real) para "sin filtrar por tipo".
 const FILTRO_TIPO_TODOS = 'todos';
@@ -91,12 +97,18 @@ export const InstitucionList = ({ instituciones, onEdit, onDelete }) => {
           <h2 className="text-lg font-bold text-black">Instituciones Registradas</h2>
           <p className="text-xs text-gray-700 font-medium">Administra los centros educativos y sus códigos de acceso institucional.</p>
         </div>
-        <button
-          onClick={() => onEdit()}
-          className="bg-violet-400 hover:bg-orange-800 text-white font-bold uppercase tracking-wide text-sm px-4 py-2.5 rounded-md shadow-md transition-colors duration-300 flex items-center justify-center gap-2 self-start sm:self-auto"
-        >
-          <span>+ Nueva Institución</span>
-        </button>
+        <div className="flex flex-col sm:flex-row sm:items-start gap-3 self-start sm:self-auto">
+          <BotonExportarExcel
+            onExportar={() => exportarInstitucionesAExcel(institucionesFiltradas)}
+            deshabilitado={institucionesFiltradas.length === 0}
+          />
+          <button
+            onClick={() => onEdit()}
+            className="bg-violet-400 hover:bg-orange-800 text-white font-bold uppercase tracking-wide text-sm px-4 py-2.5 rounded-md shadow-md transition-colors duration-300 flex items-center justify-center gap-2"
+          >
+            <span>+ Nueva Institución</span>
+          </button>
+        </div>
       </div>
 
       {/* Barra de búsqueda: solo se muestra si existe al menos una institución registrada */}
