@@ -1,6 +1,7 @@
 // Mapa único de "a dónde pertenece cada rol": psicólogo -> Dashboard,
 // superadmin -> Panel Maestro, paciente -> Encuesta, jefe_centro -> Panel
-// de Supervisión del Centro.
+// de Supervisión del Centro, docente_supervisora -> Panel de Supervisión
+// de Pasantías.
 //
 // Es la ÚNICA fuente de verdad para esa decisión en toda la app. La
 // consumen 3 lugares con 3 propósitos distintos:
@@ -31,9 +32,16 @@
 // gráficas y personas de su centro). Ruta propia porque RutaProtegida
 // exige un rol exacto por ruta y este rol no debe entrar al Dashboard
 // del psicólogo.
+//
+// docente_supervisora -> /supervision-pasantias (NUEVO): panel de la
+// Docente Supervisora (cuenta única) para revisar y calificar el trabajo
+// de campo de las estudiantes en pasantía. Mismo motivo de ruta propia:
+// este rol no debe entrar al Dashboard del psicólogo ni al de supervisión
+// de centro.
 export const RUTA_POR_DEFECTO = {
   psicologo: '/dashboard',
   jefe_centro: '/supervision-centro',
+  docente_supervisora: '/supervision-pasantias',
   superadmin: '/panel-maestro',
   paciente: '/encuesta',
   docente: '/registro-caso',

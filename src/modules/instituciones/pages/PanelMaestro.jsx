@@ -1,10 +1,13 @@
-// Pantalla del superadmin: 3 pestañas — "Instituciones" (alta/edición/
+// Pantalla del superadmin: 4 pestañas — "Instituciones" (alta/edición/
 // borrado, código de acceso), "Psicólogos" (alta/edición/borrado +
-// asignación a instituciones) y "Jefes de Centro" (cuentas de
-// supervisión de un Centro de Salud, módulo `jefes_centro`). Las tres
-// comparten la lista de `instituciones` cargada acá arriba
+// asignación a instituciones), "Jefes de Centro" (cuentas de
+// supervisión de un Centro de Salud, módulo `jefes_centro`) y
+// "Supervisora" (la cuenta única de Docente Supervisora y la marca de
+// qué psicólogos son pasantes, módulo `supervision_pasantias`). Las tres
+// primeras comparten la lista de `instituciones` cargada acá arriba
 // (AsignacionPsicologos la necesita para asignar psicólogos, y
-// GestionJefesCentro para elegir el centro de cada jefe/a).
+// GestionJefesCentro para elegir el centro de cada jefe/a); "Supervisora"
+// carga sus propios datos y no la usa.
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { institucionesService } from '../services/institucionesService';
@@ -13,6 +16,7 @@ import { InstitucionModal } from '../components/InstitucionModal';
 import { AsignacionPsicologos } from '../components/AsignacionPsicologos';
 import { BotonCerrarSesion } from '../../autenticacion';
 import { GestionJefesCentro } from '../../jefes_centro';
+import { GestionSupervisora } from '../../supervision_pasantias';
 import { ModalConfirmacion } from '../../../shared/components/ModalConfirmacion';
 import { COLOR_MARCA } from '../../../shared/theme/paletaColores';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
@@ -192,6 +196,16 @@ export default function PanelMaestro() {
           >
             Jefes de Centro
           </button>
+          <button
+            onClick={() => setTabActiva('supervisora')}
+            className={`px-4 py-2.5 font-bold text-sm border-b-2 -mb-px transition-colors ${
+              tabActiva === 'supervisora'
+                ? COLOR_MARCA.naranja.tabActivo
+                : 'border-transparent text-gray-700 hover:text-gray-900'
+            }`}
+          >
+            Supervisora
+          </button>
         </div>
 
         {/* Mensaje de Error */}
@@ -215,8 +229,10 @@ export default function PanelMaestro() {
           />
         ) : tabActiva === 'psicologos' ? (
           <AsignacionPsicologos instituciones={instituciones} />
-        ) : (
+        ) : tabActiva === 'jefes_centro' ? (
           <GestionJefesCentro instituciones={instituciones} />
+        ) : (
+          <GestionSupervisora />
         )}
 
         {/* Modal de Creación/Edición */}

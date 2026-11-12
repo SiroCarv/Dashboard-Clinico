@@ -3,6 +3,12 @@
 // useInformeConsolidado trae los datos, InformeConsolidadoPaciente
 // decide cómo mostrarlos, y acá se resuelve el estado de carga/error/
 // "no encontrado o sin acceso" antes de renderizar cualquiera de los dos.
+//
+// Reutilizada por la Docente Supervisora (revisa el trabajo de las
+// pasantes): la página es la misma — los datos que ve cada rol los decide
+// la base —, solo cambian el título de la barra, a dónde vuelve el link y
+// si se ofrece exportar a Excel. Sin props, queda el comportamiento
+// original del psicólogo (App.jsx pasa los valores de la supervisora).
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import BarraSuperior from '../../../shared/components/BarraSuperior';
@@ -11,7 +17,14 @@ import InformeConsolidadoPaciente from '../components/InformeConsolidadoPaciente
 import { exportarInformePacienteAExcel } from '../utils/exportarInformePacienteExcel';
 import { FONDO_PLATAFORMA } from '../../../shared/assets/fondoPlataforma';
 
-export default function InformeConsolidado() {
+export default function InformeConsolidado({
+  tituloBarra = 'Panel de Administración (Psicólogo/a)',
+  rutaVolver = '/dashboard',
+  textoVolver = '← Volver al Dashboard',
+  // Exportar a Excel baja datos personales a un archivo fuera de la
+  // plataforma; los roles de solo revisión lo apagan.
+  permitirExportar = true,
+}) {
   const { idPaciente } = useParams();
   const { paciente, instrumentos, loading, error } = useInformeConsolidado(idPaciente);
   const [exportando, setExportando] = useState(false);
@@ -40,16 +53,16 @@ export default function InformeConsolidado() {
         aria-hidden="true"
       />
 
-      <BarraSuperior titulo="Panel de Administración (Psicólogo/a)" />
+      <BarraSuperior titulo={tituloBarra} />
 
       <div className="relative z-10 p-6 md:p-10 max-w-4xl mx-auto">
         <div className="mb-6">
           <div className="mb-3">
             <Link
-              to="/dashboard"
+              to={rutaVolver}
               className="text-gray-500 hover:text-orange-700 font-bold transition-colors"
             >
-              ← Volver al Dashboard
+              {textoVolver}
             </Link>
           </div>
 
@@ -86,7 +99,7 @@ export default function InformeConsolidado() {
             paciente={paciente}
             instrumentos={instrumentos}
             exportando={exportando}
-            onExportar={handleExportar}
+            onExportar={permitirExportar ? handleExportar : undefined}
           />
         )}
       </div>

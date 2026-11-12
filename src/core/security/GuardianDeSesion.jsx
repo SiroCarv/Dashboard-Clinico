@@ -15,9 +15,9 @@
 //     viene abierta desde antes -> no se toca nada.
 //   - Si NO está -> o es la primera apertura, o se cerró y se volvió a
 //     abrir -> si había una sesión (heredada de localStorage, que sí
-//     sobrevive el cierre de pestaña) y NO hay actividad reciente — o la
-//     persona es psicólogo/superadmin, que no tienen ventana — se cierra
-//     y se manda a Inicio. Si no había sesión, no se fuerza
+//     sobrevive el cierre de pestaña) y NO hay actividad reciente — o el
+//     rol de la persona no tiene ventana (ver ROLES_SIN_REANUDACION) — se
+//     cierra y se manda a Inicio. Si no había sesión, no se fuerza
 //     ninguna navegación, para que un enlace público (ej. el registro de
 //     una institución) siga funcionando normal.
 //
@@ -36,9 +36,10 @@
 // cierre la pestaña sin cerrar sesión deja la cuenta abierta durante esa
 // ventana — por eso la ventana es acotada y fácil de ajustar.
 //
-// Sin ventana para psicólogo, superadmin y jefe/a de centro (pedido del
-// cliente, oct. 2026; el jefe/a se sumó con su rol, porque ve a todo el
-// equipo y a las personas de su centro): esas cuentas manejan información
+// Sin ventana para psicólogo, superadmin, jefe/a de centro y docente
+// supervisora (pedido del cliente, oct. 2026; el jefe/a y la supervisora
+// se sumaron con su rol, porque ven a las personas atendidas y el trabajo
+// de otras cuentas): esas cuentas manejan información
 // de otras personas y trabajan desde equipos que pueden ser compartidos,
 // así que para ellas NO existe la
 // reanudación: si la pestaña se cerró y se volvió a abrir, la sesión se
@@ -52,8 +53,9 @@
 //
 // Complemento: el cierre por inactividad (autenticacion/hooks/
 // useCierrePorInactividad.js) acota además cuánto puede estar sin uso
-// cualquier sesión — 15 min psicólogo/superadmin/docente/jefe de centro,
-// 30 min estudiante/persona particular. Ese cierre también corre al volver a
+// cualquier sesión — 15 min psicólogo/superadmin/docente/jefe de centro/
+// docente supervisora, 30 min estudiante/persona particular. Ese cierre
+// también corre al volver a
 // abrir la app (usa su propia marca de interacción, no la de este
 // archivo), así que en la práctica la reanudación de los roles que la
 // conservan dura como máximo ese límite, no las 2 horas completas.
@@ -95,7 +97,7 @@ const VENTANA_REANUDACION_MS = 2 * 60 * 60 * 1000;
 // Roles a los que NO se les aplica la ventana de reanudación: al volver a
 // abrir la pestaña, su sesión se cierra siempre. Agregar o quitar un rol
 // acá basta para cambiarlo (los nombres son los de `usuarios.rol`).
-const ROLES_SIN_REANUDACION = ['psicologo', 'superadmin', 'jefe_centro'];
+const ROLES_SIN_REANUDACION = ['psicologo', 'superadmin', 'jefe_centro', 'docente_supervisora'];
 
 // Mientras la persona toca o desplaza la pantalla, la hora se actualiza
 // como máximo una vez por este intervalo — para no escribir en

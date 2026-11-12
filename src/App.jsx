@@ -5,8 +5,9 @@
 //
 // Capas de protección alrededor de <Routes>:
 //   - CierrePorInactividad: cierra la sesión de quien dejó de usar la
-//     plataforma (15 min psicólogo/superadmin/docente/jefe de centro, 30
-//     min estudiante/persona particular). Se monta FUERA de GuardianDeSesion a propósito:
+//     plataforma (15 min psicólogo/superadmin/docente/jefe de centro/
+//     docente supervisora, 30 min estudiante/persona particular). Se
+//     monta FUERA de GuardianDeSesion a propósito:
 //     ese guardián no muestra a sus hijos hasta terminar su verificación
 //     inicial, y este debe estar activo desde el primer momento para
 //     enterarse también de los cierres que ese guardián hace al abrir.
@@ -20,7 +21,7 @@
 //     hay sesión activa, redirige lejos de ellas.
 //   - RutaProtegida: pantallas privadas; exige un `rolRequerido` exacto
 //     (paciente / psicologo / superadmin / docente / persona_particular /
-//     jefe_centro) o redirige.
+//     jefe_centro / docente_supervisora) o redirige.
 //
 // Persona Particular (sprint "Persona Particular"): usa rutas propias
 // (/registro-particular, /login-particular, /encuesta-particular)
@@ -36,7 +37,15 @@
 // propia que reutiliza la misma página InformePersonaParticular con otro
 // título y otro link de "Volver" (el psicólogo y el jefe/a no comparten
 // rutas porque RutaProtegida exige un rol exacto por ruta).
-import { Routes, Route } from 'react-router-dom';
+//
+// Docente Supervisora (rol docente_supervisora, cuenta única): su panel es
+// /supervision-pasantias (lista de pasantes) y /supervision-pasantias/
+// pasante/:idPasante (detalle y calificación). Para abrir el informe de una
+// persona reutiliza las mismas páginas del psicólogo (InformePersonaParticular
+// e InformeConsolidado) con su propio título, sin exportar a Excel y con un
+// "Volver" que regresa a la pasante que se estaba revisando — por eso la
+// ruta lleva :idPasante y se usan los dos envoltorios de más abajo.
+import { Routes, Route, useParams } from 'react-router-dom';
 
 // --- MÓDULOS ---
 // Autenticación
@@ -68,6 +77,8 @@ import PanelMaestro from './modules/instituciones/pages/PanelMaestro';
 import PanelConsolidadoSuperadmin from './modules/dashboard_clinico/pages/PanelConsolidadoSuperadmin';
 // Casos de Docente (SCRUM-51)
 import { RegistroCasoDocente } from './modules/casos_docente';
+// Supervisión de pasantías (Docente Supervisora)
+import { PanelSupervisora, DetallePasante } from './modules/supervision_pasantias';
 // --- CORE ---
 import RutaProtegida from './core/security/RutaProtegida';
 import RutaPublica from './core/security/RutaPublica';
@@ -75,6 +86,35 @@ import GuardianDeSesion from './core/security/GuardianDeSesion';
 // --- SHARED ---
 // Fallback de enrutamiento (no pertenece a ningún módulo de negocio)
 import NoEncontrado from './shared/pages/NoEncontrado';
+
+// Envoltorios de los informes individuales que abre la Docente Supervisora.
+// Viven acá (y no en su módulo) porque reutilizan páginas de
+// `dashboard_clinico`, y App.jsx es el único lugar autorizado a juntar
+// módulos. Leen :idPasante de la ruta solo para armar el link de "Volver".
+const TITULO_BARRA_SUPERVISORA = 'Supervisión de Pasantías (Docente Supervisora)';
+
+function InformeParticularSupervisora() {
+  const { idPasante } = useParams();
+  return (
+    <InformePersonaParticular
+      tituloBarra={TITULO_BARRA_SUPERVISORA}
+      rutaVolver={`/supervision-pasantias/pasante/${encodeURIComponent(idPasante)}`}
+      textoVolver="← Volver a la pasante"
+    />
+  );
+}
+
+function InformeEstudianteSupervisora() {
+  const { idPasante } = useParams();
+  return (
+    <InformeConsolidado
+      tituloBarra={TITULO_BARRA_SUPERVISORA}
+      rutaVolver={`/supervision-pasantias/pasante/${encodeURIComponent(idPasante)}`}
+      textoVolver="← Volver a la pasante"
+      permitirExportar={false}
+    />
+  );
+}
 
 function App() {
   return (
@@ -239,6 +279,43 @@ function App() {
                 <RegistroCasoDocente />
               </RutaProtegida>
             } 
+          />
+
+          {/* Panel de la Docente Supervisora (cuenta única): lista de
+              pasantes, detalle con calificación y los dos informes
+              individuales (persona particular / estudiante) en modo
+              solo lectura. */}
+          <Route
+            path="/supervision-pasantias"
+            element={
+              <RutaProtegida rolRequerido="docente_supervisora">
+                <PanelSupervisora />
+              </RutaProtegida>
+            }
+          />
+          <Route
+            path="/supervision-pasantias/pasante/:idPasante"
+            element={
+              <RutaProtegida rolRequerido="docente_supervisora">
+                <DetallePasante />
+              </RutaProtegida>
+            }
+          />
+          <Route
+            path="/supervision-pasantias/pasante/:idPasante/informe-particular/:idPersona"
+            element={
+              <RutaProtegida rolRequerido="docente_supervisora">
+                <InformeParticularSupervisora />
+              </RutaProtegida>
+            }
+          />
+          <Route
+            path="/supervision-pasantias/pasante/:idPasante/informe/:idPaciente"
+            element={
+              <RutaProtegida rolRequerido="docente_supervisora">
+                <InformeEstudianteSupervisora />
+              </RutaProtegida>
+            }
           />
 
           {/* Comodín: cualquier URL que no coincida con ninguna ruta de
